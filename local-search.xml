@@ -4,6 +4,378 @@
   
   
   <entry>
+    <title>Zigbee 基础概念：从无线帧到 Endpoint 与 Cluster</title>
+    <link href="/posts/zigbee-foundations/"/>
+    <url>/posts/zigbee-foundations/</url>
+    
+    <content type="html"><![CDATA[<p>理解 Zigbee 最有效的方法，不是先背命令，而是把“无线、组网、传输、设备管理、应用功能”分层。这样看日志或抓包时，才能知道一条成功信息究竟证明了哪一步。</p><span id="more"></span><h2 id="协议栈分层"><a href="#协议栈分层" class="headerlink" title="协议栈分层"></a>协议栈分层</h2><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs text">应用逻辑<br>  │<br>ZCL：Cluster、Attribute、Command<br>  │<br>ZDO / ZDP：设备与服务发现、网络管理<br>  │<br>APS：应用数据传输、绑定、组寻址、应用层安全<br>  │<br>NWK：组网、路由、网络地址、网络层安全<br>  │<br>IEEE 802.15.4 MAC / PHY：信道、帧、确认、射频<br></code></pre></td></tr></table></figure><ul><li>IEEE 802.15.4 提供低速率无线链路；</li><li>NWK 负责 Zigbee Mesh 网络；</li><li>APS 把上层应用消息送到指定设备和 Endpoint；</li><li>ZDO&#x2F;ZDP 提供节点、Endpoint 和服务发现；</li><li>ZCL 定义设备功能的通用数据模型。</li></ul><p>因此，收到 MAC ACK 只说明链路层收到了帧，不代表 NWK 解密、APS 接受或 ZCL 命令处理成功。</p><h2 id="三种逻辑设备角色"><a href="#三种逻辑设备角色" class="headerlink" title="三种逻辑设备角色"></a>三种逻辑设备角色</h2><table><thead><tr><th>角色</th><th>主要职责</th><th>常见限制</th></tr></thead><tbody><tr><td>Coordinator</td><td>建立网络，通常也是集中式网络的 Trust Center</td><td>一个 Zigbee 网络只有一个 Coordinator</td></tr><tr><td>Router</td><td>转发报文并允许子设备接入</td><td>通常需要保持接收能力</td></tr><tr><td>End Device</td><td>通过父节点通信，不为其他节点路由</td><td>可设计成休眠设备</td></tr></tbody></table><p>Coordinator 是网络形成时的角色；网络形成后，Mesh 路由并不要求所有报文都经过它。Router 或 Coordinator 都可以成为 End Device 的父节点。</p><h2 id="地址、Endpoint-与设备功能"><a href="#地址、Endpoint-与设备功能" class="headerlink" title="地址、Endpoint 与设备功能"></a>地址、Endpoint 与设备功能</h2><p>一个 Zigbee 节点通常同时涉及：</p><ul><li>EUI-64：设备的全局扩展地址；</li><li>16 位 NWK 地址：加入网络后使用的短地址，可能变化；</li><li>PAN ID &#x2F; Extended PAN ID：识别网络；</li><li>Endpoint：节点内部的应用端点；</li><li>Profile ID 与 Device ID：声明应用配置和设备类型；</li><li>Cluster：Endpoint 提供或使用的标准功能。</li></ul><p>排障时不要把短地址当作永久身份。跨重启、离网重入或地址冲突处理后，应使用 EUI-64、时间线和设备公告重新确认节点。</p><h2 id="Cluster、Attribute-与-Command"><a href="#Cluster、Attribute-与-Command" class="headerlink" title="Cluster、Attribute 与 Command"></a>Cluster、Attribute 与 Command</h2><p>ZCL 把设备能力拆成 Cluster：</p><ul><li>Server 保存状态、提供属性或接收命令；</li><li>Client 发起命令或消费 Server 产生的信息；</li><li>Attribute 表示状态或配置；</li><li>Command 表示一次操作或协议动作；</li><li>Reporting 让属性按配置主动上报。</li></ul><p>同一个 Cluster ID 的 Server 和 Client 是两个方向，不能因为 Endpoint 列出了 Cluster 就认为双向能力都存在。</p><h2 id="单播、广播、组播与绑定"><a href="#单播、广播、组播与绑定" class="headerlink" title="单播、广播、组播与绑定"></a>单播、广播、组播与绑定</h2><ul><li>单播：发送给一个目标节点；</li><li>广播：发送给一类或全部节点，成本较高；</li><li>组播：发送给 Group ID 对应的一组 Endpoint；</li><li>Binding：在源 Endpoint 中保存逻辑目标，使应用不必每次指定完整目的地址。</li></ul><p>广播不是“更可靠的单播”。它会增加全网负载，且不同广播范围、重试和确认语义并不相同。</p><h2 id="一条应用消息经过什么"><a href="#一条应用消息经过什么" class="headerlink" title="一条应用消息经过什么"></a>一条应用消息经过什么</h2><p>以属性上报为例：</p><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs text">传感器状态变化<br>  -&gt; ZCL 生成 Report Attributes<br>  -&gt; APS 选择目的 Endpoint、绑定或地址<br>  -&gt; NWK 选择下一跳并进行网络层保护<br>  -&gt; MAC 在当前信道发送<br>  -&gt; 目标逐层解密、分发并处理<br></code></pre></td></tr></table></figure><p>每一层都有独立失败点。可靠分析应记录：</p><ol><li>应用是否生成消息；</li><li>APS 是否接受发送请求；</li><li>NWK 是否找到路由；</li><li>MAC 是否发出并收到确认；</li><li>对端是否通过安全校验；</li><li>对端 Endpoint 与 Cluster 是否接受；</li><li>应用状态是否真正改变。</li></ol><h2 id="规范边界"><a href="#规范边界" class="headerlink" title="规范边界"></a>规范边界</h2><p>Zigbee 仍在演进。学习基础概念可以使用公开资料，但实现和认证必须冻结对应的 Zigbee Core、BDB、ZCL、Device Type Library、Errata、PICS 和测试规范，不能把不同 Revision 的要求拼在一起。</p><p>可从 <a href="https://csa-iot.org/all-solutions/zigbee/">Zigbee 官方概览</a>、<a href="https://csa-iot.org/all-solutions/zigbee/zigbee-faq/">Zigbee FAQ</a> 和 <a href="https://csa-iot.org/developer-resource/specifications-download-request/">CSA 规范下载入口</a>继续阅读。</p>]]></content>
+    
+    
+    <categories>
+      
+      <category>无线协议</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>Zigbee</tag>
+      
+      <tag>IEEE 802.15.4</tag>
+      
+      <tag>ZCL</tag>
+      
+      <tag>Mesh</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>Zigbee 入网流程：从 Network Steering 到可用设备</title>
+    <link href="/posts/zigbee-network-joining-flow/"/>
+    <url>/posts/zigbee-network-joining-flow/</url>
+    
+    <content type="html"><![CDATA[<p>“设备已经入网”经常被过早下结论。扫描到网络、拿到短地址、收到 Network Key、完成 Trust Center Link Key 交换和网关识别出应用能力，是不同阶段。</p><span id="more"></span><h2 id="先区分三条路径"><a href="#先区分三条路径" class="headerlink" title="先区分三条路径"></a>先区分三条路径</h2><ul><li>首次加入：Factory New 设备通过 Network Steering 寻找允许加入的网络；</li><li>Rejoin：设备保留网络信息后重新连接，流程和安全条件不同；</li><li>Touchlink：近距离发现和引导入网的另一套 commissioning 方法。</li></ul><p>本文讨论经典的首次 Network Steering。实际实现应以目标 BDB、Zigbee Core 和安全策略版本为准。</p><h2 id="阶段一：打开网络与扫描"><a href="#阶段一：打开网络与扫描" class="headerlink" title="阶段一：打开网络与扫描"></a>阶段一：打开网络与扫描</h2><p>网络侧进入 Permit Join 状态。待入网设备在配置的主信道集扫描 Beacon，必要时再扫描次信道集，并根据网络容量、信号和安全信息选择候选网络。</p><p>这一阶段的成功锚点是：</p><ul><li>找到目标 PAN；</li><li>目标网络允许加入；</li><li>设备选择了预期信道与 Extended PAN ID。</li></ul><p>只看到 Beacon 不能证明设备已经发起关联。</p><h2 id="阶段二：关联并获得网络地址"><a href="#阶段二：关联并获得网络地址" class="headerlink" title="阶段二：关联并获得网络地址"></a>阶段二：关联并获得网络地址</h2><p>设备向父节点候选发起关联，父节点返回状态和 16 位网络地址。此后设备具备拓扑位置，但还不代表已经拿到可用的安全材料。</p><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">Scan<br>  -&gt; Select network<br>  -&gt; Association Request<br>  -&gt; Association Response<br>  -&gt; Short address assigned<br></code></pre></td></tr></table></figure><p>MAC 层关联成功只证明链路和父子关系初步建立。</p><h2 id="阶段三：安全准入与-Network-Key"><a href="#阶段三：安全准入与-Network-Key" class="headerlink" title="阶段三：安全准入与 Network Key"></a>阶段三：安全准入与 Network Key</h2><p>集中式安全网络中，Trust Center 决定设备是否被接纳，并通过受保护的密钥传输把 Network Key 交给新设备。设备必须：</p><ol><li>接收到正确的 Transport Key；</li><li>使用匹配的预配置或 install-code 派生 Link Key 验证并解密；</li><li>安装正确的 Network Key 及其序列号；</li><li>启动受保护的 NWK 通信。</li></ol><p>所以“Transport Key 已发出”不等于“设备已安装 Network Key”。决定性证据在接收端的 APS 安全处理和密钥安装结果。</p><h2 id="阶段四：设备公告与-Trust-Center-Link-Key"><a href="#阶段四：设备公告与-Trust-Center-Link-Key" class="headerlink" title="阶段四：设备公告与 Trust Center Link Key"></a>阶段四：设备公告与 Trust Center Link Key</h2><p>设备通常会发送 Device Announcement，让网络获知其地址映射。根据 BDB 版本和 Trust Center 策略，后续还可能执行 Trust Center Link Key 的更新或交换。</p><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">Network Key installed<br>  -&gt; secure network communication<br>  -&gt; Device Announcement<br>  -&gt; Trust Center Link Key procedure<br>  -&gt; commissioning complete<br></code></pre></td></tr></table></figure><p>如果日志显示网络层通信已经成功，但 BDB 最终报告 Trust Center Link Key 交换失败，就不应把问题归回“没有收到 Network Key”。</p><h2 id="阶段五：应用发现"><a href="#阶段五：应用发现" class="headerlink" title="阶段五：应用发现"></a>阶段五：应用发现</h2><p>网络接入完成后，控制端通常还会：</p><ul><li>查询 Node Descriptor；</li><li>查询 Active Endpoints；</li><li>读取 Simple Descriptor；</li><li>读取 Basic 属性；</li><li>配置 Reporting；</li><li>建立 Binding 或执行专用 Cluster 初始化。</li></ul><p>设备在网络里可达，不等于已经被生态完整识别。应用发现失败应与基础入网失败分开记录。</p><h2 id="推荐排障时间线"><a href="#推荐排障时间线" class="headerlink" title="推荐排障时间线"></a>推荐排障时间线</h2><table><thead><tr><th>阶段</th><th>最小成功证据</th><th>常见误判</th></tr></thead><tbody><tr><td>扫描</td><td>选择目标网络</td><td>把看到 Beacon 当作入网</td></tr><tr><td>关联</td><td>成功状态与短地址</td><td>把 MAC ACK 当作安全成功</td></tr><tr><td>密钥传输</td><td>接收端安装 Network Key</td><td>只看发送端“delivered”</td></tr><tr><td>安全通信</td><td>能发送并接收受保护 NWK 帧</td><td>不检查 frame counter 与 key sequence</td></tr><tr><td>TCLK</td><td>BDB 明确完成</td><td>把 Network Key 成功等同 TCLK 成功</td></tr><tr><td>应用发现</td><td>Endpoint、Cluster、属性交互完成</td><td>把可 ping 或可寻址当作设备可用</td></tr></tbody></table><h2 id="抓包与日志怎么对齐"><a href="#抓包与日志怎么对齐" class="headerlink" title="抓包与日志怎么对齐"></a>抓包与日志怎么对齐</h2><p>记录统一时间基准，并同时保留：</p><ul><li>设备串口日志；</li><li>Coordinator &#x2F; Trust Center 日志；</li><li>802.15.4 抓包；</li><li>测试工具或网关事件；</li><li>固件版本和本次安全策略。</li></ul><p>密钥、install code、地址和抓包解密材料只应在授权的本地环境使用，不应复制到公开问题单或文章。</p><p>规范入口可参考 <a href="https://csa-iot.org/developer-resource/specifications-download-request/">CSA Zigbee 规范下载页</a>；认证自测还应使用目标版本的 BDB PICS 和正式测试规范。</p>]]></content>
+    
+    
+    <categories>
+      
+      <category>无线协议</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>Commissioning</tag>
+      
+      <tag>Zigbee</tag>
+      
+      <tag>BDB</tag>
+      
+      <tag>问题排查</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>Zigbee 各类 Key 的作用范围：不要把 Network Key 和 Link Key 混为一谈</title>
+    <link href="/posts/zigbee-security-key-scope/"/>
+    <url>/posts/zigbee-security-key-scope/</url>
+    
+    <content type="html"><![CDATA[<p>Zigbee 排障中最常见的安全误区，是把所有 128-bit Key 都理解成同一种东西。Key 的长度相同，不代表作用层、通信对象、生命周期和泄露影响相同。</p><span id="more"></span><h2 id="一张作用域表"><a href="#一张作用域表" class="headerlink" title="一张作用域表"></a>一张作用域表</h2><table><thead><tr><th>Key</th><th>典型持有者</th><th>保护范围</th><th>主要用途</th></tr></thead><tbody><tr><td>Network Key</td><td>网络内节点</td><td>整个 Zigbee 网络的 NWK 层</td><td>日常网络层帧保护</td></tr><tr><td>Trust Center Link Key</td><td>单个设备与 Trust Center</td><td>两个节点之间的 APS 层</td><td>安全管理、密钥传输与认证</td></tr><tr><td>Install-code 派生 Key</td><td>新设备与 Trust Center</td><td>初次准入阶段</td><td>为设备提供唯一的初始信任</td></tr><tr><td>Application Link Key</td><td>两个应用节点</td><td>端到端 APS 层</td><td>保护特定设备间应用通信</td></tr><tr><td>Touchlink commissioning Key</td><td>支持 Touchlink 的设备</td><td>Touchlink 入网阶段</td><td>保护网络参数传输</td></tr><tr><td>Green Power Key</td><td>Green Power 角色</td><td>Green Power 子系统</td><td>保护对应的精简设备通信</td></tr></tbody></table><p>表格描述的是概念边界。具体必选能力和密钥派生方法必须回到目标 Zigbee Core、BDB、ZCL、Green Power 与安全策略版本确认。</p><h2 id="Network-Key"><a href="#Network-Key" class="headerlink" title="Network Key"></a>Network Key</h2><p>Network Key 是网络范围的共享密钥，主要用于 NWK 层的机密性、完整性和重放保护。它让节点能够参与正常 Zigbee 网络通信。</p><p>要点：</p><ul><li>同一时刻会有活动 Key Sequence；</li><li>网络可以执行 Network Key Update 和 Switch；</li><li>拿到 Network Key 不等于拥有与 Trust Center 的唯一信任关系；</li><li>Network Key 泄露的影响通常覆盖整个网络。</li></ul><p>抓包能用 Network Key 解密 NWK 帧，也不代表内部 APS 负载一定能继续解密。</p><h2 id="Trust-Center-Link-Key"><a href="#Trust-Center-Link-Key" class="headerlink" title="Trust Center Link Key"></a>Trust Center Link Key</h2><p>Trust Center Link Key 是设备与 Trust Center 之间的 APS Link Key，用于安全管理和特定 APS 加密流程。</p><p>它可能经历：</p><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs text">初始 bootstrap key<br>  -&gt; 安全加入<br>  -&gt; Trust Center Link Key 更新或交换<br>  -&gt; 唯一设备级 TCLK<br></code></pre></td></tr></table></figure><p>具体路径由 BDB 版本、设备能力和 Trust Center 策略决定。调试时要分开记录“初始 Key 可用”和“最终 TCLK 交换完成”。</p><h2 id="Install-code-的位置"><a href="#Install-code-的位置" class="headerlink" title="Install code 的位置"></a>Install code 的位置</h2><p>Install code 本身不是日常 NWK 通信使用的 Network Key。它经过规范定义的处理后，形成设备唯一的初始 Link Key，用于安全加入。</p><p>它改善了共享 bootstrap key 的风险，但同时要求：</p><ul><li>生产、标签或扫码数据正确绑定到设备；</li><li>Trust Center 预先获得匹配信息；</li><li>长度、校验和、字节序与派生过程一致；</li><li>测试数据不能进入量产。</li></ul><p>任何 install code、派生 Key 或二维码内容都不应出现在公开日志中。</p><h2 id="Application-Link-Key"><a href="#Application-Link-Key" class="headerlink" title="Application Link Key"></a>Application Link Key</h2><p>Application Link Key 用于两个应用节点之间的端到端 APS 安全。它不能替代 Network Key，因为 Zigbee 路由仍依赖受保护的 NWK 层；它也不应被笼统称为 TCLK，因为通信对端可能不是 Trust Center。</p><p>分析加密帧时可按顺序判断：</p><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs text">MAC frame<br>  -&gt; NWK security：Network Key<br>  -&gt; APS security：对应 Link Key<br>  -&gt; ZCL payload<br></code></pre></td></tr></table></figure><h2 id="全局-bootstrap-key-为什么要谨慎"><a href="#全局-bootstrap-key-为什么要谨慎" class="headerlink" title="全局 bootstrap key 为什么要谨慎"></a>全局 bootstrap key 为什么要谨慎</h2><p>某些兼容路径使用规范定义的全局共享初始 Link Key。因为它不是每台设备唯一的秘密，安全强度依赖后续策略，例如尽快升级到唯一 TCLK、限制 Permit Join 时间和执行设备鉴权。</p><p>公开文章无需、也不应抄写这个 Key 的实际值。知道“它是共享 bootstrap 材料”已经足够用于设计和排障。</p><h2 id="Touchlink-与-Green-Power-不要混入普通路径"><a href="#Touchlink-与-Green-Power-不要混入普通路径" class="headerlink" title="Touchlink 与 Green Power 不要混入普通路径"></a>Touchlink 与 Green Power 不要混入普通路径</h2><p>Touchlink commissioning Key 服务于 Touchlink 的网络参数交换；Green Power 还有自己的共享、组或单设备安全材料。它们不应被当成普通 Zigbee 设备的 Network Key 或 TCLK。</p><h2 id="排障时至少记录什么"><a href="#排障时至少记录什么" class="headerlink" title="排障时至少记录什么"></a>排障时至少记录什么</h2><p>不要记录 Key 内容，而是记录元数据：</p><ul><li>安全层：NWK 还是 APS；</li><li>Key 类型和逻辑槽位；</li><li>Key Sequence；</li><li>对端角色；</li><li>frame counter 是否前进；</li><li>解密、MIC 验证和重放检查结果；</li><li>Key 安装、更新、切换或删除事件。</li></ul><p>“发送成功”只能证明本端协议栈接收了请求或下层完成传输；只有对端安全层验证通过，才能证明使用了匹配的 Key。</p><p>可从 <a href="https://csa-iot.org/developer-resource/specifications-download-request/">Zigbee 官方规范入口</a>获取当前公开规范。认证或量产策略必须再与芯片平台安全指南及实验室冻结版本核对。</p>]]></content>
+    
+    
+    <categories>
+      
+      <category>无线协议</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>Zigbee</tag>
+      
+      <tag>Security</tag>
+      
+      <tag>Network Key</tag>
+      
+      <tag>Link Key</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>Zigbee 集中式网络与分布式网络：差异主要在信任模型</title>
+    <link href="/posts/zigbee-centralized-distributed-networks/"/>
+    <url>/posts/zigbee-centralized-distributed-networks/</url>
+    
+    <content type="html"><![CDATA[<p>“集中式”和“分布式”首先描述安全与网络管理模型，不是简单描述数据包是否经过 Coordinator。集中式 Zigbee 网络同样可以由 Router 之间直接多跳转发。</p><span id="more"></span><h2 id="核心对比"><a href="#核心对比" class="headerlink" title="核心对比"></a>核心对比</h2><table><thead><tr><th>维度</th><th>集中式安全网络</th><th>分布式安全网络</th></tr></thead><tbody><tr><td>信任中心</td><td>有 Trust Center</td><td>没有中央 Trust Center</td></tr><tr><td>准入决策</td><td>由 Trust Center 控制</td><td>由分布式网络规则协同</td></tr><tr><td>Link Key</td><td>可建立设备唯一 TCLK</td><td>不依赖中央 TCLK 模型</td></tr><tr><td>网络管理</td><td>关键安全策略集中</td><td>形成和管理更分散</td></tr><tr><td>常见场景</td><td>网关型生态、统一管理</td><td>特定照明或去中心化场景</td></tr></tbody></table><p>这只是概念表。允许的设备类型、加入方式、密钥交换和兼容条件随 Zigbee&#x2F;BDB 版本变化，认证时必须看冻结规范。</p><h2 id="集中式网络"><a href="#集中式网络" class="headerlink" title="集中式网络"></a>集中式网络</h2><p>集中式网络通常由 Coordinator 建网并承担 Trust Center 角色。Trust Center 负责：</p><ul><li>决定是否允许新设备加入；</li><li>管理初始信任与设备鉴权；</li><li>传输或更新 Network Key；</li><li>管理设备级 Trust Center Link Key；</li><li>移除不再可信的设备。</li></ul><p>路由仍由 Mesh 完成。设备 A 到设备 B 的正常业务帧不必每次穿过 Trust Center。</p><h2 id="分布式网络"><a href="#分布式网络" class="headerlink" title="分布式网络"></a>分布式网络</h2><p>分布式网络没有一个持续承担中央信任决策的 Trust Center。形成网络、扩展网络和安全管理依赖分布式规则及共享的安全基础。</p><p>它减少了对中央角色的依赖，但不代表：</p><ul><li>没有 Network Key；</li><li>没有加密和重放保护；</li><li>任意设备都可无条件加入；</li><li>与集中式设备天然完全兼容。</li></ul><p>分布式是另一套受规范约束的安全模型，不是“关闭安全”。</p><h2 id="Coordinator、Trust-Center-与-Router-的关系"><a href="#Coordinator、Trust-Center-与-Router-的关系" class="headerlink" title="Coordinator、Trust Center 与 Router 的关系"></a>Coordinator、Trust Center 与 Router 的关系</h2><p>三个概念容易混淆：</p><ul><li>Coordinator：形成 PAN 的逻辑设备；</li><li>Trust Center：集中式安全网络中的信任管理角色；</li><li>Router：参与 Mesh 路由并可能允许子节点关联。</li></ul><p>集中式网络中 Coordinator 通常兼任 Trust Center，但这不等于它是所有应用报文的中心转发器。</p><h2 id="选择时看什么"><a href="#选择时看什么" class="headerlink" title="选择时看什么"></a>选择时看什么</h2><ol><li>目标生态是否要求中央 Trust Center；</li><li>是否需要 install code 和设备唯一 TCLK；</li><li>目标设备及历史 Profile 是否支持该网络类型；</li><li>是否需要 Touchlink；</li><li>网络形成、备份、迁移与恢复策略；</li><li>对失窃节点、共享 bootstrap 材料和密钥轮换的风险接受度；</li><li>对应认证计划和 PICS 允许什么。</li></ol><p>不要只因为“想避免单点故障”就选择分布式网络。集中式安全角色与 Mesh 数据路径是不同问题；Zigbee Router 的多路径转发仍可提供网络韧性。</p><h2 id="抓包如何识别"><a href="#抓包如何识别" class="headerlink" title="抓包如何识别"></a>抓包如何识别</h2><p>单靠一帧普通 NWK 数据通常不足以判断网络模型。应结合：</p><ul><li>网络形成日志；</li><li>Trust Center 地址与策略；</li><li>Beacon 或网络安全相关信息；</li><li>加入时的密钥传输路径；</li><li>TCLK 交换行为；</li><li>BDB 配置与 PICS。</li></ul><h2 id="版本与兼容边界"><a href="#版本与兼容边界" class="headerlink" title="版本与兼容边界"></a>版本与兼容边界</h2><p>旧的 Zigbee Light Link、Home Automation 与 Zigbee 3.x&#x2F;4.x 之间存在特定兼容规则，不能用“都是 Zigbee”代替逐项核对。CSA 的 <a href="https://csa-iot.org/wp-content/uploads/2021/12/04-2017-Interoperability-ORIGINAL-White-Paper-Final-Musa-and-Shashank-1.pdf">互操作白皮书</a>可帮助理解历史关系；当前实现仍应以 <a href="https://csa-iot.org/developer-resource/specifications-download-request/">CSA 规范下载入口</a>和认证实验室确认的版本为准。</p>]]></content>
+    
+    
+    <categories>
+      
+      <category>无线协议</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>Zigbee</tag>
+      
+      <tag>Trust Center</tag>
+      
+      <tag>集中式网络</tag>
+      
+      <tag>分布式网络</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>Zigbee Touchlink 流程：近距离发现、识别与入网</title>
+    <link href="/posts/zigbee-touchlink-commissioning/"/>
+    <url>/posts/zigbee-touchlink-commissioning/</url>
+    
+    <content type="html"><![CDATA[<p>Touchlink 是 Zigbee 的一种近距离 commissioning 机制，最初广泛用于照明设备。它不是普通的 Network Steering，也不是“按键后信号强就自动入网”这么简单。</p><span id="more"></span><h2 id="两个角色"><a href="#两个角色" class="headerlink" title="两个角色"></a>两个角色</h2><ul><li>Initiator：发起 Touchlink 的控制设备；</li><li>Target：被发现、识别、复位或加入网络的设备。</li></ul><p>两者通过 Touchlink Commissioning Cluster 交互。是否支持某条命令、某种设备角色和网络类型，应由目标版本的 PICS 决定。</p><h2 id="高层流程"><a href="#高层流程" class="headerlink" title="高层流程"></a>高层流程</h2><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs text">Initiator 扫描信道<br>  -&gt; Scan Request<br>  &lt;- Scan Response<br>  -&gt; 根据距离、能力和状态选择 Target<br>  -&gt; 可选 Identify / Device Information<br>  -&gt; Network Start 或 Network Join<br>  -&gt; 受保护地传输网络参数<br>  -&gt; Target 切换信道并启动网络<br>  -&gt; 后续应用发现与配置<br></code></pre></td></tr></table></figure><p>Touchlink 还可能提供 Reset to Factory New 等管理动作，因此触发条件和物理在场约束非常重要。</p><h2 id="扫描与“近距离”判断"><a href="#扫描与“近距离”判断" class="headerlink" title="扫描与“近距离”判断"></a>扫描与“近距离”判断</h2><p>Initiator 会在规定信道上发送扫描请求，Target 返回能力、网络状态等信息。实现通常根据接收信号强度或协议定义的 proximity 条件筛选目标。</p><p>RSSI 只是一项输入：</p><ul><li>不同硬件的接收链路和校准不同；</li><li>环境反射会造成波动；</li><li>强信号不等于身份可信；</li><li>过宽阈值可能误选附近其他设备。</li></ul><p>因此还应结合用户动作、设备状态、响应事务标识和超时窗口。</p><h2 id="Identify-不是入网"><a href="#Identify-不是入网" class="headerlink" title="Identify 不是入网"></a>Identify 不是入网</h2><p>Identify 让用户确认正在操作哪台设备，例如闪灯或执行可见动作。它不表示网络参数已经写入，也不表示 Target 已完成加入。</p><p>推荐成功锚点：</p><ol><li>Scan Response 匹配当前事务；</li><li>选择了唯一目标；</li><li>Identify 行为可被用户确认；</li><li>Network Start&#x2F;Join 响应成功；</li><li>Target 在目标信道启动；</li><li>后续受保护 Zigbee 通信成功。</li></ol><h2 id="网络参数传输"><a href="#网络参数传输" class="headerlink" title="网络参数传输"></a>网络参数传输</h2><p>Touchlink 使用专门的 commissioning 安全过程保护 Network Key 等网络参数。其 commissioning Key 只服务于这一阶段，不应与日常 NWK 使用的 Network Key 混淆。</p><p>公开日志中不应输出：</p><ul><li>commissioning Key；</li><li>Network Key；</li><li>未脱敏的设备唯一地址；</li><li>可用于复现实网加入的数据。</li></ul><h2 id="与经典加入的区别"><a href="#与经典加入的区别" class="headerlink" title="与经典加入的区别"></a>与经典加入的区别</h2><table><thead><tr><th>项目</th><th>Touchlink</th><th>Network Steering</th></tr></thead><tbody><tr><td>发现方式</td><td>主动近距离扫描目标</td><td>扫描允许加入的网络</td></tr><tr><td>主要角色</td><td>Initiator &#x2F; Target</td><td>Trust Center、父节点、Joiner</td></tr><tr><td>典型触发</td><td>用户近距离操作</td><td>设备进入入网模式</td></tr><tr><td>安全路径</td><td>Touchlink commissioning 安全</td><td>BDB 加入与 Link Key 策略</td></tr><tr><td>后续结果</td><td>建网、加入或管理动作</td><td>加入现有网络</td></tr></tbody></table><p>Touchlink 成功后仍需要正常 Zigbee 网络和应用层交互；它不是独立的日常通信协议。</p><h2 id="常见失败分类"><a href="#常见失败分类" class="headerlink" title="常见失败分类"></a>常见失败分类</h2><ul><li>扫描不到：信道集、时序、角色能力或距离门限；</li><li>响应被丢弃：事务标识、重复帧或状态不匹配；</li><li>Identify 成功但 Join 失败：网络状态、目标角色或安全参数；</li><li>参数写入后未启动：信道切换、持久化或状态机；</li><li>入网后不可用：Endpoint 发现、Cluster、binding 或 reporting；</li><li>Reset 行为异常：Factory New 判定和持久化清理不完整。</li></ul><h2 id="规范边界"><a href="#规范边界" class="headerlink" title="规范边界"></a>规范边界</h2><p>旧 ZCL 中可以找到 Touchlink Commissioning Cluster，但认证实现不能只照抄旧章节。应同时冻结目标 Zigbee Core、BDB、ZCL、PICS、Errata 和测试用例，并确认当前认证计划是否接受所选 Touchlink 能力。</p><p>公开入口包括 <a href="https://csa-iot.org/developer-resource/specifications-download-request/">CSA Zigbee 规范下载页</a>与 <a href="https://csa-iot.org/certification/tools/">Zigbee 认证工具页</a>。</p>]]></content>
+    
+    
+    <categories>
+      
+      <category>无线协议</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>Commissioning</tag>
+      
+      <tag>Zigbee</tag>
+      
+      <tag>ZCL</tag>
+      
+      <tag>Touchlink</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>Zigbee 3.0 认证自测：从版本冻结到证据包</title>
+    <link href="/posts/zigbee-3-certification-self-test/"/>
+    <url>/posts/zigbee-3-certification-self-test/</url>
+    
+    <content type="html"><![CDATA[<p>认证自测的目标不是证明“功能大致能用”，而是在送测前尽量复现正式测试的输入、声明、环境和判定方式，提前找出会阻断认证的问题。</p><span id="more"></span><h2 id="第一步不是运行工具"><a href="#第一步不是运行工具" class="headerlink" title="第一步不是运行工具"></a>第一步不是运行工具</h2><p>先向 CSA 或授权实验室确认并冻结：</p><ul><li>认证计划和 Zigbee 版本；</li><li>Zigbee Core &#x2F; PRO、BDB、ZCL、Device Type Library；</li><li>Approved Errata；</li><li>PICS &#x2F; PIXIT 模板；</li><li>Test Specification 与测试用例版本；</li><li>ZUTH、脚本、dongle 和固件版本。</li></ul><p>“Zigbee 3.0”是一个过于宽泛的标签。公开工具可能同时保留多个 BDB、ZCL 和 PRO 输入；不能自行把最新版文档和旧测试脚本拼在一起。</p><h2 id="建立声明矩阵"><a href="#建立声明矩阵" class="headerlink" title="建立声明矩阵"></a>建立声明矩阵</h2><p>从每个 Endpoint 展开：</p><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs text">Profile ID / Device ID<br>  -&gt; Server / Client Cluster<br>  -&gt; Mandatory / Optional / Conditional<br>  -&gt; Attribute 类型、范围、默认值和权限<br>  -&gt; Reporting<br>  -&gt; Commands Received / Generated<br>  -&gt; PICS / PIXIT<br>  -&gt; 对应测试用例<br></code></pre></td></tr></table></figure><p>一旦实现了 Optional 能力，它通常也会进入声明和测试范围。为了减少测试，不应把已经对外可见的能力错误标成不支持。</p><h2 id="四层自测"><a href="#四层自测" class="headerlink" title="四层自测"></a>四层自测</h2><h3 id="静态核对"><a href="#静态核对" class="headerlink" title="静态核对"></a>静态核对</h3><ul><li>Simple Descriptor 与实际 Cluster 注册一致；</li><li>ClusterRevision 和 ZCLVersion 对应冻结版本；</li><li>属性类型、默认值、访问权限和范围正确；</li><li>接收与发送命令方向正确；</li><li>PICS 与固件能力一致；</li><li>认证配置确实进入最终镜像。</li></ul><h3 id="功能与状态机"><a href="#功能与状态机" class="headerlink" title="功能与状态机"></a>功能与状态机</h3><ul><li>标准读写、命令和 reporting；</li><li>默认响应与异常状态；</li><li>初始化、重启、掉电与恢复出厂；</li><li>入网、退网、rejoin、换父与丢网恢复；</li><li>binding、group、scene 等已声明能力；</li><li>OTA、低电量和持久化边界。</li></ul><h3 id="安全与-BDB"><a href="#安全与-BDB" class="headerlink" title="安全与 BDB"></a>安全与 BDB</h3><ul><li>Network Steering 和 Permit Join；</li><li>install-code 策略；</li><li>Network Key 安装、更新和切换；</li><li>Trust Center Link Key 流程；</li><li>frame counter 与重放拒绝；</li><li>集中式或分布式网络声明；</li><li>Touchlink 等可选 commissioning 能力。</li></ul><h3 id="正式工具预跑"><a href="#正式工具预跑" class="headerlink" title="正式工具预跑"></a>正式工具预跑</h3><p>CSA 的 ZUTH 是 Zigbee 正式认证测试工具，也向成员提供预认证测试能力。导入已审查的 PICS，运行所有被选择用例，并保留原始结果。</p><h2 id="Sleepy-End-Device-专项"><a href="#Sleepy-End-Device-专项" class="headerlink" title="Sleepy End Device 专项"></a>Sleepy End Device 专项</h2><p>低功耗设备常在正式测试中暴露时序问题：</p><ul><li>Poll Control 行为；</li><li>Fast Poll 窗口；</li><li>父节点缓存与间接传输；</li><li>reporting 延迟；</li><li>enrollment 或 commissioning 期间的接收窗口；</li><li>测试刺激与设备睡眠状态的同步。</li></ul><p>不要通过永久关闭休眠来“通过认证”，除非认证固件与量产行为差异得到明确允许并被记录。</p><h2 id="失败归类"><a href="#失败归类" class="headerlink" title="失败归类"></a>失败归类</h2><table><thead><tr><th>类别</th><th>例子</th><th>下一步证据</th></tr></thead><tbody><tr><td>声明错误</td><td>PICS 与 Endpoint 不一致</td><td>描述符、PICS、构建配置</td></tr><tr><td>协议错误</td><td>命令方向或状态码错误</td><td>空口与 DUT 日志</td></tr><tr><td>时序错误</td><td>超时、休眠错过命令</td><td>统一时间线、poll 日志</td></tr><tr><td>环境错误</td><td>dongle、脚本或版本不匹配</td><td>环境清单与工具日志</td></tr><tr><td>用例解释</td><td>前置条件理解不同</td><td>测试规范、实验室确认</td></tr></tbody></table><p>修复后要回归相关用例集合，不能只重跑最初失败的一步。</p><h2 id="自测证据包"><a href="#自测证据包" class="headerlink" title="自测证据包"></a>自测证据包</h2><p>每轮保存：</p><ul><li>固件版本、源码提交和构建哈希；</li><li>PICS &#x2F; PIXIT；</li><li>环境和工具版本；</li><li>测试用例列表；</li><li>原始 ZUTH 报告；</li><li>DUT、测试端与抓包日志；</li><li>失败分析、修复提交和回归结果；</li><li>尚未验证的限制。</li></ul><p>证据层级必须分开：</p><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs text">规范要求<br>  != PICS 声明<br>  != 静态实现<br>  != 设备运行通过<br>  != ZUTH 自测通过<br>  != 授权实验室通过<br>  != CSA 正式认证<br></code></pre></td></tr></table></figure><p>可从 <a href="https://csa-iot.org/certification/tools/">CSA 认证工具页</a>获取 PICS Tool 和 ZUTH 说明。当前版本和送测范围仍应由 <a href="https://csa-iot.org/certification/testing-providers/">授权测试机构</a>确认。</p>]]></content>
+    
+    
+    <categories>
+      
+      <category>认证实践</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>PICS</tag>
+      
+      <tag>Zigbee</tag>
+      
+      <tag>Zigbee 3.0</tag>
+      
+      <tag>ZUTH</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>Zigbee 3.0 认证流程：产品、平台、实验室与 CSA 各负责什么</title>
+    <link href="/posts/zigbee-3-certification-process/"/>
+    <url>/posts/zigbee-3-certification-process/</url>
+    
+    <content type="html"><![CDATA[<p>Zigbee 认证不是“把样机交给实验室，跑完测试就结束”。技术实现、正式测试、申请审核和认证后的变更管理属于不同责任主体。</p><span id="more"></span><h2 id="先确认认证对象"><a href="#先确认认证对象" class="headerlink" title="先确认认证对象"></a>先确认认证对象</h2><p>常见对象包括：</p><ul><li>Compliant Platform：无线芯片、处理器和 Zigbee 协议栈形成的平台基础；</li><li>Certified Product：面向最终用途的完整产品；</li><li>认证转移、产品系列或相似产品路径：是否适用由当前政策决定。</li></ul><p>大多数终端产品以合规平台为基础，但平台证书不会自动覆盖产品的 Endpoint、Device Type、Cluster 和应用行为。</p><h2 id="全流程"><a href="#全流程" class="headerlink" title="全流程"></a>全流程</h2><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs text">确定产品与市场范围<br>  -&gt; 确认 CSA 会员与认证路径<br>  -&gt; 选择合规平台<br>  -&gt; 冻结规范和测试输入<br>  -&gt; 完成实现与 PICS / PIXIT<br>  -&gt; 内部自测<br>  -&gt; 选择授权测试机构<br>  -&gt; 正式测试与问题关闭<br>  -&gt; 提交认证申请与报告<br>  -&gt; CSA 审核<br>  -&gt; 证书、公开记录与标志授权<br>  -&gt; 版本变更与再认证判断<br></code></pre></td></tr></table></figure><h2 id="开发阶段要准备什么"><a href="#开发阶段要准备什么" class="headerlink" title="开发阶段要准备什么"></a>开发阶段要准备什么</h2><p>至少固定以下内容：</p><ul><li>硬件、软件和固件版本；</li><li>合规平台及其证书范围；</li><li>Endpoint、Profile ID、Device ID；</li><li>Server &#x2F; Client Cluster；</li><li>Mandatory、Optional 和 Conditional 能力；</li><li>commissioning、安全与网络类型；</li><li>量产配置和认证配置差异；</li><li>目标生态的附加要求。</li></ul><p>生态认证和 Zigbee 认证是两套范围。通过 CSA Zigbee 认证，不自动代表通过某个商业生态的兼容性认证。</p><h2 id="PICS-与-PIXIT"><a href="#PICS-与-PIXIT" class="headerlink" title="PICS 与 PIXIT"></a>PICS 与 PIXIT</h2><ul><li>PICS 声明实现支持哪些协议能力；</li><li>PIXIT 提供测试所需的实现参数；</li><li>它们驱动用例选择，也是实验室解释行为的依据。</li></ul><p>填写原则是“与被测固件真实能力一致”。少报会导致声明不实，多报会扩大测试范围并暴露未完成能力。</p><h2 id="授权测试机构做什么"><a href="#授权测试机构做什么" class="headerlink" title="授权测试机构做什么"></a>授权测试机构做什么</h2><p>授权测试机构根据冻结的测试计划和 PICS：</p><ul><li>审核样机与文档；</li><li>配置正式测试环境；</li><li>执行必选及已实现可选能力的用例；</li><li>记录偏差和失败；</li><li>在问题关闭后出具正式测试报告。</li></ul><p>测试机构不替代产品团队做 Device Type 设计，也不能用口头经验覆盖规范和 PICS。</p><h2 id="CSA-审核做什么"><a href="#CSA-审核做什么" class="headerlink" title="CSA 审核做什么"></a>CSA 审核做什么</h2><p>正式测试通过后，还需要通过 CSA 的认证工具提交申请材料。审核关注产品身份、声明、测试报告、合规平台和政策要求。批准后，产品才会获得对应证书、公开记录及标志使用资格。</p><p>“实验室测试通过”和“CSA 已正式认证”必须分开表述。</p><h2 id="失败与重测"><a href="#失败与重测" class="headerlink" title="失败与重测"></a>失败与重测</h2><p>出现失败时，建议维护：</p><ol><li>用例、前置条件和失败步骤；</li><li>规范条款与 PICS 项；</li><li>DUT、测试端、抓包时间线；</li><li>根因属于实现、环境还是用例解释；</li><li>修复影响范围；</li><li>实验室确认的重测集合；</li><li>新固件标识和回归结果。</li></ol><p>不要在未与实验室确认前自行判断“只改一行，无需重测”。</p><h2 id="认证后的版本管理"><a href="#认证后的版本管理" class="headerlink" title="认证后的版本管理"></a>认证后的版本管理</h2><p>认证绑定具体产品和版本信息。后续变更应评估：</p><ul><li>协议栈或合规平台升级；</li><li>Device Type、Cluster、属性和命令变化；</li><li>安全策略或 commissioning 变化；</li><li>硬件和射频变化；</li><li>修复是否触及已测试行为；</li><li>是否适用转移、系列、相似或再认证路径。</li></ul><h2 id="当前版本提醒"><a href="#当前版本提醒" class="headerlink" title="当前版本提醒"></a>当前版本提醒</h2><p>截至本文更新时，Zigbee 规范、PICS 和认证工具仍在演进。项目名称里写“Zigbee 3.0”不代表可以自行选择任意历史输入；新申请是否继续采用某个 3.0 组合，应在立项时由 CSA 或授权实验室书面确认。</p><p>官方入口：</p><ul><li><a href="https://csa-iot.org/certification/">CSA Certification</a></li><li><a href="https://csa-iot.org/certification/tools/">认证工具与 ZUTH</a></li><li><a href="https://csa-iot.org/certification/testing-providers/">授权测试机构</a></li><li><a href="https://csa-iot.org/developer-resource/specifications-download-request/">Zigbee 规范下载</a></li></ul>]]></content>
+    
+    
+    <categories>
+      
+      <category>认证实践</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>Zigbee</tag>
+      
+      <tag>Zigbee 3.0</tag>
+      
+      <tag>认证流程</tag>
+      
+      <tag>CSA</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>Matter 基础概念：Node、Fabric、Endpoint 与安全会话</title>
+    <link href="/posts/matter-foundations/"/>
+    <url>/posts/matter-foundations/</url>
+    
+    <content type="html"><![CDATA[<p>Matter 是基于 IPv6 的应用层连接标准。它定义的不只是 Cluster，还包括发现、commissioning、安全会话、数据模型、交互模型和设备生命周期。</p><span id="more"></span><h2 id="Matter-在协议栈中的位置"><a href="#Matter-在协议栈中的位置" class="headerlink" title="Matter 在协议栈中的位置"></a>Matter 在协议栈中的位置</h2><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs text">设备应用<br>  -&gt; Data Model：Node / Endpoint / Device Type / Cluster<br>  -&gt; Interaction Model：Read / Write / Invoke / Subscribe<br>  -&gt; 安全会话：PASE / CASE / Group<br>  -&gt; IPv6 + UDP<br>  -&gt; Thread、Wi-Fi 或 Ethernet<br></code></pre></td></tr></table></figure><p>Bluetooth LE 通常作为设备初次 commissioning 的近距离通道，不是 Matter 日常业务通信的 IP 承载。</p><h2 id="Node-与-Endpoint"><a href="#Node-与-Endpoint" class="headerlink" title="Node 与 Endpoint"></a>Node 与 Endpoint</h2><ul><li>Node：一个可寻址的 Matter 逻辑节点；</li><li>Endpoint 0：根端点，承载基础设施和管理 Cluster；</li><li>其他 Endpoint：承载产品功能；</li><li>Device Type：声明 Endpoint 符合哪类标准设备语义；</li><li>Cluster：一组相关属性、命令和事件。</li></ul><p>同一物理设备可以有多个 Endpoint，也可以在一个 Fabric 中对应一个 Node。</p><h2 id="Cluster、Attribute、Command-与-Event"><a href="#Cluster、Attribute、Command-与-Event" class="headerlink" title="Cluster、Attribute、Command 与 Event"></a>Cluster、Attribute、Command 与 Event</h2><table><thead><tr><th>元素</th><th>含义</th></tr></thead><tbody><tr><td>Attribute</td><td>可读取、可订阅，部分可写的状态</td></tr><tr><td>Command</td><td>客户端发起的一次操作</td></tr><tr><td>Event</td><td>带优先级和事件编号的历史事件</td></tr><tr><td>Feature</td><td>Cluster 的可选能力组合</td></tr></tbody></table><p>Interaction Model 统一了：</p><ul><li>Read：读取属性或事件；</li><li>Write：修改允许写入的属性；</li><li>Invoke：调用命令；</li><li>Subscribe：建立持续订阅并接收报告。</li></ul><p>实现了 Cluster 不等于实现了全部可选 Feature。Device Type、Cluster 规范、FeatureMap、全局属性与实际处理逻辑必须一致。</p><h2 id="Fabric-是什么"><a href="#Fabric-是什么" class="headerlink" title="Fabric 是什么"></a>Fabric 是什么</h2><p>Fabric 是一组共享信任域和管理关系的 Matter 节点。一个设备可以加入多个 Fabric，每个 Fabric 拥有独立的：</p><ul><li>Fabric Index；</li><li>Node ID；</li><li>Operational Certificate；</li><li>Group Key 与访问控制状态；</li><li>订阅和管理关系。</li></ul><p>删除一个订阅不等于删除 Fabric；某个 Fabric 断开，也不代表其他 Fabric 必然受影响。</p><h2 id="Commissioning-的阶段"><a href="#Commissioning-的阶段" class="headerlink" title="Commissioning 的阶段"></a>Commissioning 的阶段</h2><p>一个简化流程：</p><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs text">发现 commissionable device<br>  -&gt; PASE 建立初始安全通道<br>  -&gt; Device Attestation<br>  -&gt; 配置法规与网络参数<br>  -&gt; 设备进入目标 IP 网络<br>  -&gt; CSR / AddNOC 建立 Fabric 身份<br>  -&gt; CASE 可用<br>  -&gt; Commissioning Complete<br></code></pre></td></tr></table></figure><p>每一步都有独立成功条件：</p><ul><li>BLE 连接成功不等于 PASE 成功；</li><li>Thread Attach 成功不等于 AddNOC 成功；</li><li>AddNOC 成功不等于 Commissioning Complete；</li><li>Commissioning 完成不等于后续 Subscribe 一定稳定。</li></ul><h2 id="PASE-与-CASE"><a href="#PASE-与-CASE" class="headerlink" title="PASE 与 CASE"></a>PASE 与 CASE</h2><ul><li>PASE：基于 setup passcode 建立，主要用于初次 commissioning；</li><li>CASE：基于 Fabric 的 operational credentials，服务于日常单播安全会话；</li><li>Group：服务于一对多组通信。</li></ul><p>setup passcode、证书私钥和 Thread Dataset 都是敏感材料，不应出现在公开日志或仓库。</p><h2 id="发现与地址"><a href="#发现与地址" class="headerlink" title="发现与地址"></a>发现与地址</h2><p>Matter 使用 DNS-SD &#x2F; mDNS 发现节点和服务，并依赖 IPv6 地址。排障时要区分：</p><ul><li>commissionable discovery；</li><li>operational discovery；</li><li>Thread 或 Wi-Fi 网络接入；</li><li>IPv6 路由；</li><li>CASE 会话；</li><li>Interaction Model 操作。</li></ul><p>“mDNS 找不到”可能是网络接口、组播、防火墙或地址作用域问题，不应直接归因于 Cluster。</p><h2 id="从哪里继续学习"><a href="#从哪里继续学习" class="headerlink" title="从哪里继续学习"></a>从哪里继续学习</h2><ul><li><a href="https://github.com/project-chip/connectedhomeip">Matter 官方开源 SDK</a></li><li><a href="https://project-chip.github.io/connectedhomeip-doc/">Matter SDK 文档</a></li><li><a href="https://csa-iot.org/developer-resource/specifications-download-request/">CSA Matter 规范下载入口</a></li></ul><p>SDK 示例用于学习，不自动代表某个具体 Device Type 的完整产品或认证实现。</p>]]></content>
+    
+    
+    <categories>
+      
+      <category>无线协议</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>Matter</tag>
+      
+      <tag>Fabric</tag>
+      
+      <tag>Data Model</tag>
+      
+      <tag>Commissioning</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>Thread 基础概念：IPv6 Mesh、设备角色与 Border Router</title>
+    <link href="/posts/thread-foundations/"/>
+    <url>/posts/thread-foundations/</url>
+    
+    <content type="html"><![CDATA[<p>Thread 是建立在 IEEE 802.15.4 之上的低功耗 IPv6 Mesh 网络协议。它提供网络连接能力，但不规定灯、传感器或门锁应该有哪些应用 Cluster。</p><span id="more"></span><h2 id="协议栈位置"><a href="#协议栈位置" class="headerlink" title="协议栈位置"></a>协议栈位置</h2><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">Matter 或其他 IP 应用<br>  -&gt; UDP / IPv6<br>  -&gt; 6LoWPAN<br>  -&gt; Thread Mesh Link Establishment 与路由<br>  -&gt; IEEE 802.15.4 MAC / PHY<br></code></pre></td></tr></table></figure><p>这也是 Matter over Thread 与 Zigbee 的关键区别：Thread 承载 IP，Zigbee 使用自己的 NWK、APS 和应用层体系。</p><h2 id="常见设备角色"><a href="#常见设备角色" class="headerlink" title="常见设备角色"></a>常见设备角色</h2><table><thead><tr><th>角色</th><th>作用</th></tr></thead><tbody><tr><td>Leader</td><td>管理当前 Partition 的路由器集合与网络数据</td></tr><tr><td>Router</td><td>转发 IPv6 数据并允许子设备连接</td></tr><tr><td>Router-Eligible End Device</td><td>当前是 End Device，条件满足时可升级为 Router</td></tr><tr><td>Full End Device</td><td>不承担路由，但保持完整接收能力</td></tr><tr><td>Minimal End Device</td><td>能力更精简，通过父节点通信</td></tr><tr><td>Sleepy End Device</td><td>周期性向父节点 Poll，适合低功耗</td></tr><tr><td>Border Router</td><td>在 Thread Mesh 与相邻 IP 网络之间路由</td></tr></tbody></table><p>Leader 不是所有报文的中央转发器。角色可以变化，网络会根据拓扑自动维护 Router 集合。</p><h2 id="Border-Router-不是应用网关"><a href="#Border-Router-不是应用网关" class="headerlink" title="Border Router 不是应用网关"></a>Border Router 不是应用网关</h2><p>Thread Border Router 的核心职责是 IP 路由和网络数据传播。它让 Thread 节点能与 Wi-Fi&#x2F;Ethernet 等相邻 IPv6 网络通信。</p><p>它通常不负责把一个应用协议翻译成另一个应用协议。Zigbee-to-Matter Bridge 执行的是应用数据模型映射，与 Thread Border Router 是不同角色。</p><p>一个 Thread 网络可以有多个 Border Router，从而减少单点依赖。</p><h2 id="Thread-网络凭据"><a href="#Thread-网络凭据" class="headerlink" title="Thread 网络凭据"></a>Thread 网络凭据</h2><p>Active Operational Dataset 描述 Thread 网络的关键参数，例如信道、PAN 标识、Mesh-Local Prefix 和网络安全材料。</p><p>它是敏感配置：</p><ul><li>不提交到公开仓库；</li><li>不直接粘贴到问题单；</li><li>抓包时只在授权本地环境加载；</li><li>示例使用占位符，不复用真实网络数据。</li></ul><h2 id="IPv6-地址为什么不止一个"><a href="#IPv6-地址为什么不止一个" class="headerlink" title="IPv6 地址为什么不止一个"></a>IPv6 地址为什么不止一个</h2><p>Thread 节点通常具有多类 IPv6 地址：</p><ul><li>Link-Local：邻居链路上的本地通信；</li><li>Mesh-Local EID：拓扑无关的 Mesh 内地址；</li><li>Routing Locator：反映当前拓扑位置；</li><li>Border Router 提供前缀形成的地址；</li><li>多播地址。</li></ul><p>因此，看到一个 IPv6 地址变化不一定代表节点身份变化。排障要结合地址类型、作用域、接口和 Node 身份。</p><h2 id="Attach-的高层流程"><a href="#Attach-的高层流程" class="headerlink" title="Attach 的高层流程"></a>Attach 的高层流程</h2><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs text">扫描与发现 Partition<br>  -&gt; 选择父节点<br>  -&gt; MLE 建立安全邻居关系<br>  -&gt; 获得网络数据和地址<br>  -&gt; 成为 Child 或 Router<br>  -&gt; IPv6 可达<br></code></pre></td></tr></table></figure><p>Thread Attach 成功只证明网络层建立。Matter 还需要 operational discovery、CASE 和应用交互。</p><h2 id="低功耗与父节点"><a href="#低功耗与父节点" class="headerlink" title="低功耗与父节点"></a>低功耗与父节点</h2><p>Sleepy End Device 关闭接收机来省电，通过父节点缓存和周期性 Poll 接收数据。关键参数包括：</p><ul><li>Poll 周期；</li><li>消息等待时间；</li><li>应用订阅的最大间隔；</li><li>重试和父节点切换；</li><li>设备醒来后的处理预算。</li></ul><p>过度延长 Poll 周期会降低功耗，但也可能造成控制延迟、消息过期或 commissioning 超时。</p><h2 id="抓包识别"><a href="#抓包识别" class="headerlink" title="抓包识别"></a>抓包识别</h2><p>Thread 抓包常见层级包括：</p><ul><li>IEEE 802.15.4；</li><li>6LoWPAN；</li><li>MLE；</li><li>IPv6 &#x2F; UDP；</li><li>CoAP；</li><li>加密后的 Matter 消息。</li></ul><p>Thread Network Key 可以帮助分析 Thread 网络层，但不能因此解密 Matter CASE 业务负载。</p><p>继续阅读：</p><ul><li><a href="https://threadgroup.org/what-Is-thread/overview">Thread 官方概览</a></li><li><a href="https://www.threadgroup.org/Portals/0/documents/support/Thread%20Network%20Fundamentals_v3.pdf">Thread Network Fundamentals</a></li><li><a href="https://openthread.io/guides">OpenThread 文档</a></li></ul>]]></content>
+    
+    
+    <categories>
+      
+      <category>无线协议</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>Thread</tag>
+      
+      <tag>IPv6</tag>
+      
+      <tag>OpenThread</tag>
+      
+      <tag>Border Router</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>Matter 与 Zigbee 关系映射：相似名词不等于相同协议</title>
+    <link href="/posts/matter-zigbee-concept-mapping/"/>
+    <url>/posts/matter-zigbee-concept-mapping/</url>
+    
+    <content type="html"><![CDATA[<p>Matter 和 Zigbee 都使用 Endpoint、Cluster、Attribute、Command 等概念，但它们的网络、安全和设备生命周期不同。做迁移或 Bridge 时，可以映射业务语义，不能按名字直接替换协议结构。</p><span id="more"></span><h2 id="分层对照"><a href="#分层对照" class="headerlink" title="分层对照"></a>分层对照</h2><table><thead><tr><th>维度</th><th>Matter</th><th>Zigbee</th></tr></thead><tbody><tr><td>应用标准</td><td>Matter Data Model &#x2F; Interaction Model</td><td>ZCL 与应用 Profile &#x2F; Device Type</td></tr><tr><td>网络</td><td>IPv6</td><td>Zigbee NWK</td></tr><tr><td>传输</td><td>UDP + Matter 消息层</td><td>APS</td></tr><tr><td>低功耗 Mesh</td><td>可运行于 Thread</td><td>Zigbee 自身 Mesh</td></tr><tr><td>无线底层</td><td>Thread 时使用 IEEE 802.15.4</td><td>常见为 IEEE 802.15.4</td></tr><tr><td>信任域</td><td>Fabric</td><td>Zigbee Network &#x2F; Trust Center 模型</td></tr><tr><td>日常单播安全</td><td>CASE</td><td>NWK Security，可叠加 APS Link Key</td></tr><tr><td>初次配置</td><td>PASE + 网络配置 + NOC</td><td>BDB commissioning + Key 流程</td></tr></tbody></table><p>共享 IEEE 802.15.4 不代表空口互通。Matter over Thread 帧不能由 Zigbee 节点直接当作 ZCL 消息处理。</p><h2 id="数据模型对照"><a href="#数据模型对照" class="headerlink" title="数据模型对照"></a>数据模型对照</h2><table><thead><tr><th>Matter</th><th>Zigbee</th><th>是否一一对应</th></tr></thead><tbody><tr><td>Node</td><td>Zigbee Node</td><td>仅概念相近</td></tr><tr><td>Endpoint</td><td>Endpoint</td><td>结构相近，规则不同</td></tr><tr><td>Device Type</td><td>Device ID &#x2F; Device Type</td><td>语义需逐项映射</td></tr><tr><td>Cluster</td><td>Cluster</td><td>名称可能相近，ID 和定义不同</td></tr><tr><td>Attribute</td><td>Attribute</td><td>概念相近，类型与语义可能不同</td></tr><tr><td>Command</td><td>Command</td><td>需映射方向、状态和载荷</td></tr><tr><td>Event</td><td>Reporting 或专用 Command</td><td>通常没有统一一一对应</td></tr><tr><td>FeatureMap</td><td>Optional 能力与 PICS</td><td>表达方式不同</td></tr></tbody></table><p>迁移时应从业务语义出发，而不是复制数值 ID。</p><h2 id="入网与-commissioning-对照"><a href="#入网与-commissioning-对照" class="headerlink" title="入网与 commissioning 对照"></a>入网与 commissioning 对照</h2><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">Matter:<br>发现 -&gt; PASE -&gt; Attestation -&gt; 网络配置 -&gt; NOC -&gt; CASE -&gt; 完成<br><br>Zigbee:<br>扫描 -&gt; 关联 -&gt; Network Key -&gt; 安全通信 -&gt; TCLK/BDB -&gt; 应用发现<br></code></pre></td></tr></table></figure><p>两边都有“发现、鉴权、配网、建立长期身份”的目标，但协议消息、凭据和成功锚点完全不同。</p><h2 id="安全概念不要硬映射"><a href="#安全概念不要硬映射" class="headerlink" title="安全概念不要硬映射"></a>安全概念不要硬映射</h2><ul><li>Matter Fabric 不是 Zigbee PAN；</li><li>Matter NOC 不是 Zigbee Network Key；</li><li>Matter PASE setup passcode 不是 Zigbee install code；</li><li>Matter CASE 不是 Zigbee APS 加密；</li><li>Matter Device Attestation 不等于 Zigbee Trust Center 准入。</li></ul><p>它们只能在安全目的层面类比，不能在实现或日志中互换。</p><h2 id="Thread-与-Zigbee-的位置"><a href="#Thread-与-Zigbee-的位置" class="headerlink" title="Thread 与 Zigbee 的位置"></a>Thread 与 Zigbee 的位置</h2><p>Matter 可以运行在 Thread、Wi-Fi 或 Ethernet 上。Thread 提供 IPv6 Mesh，不规定应用 Cluster。</p><p>Zigbee 从网络到应用数据模型形成另一条完整栈。二者都可能占用 2.4 GHz IEEE 802.15.4 信道，因此还要考虑射频共存，但不能因为底层相同就混用密钥或抓包过滤器。</p><h2 id="Bridge-真正映射什么"><a href="#Bridge-真正映射什么" class="headerlink" title="Bridge 真正映射什么"></a>Bridge 真正映射什么</h2><p>Zigbee-to-Matter Bridge 通常需要维护：</p><ol><li>Zigbee 设备身份与 Matter Bridged Node Endpoint；</li><li>Device Type 与 Cluster 语义映射；</li><li>Zigbee Attribute &#x2F; Command 与 Matter Attribute &#x2F; Command &#x2F; Event；</li><li>单位、范围、无效值和质量状态；</li><li>在线状态、删除、重入网和 Endpoint 生命周期；</li><li>Zigbee reporting 与 Matter subscription；</li><li>Zigbee 网络安全边界与 Matter Fabric 访问控制。</li></ol><p>Bridge 不是透明转发器。它终止两边协议，并在应用层重建语义。</p><h2 id="一个映射检查表"><a href="#一个映射检查表" class="headerlink" title="一个映射检查表"></a>一个映射检查表</h2><p>对每项功能记录：</p><table><thead><tr><th>字段</th><th>内容</th></tr></thead><tbody><tr><td>用户语义</td><td>用户看到的状态或动作</td></tr><tr><td>Zigbee 来源</td><td>Endpoint、Cluster、Attribute&#x2F;Command</td></tr><tr><td>Matter 目标</td><td>Endpoint、Device Type、Cluster、Feature</td></tr><tr><td>数据转换</td><td>类型、单位、范围、特殊值</td></tr><tr><td>方向</td><td>读、写、命令、上报、事件</td></tr><tr><td>生命周期</td><td>加入、离线、删除、恢复</td></tr><tr><td>错误映射</td><td>Zigbee 状态如何转换</td></tr><tr><td>证据</td><td>抓包、日志、互操作与认证测试</td></tr></tbody></table><p>官方基础资料可参考 <a href="https://project-chip.github.io/connectedhomeip-doc/">Matter SDK 文档</a>、<a href="https://csa-iot.org/all-solutions/zigbee/">Zigbee 官方介绍</a>和 <a href="https://threadgroup.org/what-Is-thread/overview">Thread 官方概览</a>。</p>]]></content>
+    
+    
+    <categories>
+      
+      <category>无线协议</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>Matter</tag>
+      
+      <tag>Thread</tag>
+      
+      <tag>Zigbee</tag>
+      
+      <tag>协议分层</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>Matter 认证环境搭建：Test Harness、DUT 与网络基础设施</title>
+    <link href="/posts/matter-certification-test-environment/"/>
+    <url>/posts/matter-certification-test-environment/</url>
+    
+    <content type="html"><![CDATA[<p>Matter 认证环境不是一台电脑加一个 <code>chip-tool</code>。稳定的预认证环境需要把 Test Harness、Device Under Test、参考节点、网络基础设施、PICS 和版本证据作为一个整体管理。</p><span id="more"></span><h2 id="先冻结版本组合"><a href="#先冻结版本组合" class="headerlink" title="先冻结版本组合"></a>先冻结版本组合</h2><p>在安装前确认：</p><ul><li>目标 Matter Specification 版本；</li><li>对应 Test Plan、PICS&#x2F;PIXIT 和 CCB；</li><li>Test Harness 发布版本或镜像；</li><li>Test Harness 使用的 Matter SDK commit；</li><li>DUT 的网络传输：Thread、Wi-Fi 或 Ethernet；</li><li>认证路径：完整产品、平台或派生产品；</li><li>实验室接受的设备与辅助硬件。</li></ul><p>Test Harness、SDK、测试脚本和 PICS 之间存在版本配套关系。只更新其中一项可能制造环境假失败。</p><h2 id="推荐架构"><a href="#推荐架构" class="headerlink" title="推荐架构"></a>推荐架构</h2><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs text">浏览器工作站<br>      │<br>Matter Test Harness 主机<br>  ├── Web / Backend / Database<br>  ├── 参考 Commissioner 或 Accessory<br>  ├── 测试脚本与日志<br>  └── OTBR（Thread DUT 时）<br>          │<br>        RCP<br>          │ IEEE 802.15.4<br>         DUT<br></code></pre></td></tr></table></figure><p>Wi-Fi &#x2F; Ethernet DUT 还需要稳定、可控且支持 IPv6 与组播的局域网。</p><h2 id="硬件准备"><a href="#硬件准备" class="headerlink" title="硬件准备"></a>硬件准备</h2><p>当前官方 Test Harness 用户指南以 Raspberry Pi 4 或 5、至少 8 GB RAM 和至少 64 GB 存储作为完整环境的基础示例。Thread DUT 还需要受支持固件的 RCP。</p><p>实际送测前以对应 Test Harness 版本的用户指南为准，不要把这组规格当作永久不变的认证要求。</p><p>建议额外准备：</p><ul><li>两台或以上独立 DUT；</li><li>串口日志采集器；</li><li>可控电源与重启方式；</li><li>独立抓包器；</li><li>有线管理网络；</li><li>时间同步；</li><li>足够保存镜像、数据库和原始日志的空间。</li></ul><h2 id="网络准备"><a href="#网络准备" class="headerlink" title="网络准备"></a>网络准备</h2><p>Matter 对本地网络提出的典型基础要求：</p><ul><li>IPv6 可用；</li><li>mDNS &#x2F; DNS-SD 组播不被错误阻断；</li><li>主机路由和接口选择明确；</li><li>防火墙不拦截测试流量；</li><li>Wi-Fi SSID 与 Thread Dataset 独立保存；</li><li>测试网与办公网、生产网隔离。</li></ul><p>不要在公开配置文件中提交 Wi-Fi 密码、Thread Dataset、setup passcode 或证书私钥。</p><h2 id="安装原则"><a href="#安装原则" class="headerlink" title="安装原则"></a>安装原则</h2><ol><li>从 <a href="https://github.com/project-chip/certification-tool">官方 certification-tool 仓库</a>选择目标 release 或 commit；</li><li>完整阅读该版本的 <code>Matter_TH_User_Guide</code>；</li><li>使用文档指定的系统镜像、容器和 SDK 配套；</li><li>记录每个镜像、仓库和 RCP 固件的版本；</li><li>先用官方参考节点完成环境冒烟测试；</li><li>再接入自己的 DUT。</li></ol><p>不要把 <code>main</code> 分支当天状态当作认证基线，也不要在问题出现后无记录地升级整个环境。</p><h2 id="DUT-准备"><a href="#DUT-准备" class="headerlink" title="DUT 准备"></a>DUT 准备</h2><p>DUT 至少应支持：</p><ul><li>稳定进入和退出 commissioning 模式；</li><li>可靠恢复出厂；</li><li>可识别的固件、硬件版本；</li><li>测试要求的自动化触发或人工操作；</li><li>持续串口日志；</li><li>正确的 Device Attestation Credentials；</li><li>与 PICS 一致的 Endpoint、Device Type 和 Cluster。</li></ul><p>开发测试凭据与认证&#x2F;量产凭据必须隔离。正式认证是否要求独立 provisioned DUT 及具体样机数量，应按当前计划和实验室要求执行。</p><h2 id="PICS-驱动测试"><a href="#PICS-驱动测试" class="headerlink" title="PICS 驱动测试"></a>PICS 驱动测试</h2><p>Test Harness 根据 PICS 选择适用用例。推荐流程：</p><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs text">审查 Data Model<br>  -&gt; 填写 PICS / PIXIT<br>  -&gt; PICS Tool 校验<br>  -&gt; 导入 Test Harness<br>  -&gt; 检查自动选择的用例<br>  -&gt; 运行并审查原始日志<br></code></pre></td></tr></table></figure><p>用例没被选中不自动表示“不适用”，也可能是 PICS 填错。</p><h2 id="环境验收"><a href="#环境验收" class="headerlink" title="环境验收"></a>环境验收</h2><p>在测试产品功能前，先证明环境：</p><ul><li>Web UI、Backend 与数据库健康；</li><li>参考 Commissioner &#x2F; Accessory 可运行；</li><li>BLE adapter 可发现参考 DUT；</li><li>Thread 时 OTBR 与 RCP 正常；</li><li>Wi-Fi &#x2F; Ethernet 时 IPv6 和 mDNS 正常；</li><li>测试主机时间一致；</li><li>日志、报告和备份可导出；</li><li>恢复出厂后可重复 commissioning。</li></ul><h2 id="证据与故障隔离"><a href="#证据与故障隔离" class="headerlink" title="证据与故障隔离"></a>证据与故障隔离</h2><p>每次运行保存：</p><ul><li>Test Harness、SDK、镜像和脚本版本；</li><li>PICS &#x2F; PIXIT；</li><li>DUT 固件和构建标识；</li><li>测试项目配置的脱敏副本；</li><li>Test Harness、DUT、OTBR 和抓包日志；</li><li>用例结果与人工操作记录。</li></ul><p>先用参考节点区分“环境坏了”还是“DUT 有问题”，再进入产品代码分析。</p><p>官方入口：</p><ul><li><a href="https://github.com/project-chip/certification-tool/blob/main/docs/Matter_TH_User_Guide/Matter_TH_User_Guide.adoc">Matter Test Harness User Guide</a></li><li><a href="https://csa-iot.org/certification/tools/">CSA 认证工具</a></li><li><a href="https://project-chip.github.io/connectedhomeip-doc/testing/index.html">Matter SDK 测试文档</a></li></ul>]]></content>
+    
+    
+    <categories>
+      
+      <category>认证实践</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>Matter</tag>
+      
+      <tag>Test Harness</tag>
+      
+      <tag>PICS</tag>
+      
+      <tag>环境搭建</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>Matter 各类证书的关系：Attestation 链与 Fabric 身份链</title>
+    <link href="/posts/matter-certificate-relationships/"/>
+    <url>/posts/matter-certificate-relationships/</url>
+    
+    <content type="html"><![CDATA[<p>Matter 中至少有两套容易混淆的证书体系：产品证明身份的 Device Attestation 链，以及加入某个 Fabric 后使用的 Operational Certificate 链。它们的签发者、生命周期和验证目的都不同。</p><span id="more"></span><h2 id="总览"><a href="#总览" class="headerlink" title="总览"></a>总览</h2><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs text">产品证明链<br>PAA<br>  -&gt; PAI<br>      -&gt; DAC + DAC Private Key（每台设备）<br>  + Certification Declaration（独立的签名声明）<br><br>Fabric 运行身份链<br>RCAC<br>  -&gt; 可选 ICAC<br>      -&gt; NOC（该 Node 在该 Fabric 的身份）<br></code></pre></td></tr></table></figure><p>PAA&#x2F;PAI&#x2F;DAC 回答“这是什么产品、凭据是否来自可信产品链”；RCAC&#x2F;ICAC&#x2F;NOC 回答“这个 Node 在哪个 Fabric 中拥有什么 operational 身份”。</p><h2 id="PAA、PAI-与-DAC"><a href="#PAA、PAI-与-DAC" class="headerlink" title="PAA、PAI 与 DAC"></a>PAA、PAI 与 DAC</h2><h3 id="PAA"><a href="#PAA" class="headerlink" title="PAA"></a>PAA</h3><p>Product Attestation Authority 是产品证明链的根。Commissioner 的信任库保存或可获得受信任 PAA。</p><h3 id="PAI"><a href="#PAI" class="headerlink" title="PAI"></a>PAI</h3><p>Product Attestation Intermediate 是可选但常用的中间 CA，由 PAA 签发，再用于签发 DAC。它帮助隔离产品线或制造流程。</p><h3 id="DAC"><a href="#DAC" class="headerlink" title="DAC"></a>DAC</h3><p>Device Attestation Certificate 是设备级证书：</p><ul><li>与设备持有的 DAC Private Key 配对；</li><li>在制造或安全 provisioning 阶段写入；</li><li>用于 commissioning 期间证明设备持有对应私钥；</li><li>不应在设备之间共享同一私钥。</li></ul><p>链验证的简化方向是：</p><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">DAC &lt;- PAI &lt;- trusted PAA<br></code></pre></td></tr></table></figure><p>私钥永远不应出设备安全边界，也不应进入源码、构建日志或公开仓库。</p><h2 id="Certification-Declaration"><a href="#Certification-Declaration" class="headerlink" title="Certification Declaration"></a>Certification Declaration</h2><p>Certification Declaration，简称 CD，是与产品认证信息相关的签名声明，不是 DAC 链中的另一张 X.509 证书。</p><p>Commissioner 在 Device Attestation 时同时检查：</p><ul><li>DAC&#x2F;PAI 到可信 PAA 的链；</li><li>设备对 attestation challenge 的签名；</li><li>CD 的签名和内容；</li><li>Vendor ID、Product ID 等信息之间的一致性；</li><li>适用的撤销与政策信息。</li></ul><p>“DAC 链有效”和“产品认证声明有效”是两个相关但不同的检查。</p><h2 id="RCAC、ICAC-与-NOC"><a href="#RCAC、ICAC-与-NOC" class="headerlink" title="RCAC、ICAC 与 NOC"></a>RCAC、ICAC 与 NOC</h2><h3 id="RCAC"><a href="#RCAC" class="headerlink" title="RCAC"></a>RCAC</h3><p>Root CA Certificate 是某个 Fabric 的 operational 信任根，由 Fabric 管理域控制。</p><h3 id="ICAC"><a href="#ICAC" class="headerlink" title="ICAC"></a>ICAC</h3><p>Intermediate CA Certificate 是可选中间层，用于组织 operational CA 层级。</p><h3 id="NOC"><a href="#NOC" class="headerlink" title="NOC"></a>NOC</h3><p>Node Operational Certificate 是 Node 在一个 Fabric 中的身份证书，包含对应 Fabric 和 Node 身份信息，并由 operational CA 链签发。</p><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">NOC &lt;- optional ICAC &lt;- RCAC<br></code></pre></td></tr></table></figure><p>设备加入多个 Fabric 时，会拥有多套彼此独立的 NOC 和 Fabric 状态。</p><h2 id="Commissioning-中它们何时出现"><a href="#Commissioning-中它们何时出现" class="headerlink" title="Commissioning 中它们何时出现"></a>Commissioning 中它们何时出现</h2><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs text">PASE 建立<br>  -&gt; 读取 Attestation 信息<br>  -&gt; 验证 DAC / PAI / PAA 与 CD<br>  -&gt; 请求 Node 生成 operational key pair 和 CSR<br>  -&gt; Commissioner / Fabric CA 签发 NOC<br>  -&gt; AddNOC 写入 RCAC、ICAC/NOC 与 Fabric 参数<br>  -&gt; 后续通过 CASE 建立 operational session<br></code></pre></td></tr></table></figure><p>关键边界：</p><ul><li>PASE 使用 setup passcode，不依赖 NOC；</li><li>Device Attestation 先于 NOC 安装；</li><li>NOC 由 Fabric 的 CA 体系产生，不是制造商 DAC 的替代品；</li><li>CASE 使用 operational credentials，不使用 DAC 建立日常会话。</li></ul><h2 id="多-Fabric-场景"><a href="#多-Fabric-场景" class="headerlink" title="多 Fabric 场景"></a>多 Fabric 场景</h2><p>同一设备的 DAC 身份通常保持不变，但每个 Fabric 会安装自己的：</p><ul><li>NOC；</li><li>Root &#x2F; Intermediate CA 信息；</li><li>Fabric ID 与 Node ID；</li><li>IPK 和组密钥状态；</li><li>ACL。</li></ul><p>删除一个 Fabric 应只清理该 Fabric 的 operational 状态，不能误删设备的制造 attestation 凭据或其他 Fabric。</p><h2 id="开发凭据与量产凭据"><a href="#开发凭据与量产凭据" class="headerlink" title="开发凭据与量产凭据"></a>开发凭据与量产凭据</h2><p>Matter SDK 提供测试证书和 <code>chip-cert</code> 工具，适合本地开发与理解格式，不应直接用于量产或正式认证。</p><p>推荐分层：</p><table><thead><tr><th>环境</th><th>凭据</th></tr></thead><tbody><tr><td>本地开发</td><td>明确标识的测试 PAA&#x2F;PAI&#x2F;DAC</td></tr><tr><td>自动化测试</td><td>隔离的测试 PKI</td></tr><tr><td>认证样机</td><td>满足当前认证政策的独立设备凭据</td></tr><tr><td>量产</td><td>受控 PKI、硬件保护和可审计 provisioning</td></tr></tbody></table><h2 id="排障问题清单"><a href="#排障问题清单" class="headerlink" title="排障问题清单"></a>排障问题清单</h2><ol><li>失败发生在 PASE、Attestation、CSR、AddNOC 还是 CASE？</li><li>验证的是 CD、DAC 链还是 operational 链？</li><li>VID&#x2F;PID 与证书、CD、Basic Information 是否一致？</li><li>设备是否能用对应私钥完成 challenge 签名？</li><li>PAA 是否在 Commissioner 的信任库？</li><li>NOC 是否属于当前 Fabric 和 Node？</li><li>多 Fabric 清理是否越界？</li><li>测试凭据是否被误带到认证或量产构建？</li></ol><p>继续阅读：</p><ul><li><a href="https://csa-iot.org/certification/paa/">CSA Product Attestation Authorities</a></li><li><a href="https://project-chip.github.io/connectedhomeip-doc/src/tools/chip-cert/README.html">Matter&#x2F;CHIP Certificate Tool</a></li><li><a href="https://project-chip.github.io/connectedhomeip-doc/guides/access-control-guide.html">Matter Access Control Guide</a></li><li><a href="https://csa-iot.org/wp-content/uploads/2024/02/pki-certificate-policy-2025.pdf">CSA PKI Certificate Policy</a></li></ul>]]></content>
+    
+    
+    <categories>
+      
+      <category>无线协议</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>Matter</tag>
+      
+      <tag>PKI</tag>
+      
+      <tag>Device Attestation</tag>
+      
+      <tag>CASE</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
     <title>Zephyr 构建仍引用旧 SDK：缓存污染的定位与修复</title>
     <link href="/posts/zephyr-stale-build-cache/"/>
     <url>/posts/zephyr-stale-build-cache/</url>
@@ -177,9 +549,9 @@
       
       <tag>Thread</tag>
       
-      <tag>Wireshark</tag>
-      
       <tag>OpenThread</tag>
+      
+      <tag>Wireshark</tag>
       
       <tag>抓包</tag>
       
@@ -379,18 +751,7 @@
     <link href="/"/>
     <url>/</url>
     
-    <content type="html"><![CDATA[<div class="profile-lead">  <p class="profile-eyebrow">EMBEDDED FIRMWARE ENGINEER</p>  <p>我是一名常驻深圳的嵌入式固件开发者，拥有 4 年智能家居与新能源设备开发经验，关注低功耗设备、无线连接协议和可靠工程交付。</p></div><div class="fact-grid">  <div class="fact-card"><span>所在地</span><strong>深圳</strong></div>  <div class="fact-card"><span>年龄 / 性别</span><strong>25 岁 / 男</strong></div>  <div class="fact-card"><span>学历</span><strong>本科 · 物联网工程</strong></div>  <div class="fact-card"><span>经验方向</span><strong>固件 · 无线连接</strong></div></div><h2 id="我如何工作"><a href="#我如何工作" class="headerlink" title="我如何工作"></a>我如何工作</h2><p>我喜欢把复杂问题拆开：先确认系统处于哪个阶段，再用代码、日志、抓包和构建结果建立证据链。比起快速给出一个听起来合理的答案，我更在意结论是否能够复现、验证和复用。</p><p>工作内容覆盖需求分析、驱动与应用开发、低功耗设计、无线协议接入、升级链路、软硬件联调、问题诊断、量产支持和工程文档。我也参与新人带教与团队技术协作。</p><h2 id="技术栈"><a href="#技术栈" class="headerlink" title="技术栈"></a>技术栈</h2><div class="skill-cloud">  <span>C</span><span>FreeRTOS</span><span>Zephyr</span><span>Linux</span>  <span>Matter</span><span>Thread</span><span>Zigbee</span><span>BLE</span>  <span>Wi-Fi</span><span>MQTT</span><span>LVGL</span><span>MCUboot</span>  <span>Git</span><span>CMake</span><span>Python</span><span>Qt</span></div><p>常用芯片平台包括 Telink TL3238x、TLSR8656、TLSR9218 &#x2F; TLSR9518、Realtek RTL8722W、Synwit SWM341、STM32、ESP32 &#x2F; ESP8266 和 Nuvoton MCU。</p><h2 id="教育经历"><a href="#教育经历" class="headerlink" title="教育经历"></a>教育经历</h2><p><strong>广州软件学院 · 物联网工程 · 本科</strong></p><p>2018 - 2022</p><h2 id="联系方式"><a href="#联系方式" class="headerlink" title="联系方式"></a>联系方式</h2><ul><li>邮箱：<a href="mailto:&#50;&#51;&#55;&#x37;&#57;&#x31;&#57;&#x34;&#x39;&#x40;&#113;&#x71;&#x2e;&#99;&#111;&#x6d;">237791949@qq.com</a></li><li>GitHub：<a href="https://github.com/Oniums">github.com&#x2F;Oniums</a></li></ul><blockquote><p>这个站点只展示适合公开的经历与技术总结。涉及具体项目时，会移除公司身份、产品型号、内部流程、设备身份数据和安全材料。</p></blockquote>]]></content>
-    
-  </entry>
-  
-  
-  
-  <entry>
-    <title></title>
-    <link href="/"/>
-    <url>/</url>
-    
-    <content type="html"><![CDATA[:root {  --oniums-accent: #38bdf8;  --oniums-accent-deep: #2563eb;  --oniums-ink: #0f172a;  --oniums-muted: #64748b;  --oniums-surface: #ffffff;  --oniums-border: rgba(148, 163, 184, 0.24);}.navbar-brand {  font-weight: 700;  letter-spacing: 0.04em;}.text-center#subtitle,#subtitle {  letter-spacing: 0.04em;  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.55);}.index-card {  border: 1px solid rgba(148, 163, 184, 0.14);  border-radius: 14px;  box-shadow: 0 12px 35px rgba(15, 23, 42, 0.08);  overflow: hidden;}.markdown-body h2 {  border-bottom: 0;  padding-bottom: 0;}.markdown-body blockquote {  border-left-color: var(--oniums-accent);  background: rgba(56, 189, 248, 0.08);  border-radius: 0 8px 8px 0;}.markdown-body code {  border-radius: 5px;}.about-avatar img {  border: 3px solid rgba(56, 189, 248, 0.35);  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.16);}.profile-lead {  margin: 0 0 1.5rem;  padding: 1.5rem 1.75rem;  border: 1px solid rgba(56, 189, 248, 0.22);  border-radius: 18px;  background:    radial-gradient(circle at 100% 0, rgba(56, 189, 248, 0.16), transparent 38%),    linear-gradient(135deg, rgba(37, 99, 235, 0.09), rgba(56, 189, 248, 0.03));}.profile-lead p:last-child {  margin-bottom: 0;  font-size: 1.08rem;  line-height: 1.85;}.profile-eyebrow,.project-kicker,.timeline-company {  margin: 0 0 0.45rem;  color: var(--oniums-accent-deep);  font-size: 0.76rem;  font-weight: 700;  letter-spacing: 0.12em;  text-transform: uppercase;}.fact-grid,.career-summary {  display: grid;  grid-template-columns: repeat(4, minmax(0, 1fr));  gap: 0.8rem;  margin: 1.25rem 0 2rem;}.fact-card,.career-summary > div {  display: flex;  min-height: 92px;  flex-direction: column;  justify-content: center;  padding: 1rem;  border: 1px solid var(--oniums-border);  border-radius: 14px;  background: var(--oniums-surface);  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);}.fact-card span,.career-summary span {  color: var(--oniums-muted);  font-size: 0.82rem;}.fact-card strong,.career-summary strong {  margin-top: 0.3rem;  color: var(--oniums-ink);  font-size: 1rem;}.skill-cloud,.project-tags {  display: flex;  flex-wrap: wrap;  gap: 0.55rem;}.skill-cloud {  margin: 1rem 0 1.25rem;}.skill-cloud span,.project-tags span {  padding: 0.35rem 0.7rem;  border: 1px solid rgba(56, 189, 248, 0.24);  border-radius: 999px;  color: #0c4a6e;  background: rgba(56, 189, 248, 0.09);  font-size: 0.78rem;  line-height: 1.2;}.project-grid {  display: grid;  grid-template-columns: repeat(2, minmax(0, 1fr));  gap: 1rem;  margin: 1.5rem 0 2rem;}.project-card {  display: flex;  min-width: 0;  flex-direction: column;  padding: 1.35rem;  border: 1px solid var(--oniums-border);  border-radius: 16px;  background: var(--oniums-surface);  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);}.project-card-featured {  grid-column: 1 / -1;  background:    radial-gradient(circle at 100% 0, rgba(56, 189, 248, 0.14), transparent 42%),    var(--oniums-surface);}.project-card h2 {  margin: 0 0 0.75rem;  color: var(--oniums-ink);  font-size: 1.25rem;}.project-card p:not(.project-kicker) {  flex: 1;  color: #475569;  line-height: 1.75;}.timeline {  position: relative;  margin: 2rem 0;}.timeline::before {  position: absolute;  top: 0.5rem;  bottom: 0.5rem;  left: 8.2rem;  width: 2px;  background: linear-gradient(var(--oniums-accent), rgba(148, 163, 184, 0.18));  content: "";}.timeline-item {  display: grid;  grid-template-columns: 7rem minmax(0, 1fr);  gap: 2.4rem;  margin-bottom: 1.25rem;}.timeline-date {  padding-top: 1.15rem;  color: var(--oniums-muted);  font-size: 0.78rem;  font-weight: 600;  text-align: right;}.timeline-content {  position: relative;  padding: 1.2rem 1.35rem;  border: 1px solid var(--oniums-border);  border-radius: 16px;  background: var(--oniums-surface);}.timeline-content::before {  position: absolute;  top: 1.35rem;  left: -1.82rem;  width: 12px;  height: 12px;  border: 3px solid var(--oniums-surface);  border-radius: 50%;  background: var(--oniums-accent);  box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.35);  content: "";}.timeline-content h2 {  margin: 0 0 0.75rem;  font-size: 1.2rem;}.timeline-content li {  margin-bottom: 0.45rem;}[data-user-color-scheme="dark"] {  --oniums-ink: #e2e8f0;  --oniums-muted: #94a3b8;  --oniums-surface: rgba(30, 41, 59, 0.72);  --oniums-border: rgba(148, 163, 184, 0.18);}[data-user-color-scheme="dark"] .project-card p:not(.project-kicker) {  color: #cbd5e1;}[data-user-color-scheme="dark"] .skill-cloud span,[data-user-color-scheme="dark"] .project-tags span {  color: #bae6fd;  background: rgba(56, 189, 248, 0.12);}@media (prefers-color-scheme: dark) {  :root:not([data-user-color-scheme]) {    --oniums-ink: #e2e8f0;    --oniums-muted: #94a3b8;    --oniums-surface: rgba(30, 41, 59, 0.72);    --oniums-border: rgba(148, 163, 184, 0.18);  }  :root:not([data-user-color-scheme]) .project-card p:not(.project-kicker) {    color: #cbd5e1;  }  :root:not([data-user-color-scheme]) .skill-cloud span,  :root:not([data-user-color-scheme]) .project-tags span {    color: #bae6fd;    background: rgba(56, 189, 248, 0.12);  }}@media (max-width: 767px) {  .index-card {    border-radius: 10px;  }  #subtitle {    font-size: 1.1rem;  }  .fact-grid,  .career-summary,  .project-grid {    grid-template-columns: 1fr;  }  .project-card-featured {    grid-column: auto;  }  .timeline::before {    left: 0.35rem;  }  .timeline-item {    display: block;    margin-left: 1.65rem;  }  .timeline-date {    padding: 0 0 0.35rem;    text-align: left;  }  .timeline-content::before {    left: -1.75rem;  }}]]></content>
+    <content type="html"><![CDATA[<div class="profile-lead">  <p class="profile-eyebrow">EMBEDDED FIRMWARE ENGINEER</p>  <p>我是一名常驻深圳的嵌入式固件开发者，拥有 4 年智能家居与新能源设备开发经验，关注低功耗设备、无线连接协议和可靠工程交付。</p></div><div class="fact-grid">  <div class="fact-card"><span>所在地</span><strong>深圳</strong></div>  <div class="fact-card"><span>年龄 / 性别</span><strong>25 岁 / 男</strong></div>  <div class="fact-card"><span>学历</span><strong>本科 · 物联网工程</strong></div>  <div class="fact-card"><span>经验方向</span><strong>固件 · 无线连接</strong></div></div><h2 id="我如何工作"><a href="#我如何工作" class="headerlink" title="我如何工作"></a>我如何工作</h2><p>我喜欢把复杂问题拆开：先确认系统处于哪个阶段，再用代码、日志、抓包和构建结果建立证据链。比起快速给出一个听起来合理的答案，我更在意结论是否能够复现、验证和复用。</p><p>工作内容覆盖需求分析、驱动与应用开发、低功耗设计、无线协议接入、升级链路、软硬件联调、问题诊断、量产支持和工程文档。我也参与新人带教与团队技术协作。</p><h2 id="技术栈"><a href="#技术栈" class="headerlink" title="技术栈"></a>技术栈</h2><div class="skill-cloud">  <span>C</span><span>FreeRTOS</span><span>Zephyr</span><span>Linux</span>  <span>Matter</span><span>Thread</span><span>Zigbee</span><span>BLE</span>  <span>Wi-Fi</span><span>MQTT</span><span>LVGL</span><span>MCUboot</span>  <span>Git</span><span>CMake</span><span>Python</span><span>Qt</span></div><p>常用芯片平台包括 Telink TL3238x、TLSR8656、TLSR9218 &#x2F; TLSR9518、Realtek RTL8722W、Synwit SWM341、STM32、ESP32 &#x2F; ESP8266 和 Nuvoton MCU。</p><h2 id="教育经历"><a href="#教育经历" class="headerlink" title="教育经历"></a>教育经历</h2><p><strong>广州软件学院 · 物联网工程 · 本科</strong></p><p>2018 - 2022</p><h2 id="联系方式"><a href="#联系方式" class="headerlink" title="联系方式"></a>联系方式</h2><ul><li>邮箱：<a href="mailto:&#50;&#51;&#55;&#x37;&#57;&#x31;&#57;&#52;&#x39;&#x40;&#113;&#113;&#46;&#x63;&#x6f;&#x6d;">237791949@qq.com</a></li><li>GitHub：<a href="https://github.com/Oniums">github.com&#x2F;Oniums</a></li></ul><blockquote><p>这个站点只展示适合公开的经历与技术总结。涉及具体项目时，会移除公司身份、产品型号、内部流程、设备身份数据和安全材料。</p></blockquote>]]></content>
     
   </entry>
   
@@ -402,6 +763,17 @@
     <url>/</url>
     
     <content type="html"><![CDATA[]]></content>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title></title>
+    <link href="/"/>
+    <url>/</url>
+    
+    <content type="html"><![CDATA[:root {  --oniums-accent: #38bdf8;  --oniums-accent-deep: #2563eb;  --oniums-ink: #0f172a;  --oniums-muted: #64748b;  --oniums-surface: #ffffff;  --oniums-border: rgba(148, 163, 184, 0.24);}.navbar-brand {  font-weight: 700;  letter-spacing: 0.04em;}.text-center#subtitle,#subtitle {  letter-spacing: 0.04em;  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.55);}.index-card {  border: 1px solid rgba(148, 163, 184, 0.14);  border-radius: 14px;  box-shadow: 0 12px 35px rgba(15, 23, 42, 0.08);  overflow: hidden;}.markdown-body h2 {  border-bottom: 0;  padding-bottom: 0;}.markdown-body blockquote {  border-left-color: var(--oniums-accent);  background: rgba(56, 189, 248, 0.08);  border-radius: 0 8px 8px 0;}.markdown-body code {  border-radius: 5px;}.about-avatar img {  border: 3px solid rgba(56, 189, 248, 0.35);  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.16);}.profile-lead {  margin: 0 0 1.5rem;  padding: 1.5rem 1.75rem;  border: 1px solid rgba(56, 189, 248, 0.22);  border-radius: 18px;  background:    radial-gradient(circle at 100% 0, rgba(56, 189, 248, 0.16), transparent 38%),    linear-gradient(135deg, rgba(37, 99, 235, 0.09), rgba(56, 189, 248, 0.03));}.profile-lead p:last-child {  margin-bottom: 0;  font-size: 1.08rem;  line-height: 1.85;}.profile-eyebrow,.project-kicker,.timeline-company {  margin: 0 0 0.45rem;  color: var(--oniums-accent-deep);  font-size: 0.76rem;  font-weight: 700;  letter-spacing: 0.12em;  text-transform: uppercase;}.fact-grid,.career-summary {  display: grid;  grid-template-columns: repeat(4, minmax(0, 1fr));  gap: 0.8rem;  margin: 1.25rem 0 2rem;}.fact-card,.career-summary > div {  display: flex;  min-height: 92px;  flex-direction: column;  justify-content: center;  padding: 1rem;  border: 1px solid var(--oniums-border);  border-radius: 14px;  background: var(--oniums-surface);  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);}.fact-card span,.career-summary span {  color: var(--oniums-muted);  font-size: 0.82rem;}.fact-card strong,.career-summary strong {  margin-top: 0.3rem;  color: var(--oniums-ink);  font-size: 1rem;}.skill-cloud,.project-tags {  display: flex;  flex-wrap: wrap;  gap: 0.55rem;}.skill-cloud {  margin: 1rem 0 1.25rem;}.skill-cloud span,.project-tags span {  padding: 0.35rem 0.7rem;  border: 1px solid rgba(56, 189, 248, 0.24);  border-radius: 999px;  color: #0c4a6e;  background: rgba(56, 189, 248, 0.09);  font-size: 0.78rem;  line-height: 1.2;}.project-grid {  display: grid;  grid-template-columns: repeat(2, minmax(0, 1fr));  gap: 1rem;  margin: 1.5rem 0 2rem;}.project-card {  display: flex;  min-width: 0;  flex-direction: column;  padding: 1.35rem;  border: 1px solid var(--oniums-border);  border-radius: 16px;  background: var(--oniums-surface);  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);}.project-card-featured {  grid-column: 1 / -1;  background:    radial-gradient(circle at 100% 0, rgba(56, 189, 248, 0.14), transparent 42%),    var(--oniums-surface);}.project-card h2 {  margin: 0 0 0.75rem;  color: var(--oniums-ink);  font-size: 1.25rem;}.project-card p:not(.project-kicker) {  flex: 1;  color: #475569;  line-height: 1.75;}.timeline {  position: relative;  margin: 2rem 0;}.timeline::before {  position: absolute;  top: 0.5rem;  bottom: 0.5rem;  left: 8.2rem;  width: 2px;  background: linear-gradient(var(--oniums-accent), rgba(148, 163, 184, 0.18));  content: "";}.timeline-item {  display: grid;  grid-template-columns: 7rem minmax(0, 1fr);  gap: 2.4rem;  margin-bottom: 1.25rem;}.timeline-date {  padding-top: 1.15rem;  color: var(--oniums-muted);  font-size: 0.78rem;  font-weight: 600;  text-align: right;}.timeline-content {  position: relative;  padding: 1.2rem 1.35rem;  border: 1px solid var(--oniums-border);  border-radius: 16px;  background: var(--oniums-surface);}.timeline-content::before {  position: absolute;  top: 1.35rem;  left: -1.82rem;  width: 12px;  height: 12px;  border: 3px solid var(--oniums-surface);  border-radius: 50%;  background: var(--oniums-accent);  box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.35);  content: "";}.timeline-content h2 {  margin: 0 0 0.75rem;  font-size: 1.2rem;}.timeline-content li {  margin-bottom: 0.45rem;}[data-user-color-scheme="dark"] {  --oniums-ink: #e2e8f0;  --oniums-muted: #94a3b8;  --oniums-surface: rgba(30, 41, 59, 0.72);  --oniums-border: rgba(148, 163, 184, 0.18);}[data-user-color-scheme="dark"] .project-card p:not(.project-kicker) {  color: #cbd5e1;}[data-user-color-scheme="dark"] .skill-cloud span,[data-user-color-scheme="dark"] .project-tags span {  color: #bae6fd;  background: rgba(56, 189, 248, 0.12);}@media (prefers-color-scheme: dark) {  :root:not([data-user-color-scheme]) {    --oniums-ink: #e2e8f0;    --oniums-muted: #94a3b8;    --oniums-surface: rgba(30, 41, 59, 0.72);    --oniums-border: rgba(148, 163, 184, 0.18);  }  :root:not([data-user-color-scheme]) .project-card p:not(.project-kicker) {    color: #cbd5e1;  }  :root:not([data-user-color-scheme]) .skill-cloud span,  :root:not([data-user-color-scheme]) .project-tags span {    color: #bae6fd;    background: rgba(56, 189, 248, 0.12);  }}@media (max-width: 767px) {  .index-card {    border-radius: 10px;  }  #subtitle {    font-size: 1.1rem;  }  .fact-grid,  .career-summary,  .project-grid {    grid-template-columns: 1fr;  }  .project-card-featured {    grid-column: auto;  }  .timeline::before {    left: 0.35rem;  }  .timeline-item {    display: block;    margin-left: 1.65rem;  }  .timeline-date {    padding: 0 0 0.35rem;    text-align: left;  }  .timeline-content::before {    left: -1.75rem;  }}]]></content>
     
   </entry>
   

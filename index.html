@@ -471,15 +471,15 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/posts/zephyr-stale-build-cache/" target="_self">
-          Zephyr 构建仍引用旧 SDK：缓存污染的定位与修复
+        <a href="/posts/zigbee-foundations/" target="_self">
+          Zigbee 基础概念：从无线帧到 Endpoint 与 Cluster
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/posts/zephyr-stale-build-cache/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/posts/zigbee-foundations/" target="_self">
         <div>
-          切换 Zephyr SDK、临时工作区或 Git worktree 后，如果构建日志仍然引用已经删除的目录，问题通常不在源码，而在复用的构建目录。先确认失败阶段和缓存来源，再清理明确的生成目录，比反复修改代码更有效。
+          理解 Zigbee 最有效的方法，不是先背命令，而是把“无线、组网、传输、设备管理、应用功能”分层。这样看日志或抓包时，才能知道一条成功信息究竟证明了哪一步。
         </div>
       </a>
 
@@ -487,7 +487,7 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2026-07-28 14:30" pubdate>
+            <time datetime="2026-07-28 21:30" pubdate>
               2026-07-28
             </time>
           </div>
@@ -503,7 +503,7 @@
     
       <span class="category-chain">
         
-  <a href="/categories/%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5/" class="category-chain-item">问题排查</a>
+  <a href="/categories/%E6%97%A0%E7%BA%BF%E5%8D%8F%E8%AE%AE/" class="category-chain-item">无线协议</a>
   
   
 
@@ -518,13 +518,13 @@
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/zephyr/">#Zephyr</a>
+              <a href="/tags/zigbee/">#Zigbee</a>
             
-              <a href="/tags/cmake/">#CMake</a>
+              <a href="/tags/ieee-802-15-4/">#IEEE 802.15.4</a>
             
-              <a href="/tags/west/">#west</a>
+              <a href="/tags/zcl/">#ZCL</a>
             
-              <a href="/tags/%E6%9E%84%E5%BB%BA%E7%B3%BB%E7%BB%9F/">#构建系统</a>
+              <a href="/tags/mesh/">#Mesh</a>
             
           </div>
         
@@ -538,15 +538,15 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/posts/multi-image-firmware-variant-verification/" target="_self">
-          多镜像固件优化：版本配对与最终字节校验
+        <a href="/posts/zigbee-network-joining-flow/" target="_self">
+          Zigbee 入网流程：从 Network Steering 到可用设备
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/posts/multi-image-firmware-variant-verification/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/posts/zigbee-network-joining-flow/" target="_self">
         <div>
-          当一个交付固件由 Bootloader、主应用、无线子镜像或协处理器固件合成时，仅靠文件名和流水线顺序无法证明镜像配对正确。可靠的构建流程应该把类型选择、目录隔离、失败语义和最终字节校验连成一条证据链。
+          “设备已经入网”经常被过早下结论。扫描到网络、拿到短地址、收到 Network Key、完成 Trust Center Link Key 交换和网关识别出应用能力，是不同阶段。
         </div>
       </a>
 
@@ -554,7 +554,7 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2026-07-28 14:20" pubdate>
+            <time datetime="2026-07-28 21:20" pubdate>
               2026-07-28
             </time>
           </div>
@@ -570,7 +570,7 @@
     
       <span class="category-chain">
         
-  <a href="/categories/%E4%BC%98%E5%8C%96%E5%AE%9E%E8%B7%B5/" class="category-chain-item">优化实践</a>
+  <a href="/categories/%E6%97%A0%E7%BA%BF%E5%8D%8F%E8%AE%AE/" class="category-chain-item">无线协议</a>
   
   
 
@@ -585,13 +585,13 @@
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/%E5%9B%BA%E4%BB%B6%E6%9E%84%E5%BB%BA/">#固件构建</a>
+              <a href="/tags/commissioning/">#Commissioning</a>
             
-              <a href="/tags/%E5%A4%9A%E9%95%9C%E5%83%8F/">#多镜像</a>
+              <a href="/tags/zigbee/">#Zigbee</a>
             
-              <a href="/tags/cmake/">#CMake</a>
+              <a href="/tags/bdb/">#BDB</a>
             
-              <a href="/tags/ci/">#CI</a>
+              <a href="/tags/%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5/">#问题排查</a>
             
           </div>
         
@@ -605,15 +605,15 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/posts/gpio-isr-deferred-processing/" target="_self">
-          GPIO 快速跳变优化：让 ISR 只做必须做的事
+        <a href="/posts/zigbee-security-key-scope/" target="_self">
+          Zigbee 各类 Key 的作用范围：不要把 Network Key 和 Link Key 混为一谈
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/posts/gpio-isr-deferred-processing/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/posts/zigbee-security-key-scope/" target="_self">
         <div>
-          Hall、干簧管、按键或防拆输入快速跳变时，如果硬中断回调直接操作协议栈、Flash、LED 定时器或复杂状态机，就容易出现延迟、丢事件、资源压力和难以复现的异常。更稳妥的设计是 ISR 采样并投递，主任务消抖、合并和执行副作用。
+          Zigbee 排障中最常见的安全误区，是把所有 128-bit Key 都理解成同一种东西。Key 的长度相同，不代表作用层、通信对象、生命周期和泄露影响相同。
         </div>
       </a>
 
@@ -621,7 +621,7 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2026-07-28 14:10" pubdate>
+            <time datetime="2026-07-28 21:10" pubdate>
               2026-07-28
             </time>
           </div>
@@ -637,7 +637,7 @@
     
       <span class="category-chain">
         
-  <a href="/categories/%E4%BC%98%E5%8C%96%E5%AE%9E%E8%B7%B5/" class="category-chain-item">优化实践</a>
+  <a href="/categories/%E6%97%A0%E7%BA%BF%E5%8D%8F%E8%AE%AE/" class="category-chain-item">无线协议</a>
   
   
 
@@ -652,13 +652,13 @@
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/gpio/">#GPIO</a>
+              <a href="/tags/zigbee/">#Zigbee</a>
             
-              <a href="/tags/isr/">#ISR</a>
+              <a href="/tags/security/">#Security</a>
             
-              <a href="/tags/%E4%BD%8E%E5%8A%9F%E8%80%97/">#低功耗</a>
+              <a href="/tags/network-key/">#Network Key</a>
             
-              <a href="/tags/%E7%8A%B6%E6%80%81%E6%9C%BA/">#状态机</a>
+              <a href="/tags/link-key/">#Link Key</a>
             
           </div>
         
@@ -672,15 +672,15 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/posts/hexo-github-pages-safe-publishing/" target="_self">
-          从零搭建 Hexo + Fluid + GitHub Pages：把隐私检查放进发布链
+        <a href="/posts/zigbee-centralized-distributed-networks/" target="_self">
+          Zigbee 集中式网络与分布式网络：差异主要在信任模型
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/posts/hexo-github-pages-safe-publishing/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/posts/zigbee-centralized-distributed-networks/" target="_self">
         <div>
-          个人技术站不只是把 Markdown 变成 HTML。更可靠的发布链应该同时管理源码、生成物、站内链接和公开边界，让敏感内容在推送之前就被阻止。
+          “集中式”和“分布式”首先描述安全与网络管理模型，不是简单描述数据包是否经过 Coordinator。集中式 Zigbee 网络同样可以由 Router 之间直接多跳转发。
         </div>
       </a>
 
@@ -688,7 +688,7 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2026-07-28 14:00" pubdate>
+            <time datetime="2026-07-28 21:00" pubdate>
               2026-07-28
             </time>
           </div>
@@ -704,7 +704,7 @@
     
       <span class="category-chain">
         
-  <a href="/categories/%E6%90%AD%E5%BB%BA%E6%95%99%E7%A8%8B/" class="category-chain-item">搭建教程</a>
+  <a href="/categories/%E6%97%A0%E7%BA%BF%E5%8D%8F%E8%AE%AE/" class="category-chain-item">无线协议</a>
   
   
 
@@ -719,13 +719,13 @@
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/hexo/">#Hexo</a>
+              <a href="/tags/zigbee/">#Zigbee</a>
             
-              <a href="/tags/github-pages/">#GitHub Pages</a>
+              <a href="/tags/trust-center/">#Trust Center</a>
             
-              <a href="/tags/fluid/">#Fluid</a>
+              <a href="/tags/%E9%9B%86%E4%B8%AD%E5%BC%8F%E7%BD%91%E7%BB%9C/">#集中式网络</a>
             
-              <a href="/tags/%E9%9A%90%E7%A7%81%E6%A3%80%E6%9F%A5/">#隐私检查</a>
+              <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%BD%91%E7%BB%9C/">#分布式网络</a>
             
           </div>
         
@@ -739,15 +739,15 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/posts/telink-matter-external-application-workspace/" target="_self">
-          Telink Matter 开发环境：把产品应用从 SDK 仓库中抽离
+        <a href="/posts/zigbee-touchlink-commissioning/" target="_self">
+          Zigbee Touchlink 流程：近距离发现、识别与入网
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/posts/telink-matter-external-application-workspace/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/posts/zigbee-touchlink-commissioning/" target="_self">
         <div>
-          直接在 Matter SDK 的 example 目录里开发产品，开始很快，长期却会带来 SDK 升级困难、产品提交混入第三方源码、多个应用相互影响等问题。更稳定的方式是把 SDK 当作只读依赖，把产品应用、配置、生成物和构建入口放进独立仓库。
+          Touchlink 是 Zigbee 的一种近距离 commissioning 机制，最初广泛用于照明设备。它不是普通的 Network Steering，也不是“按键后信号强就自动入网”这么简单。
         </div>
       </a>
 
@@ -755,7 +755,7 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2026-07-28 13:50" pubdate>
+            <time datetime="2026-07-28 20:50" pubdate>
               2026-07-28
             </time>
           </div>
@@ -771,7 +771,7 @@
     
       <span class="category-chain">
         
-  <a href="/categories/%E6%90%AD%E5%BB%BA%E6%95%99%E7%A8%8B/" class="category-chain-item">搭建教程</a>
+  <a href="/categories/%E6%97%A0%E7%BA%BF%E5%8D%8F%E8%AE%AE/" class="category-chain-item">无线协议</a>
   
   
 
@@ -786,13 +786,214 @@
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/telink/">#Telink</a>
+              <a href="/tags/commissioning/">#Commissioning</a>
             
-              <a href="/tags/zephyr/">#Zephyr</a>
+              <a href="/tags/zigbee/">#Zigbee</a>
+            
+              <a href="/tags/zcl/">#ZCL</a>
+            
+              <a href="/tags/touchlink/">#Touchlink</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/posts/zigbee-3-certification-self-test/" target="_self">
+          Zigbee 3.0 认证自测：从版本冻结到证据包
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/posts/zigbee-3-certification-self-test/" target="_self">
+        <div>
+          认证自测的目标不是证明“功能大致能用”，而是在送测前尽量复现正式测试的输入、声明、环境和判定方式，提前找出会阻断认证的问题。
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-07-28 20:40" pubdate>
+              2026-07-28
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E8%AE%A4%E8%AF%81%E5%AE%9E%E8%B7%B5/" class="category-chain-item">认证实践</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/pics/">#PICS</a>
+            
+              <a href="/tags/zigbee/">#Zigbee</a>
+            
+              <a href="/tags/zigbee-3-0/">#Zigbee 3.0</a>
+            
+              <a href="/tags/zuth/">#ZUTH</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/posts/zigbee-3-certification-process/" target="_self">
+          Zigbee 3.0 认证流程：产品、平台、实验室与 CSA 各负责什么
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/posts/zigbee-3-certification-process/" target="_self">
+        <div>
+          Zigbee 认证不是“把样机交给实验室，跑完测试就结束”。技术实现、正式测试、申请审核和认证后的变更管理属于不同责任主体。
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-07-28 20:30" pubdate>
+              2026-07-28
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E8%AE%A4%E8%AF%81%E5%AE%9E%E8%B7%B5/" class="category-chain-item">认证实践</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/zigbee/">#Zigbee</a>
+            
+              <a href="/tags/zigbee-3-0/">#Zigbee 3.0</a>
+            
+              <a href="/tags/%E8%AE%A4%E8%AF%81%E6%B5%81%E7%A8%8B/">#认证流程</a>
+            
+              <a href="/tags/csa/">#CSA</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/posts/matter-foundations/" target="_self">
+          Matter 基础概念：Node、Fabric、Endpoint 与安全会话
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/posts/matter-foundations/" target="_self">
+        <div>
+          Matter 是基于 IPv6 的应用层连接标准。它定义的不只是 Cluster，还包括发现、commissioning、安全会话、数据模型、交互模型和设备生命周期。
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-07-28 20:20" pubdate>
+              2026-07-28
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%97%A0%E7%BA%BF%E5%8D%8F%E8%AE%AE/" class="category-chain-item">无线协议</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
             
               <a href="/tags/matter/">#Matter</a>
             
-              <a href="/tags/west/">#west</a>
+              <a href="/tags/fabric/">#Fabric</a>
+            
+              <a href="/tags/data-model/">#Data Model</a>
+            
+              <a href="/tags/commissioning/">#Commissioning</a>
             
           </div>
         
@@ -806,15 +1007,15 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/posts/wireshark-thread-packet-capture/" target="_self">
-          Wireshark + Thread 抓包：从信道到协议阶段的完整流程
+        <a href="/posts/thread-foundations/" target="_self">
+          Thread 基础概念：IPv6 Mesh、设备角色与 Border Router
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/posts/wireshark-thread-packet-capture/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/posts/thread-foundations/" target="_self">
         <div>
-          Thread 抓包的关键不是“看到 802.15.4 帧”，而是让信道、时间、解密条件和设备日志对齐，再按 MLE、6LoWPAN、IPv6 和上层会话逐层判断。抓包只能证明捕获范围内发生的网络行为，不能替代设备端状态。
+          Thread 是建立在 IEEE 802.15.4 之上的低功耗 IPv6 Mesh 网络协议。它提供网络连接能力，但不规定灯、传感器或门锁应该有哪些应用 Cluster。
         </div>
       </a>
 
@@ -822,7 +1023,7 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2026-07-28 13:40" pubdate>
+            <time datetime="2026-07-28 20:10" pubdate>
               2026-07-28
             </time>
           </div>
@@ -838,7 +1039,7 @@
     
       <span class="category-chain">
         
-  <a href="/categories/%E6%90%AD%E5%BB%BA%E6%95%99%E7%A8%8B/" class="category-chain-item">搭建教程</a>
+  <a href="/categories/%E6%97%A0%E7%BA%BF%E5%8D%8F%E8%AE%AE/" class="category-chain-item">无线协议</a>
   
   
 
@@ -855,214 +1056,11 @@
             
               <a href="/tags/thread/">#Thread</a>
             
-              <a href="/tags/wireshark/">#Wireshark</a>
+              <a href="/tags/ipv6/">#IPv6</a>
             
               <a href="/tags/openthread/">#OpenThread</a>
             
-              <a href="/tags/%E6%8A%93%E5%8C%85/">#抓包</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/posts/obsidian-github-private-knowledge-base/" target="_self">
-          Obsidian + GitHub：建立可跨设备同步的私人知识库
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/posts/obsidian-github-private-knowledge-base/" target="_self">
-        <div>
-          Obsidian 适合编辑 Markdown，Git 适合保留历史，GitHub 私有仓库适合作为多设备之间的统一远端。稳定的知识库需要明确目录、同步顺序和敏感信息边界，而不是把所有文件直接扔进一个自动同步目录。
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2026-07-28 13:30" pubdate>
-              2026-07-28
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/%E6%90%AD%E5%BB%BA%E6%95%99%E7%A8%8B/" class="category-chain-item">搭建教程</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/git/">#Git</a>
-            
-              <a href="/tags/obsidian/">#Obsidian</a>
-            
-              <a href="/tags/github/">#GitHub</a>
-            
-              <a href="/tags/%E7%9F%A5%E8%AF%86%E7%AE%A1%E7%90%86/">#知识管理</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/posts/ai-firmware-closed-loop-workflow/" target="_self">
-          AI + Zephyr + Matter：构建、烧录与串口调试的可控闭环
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/posts/ai-firmware-closed-loop-workflow/" target="_self">
-        <div>
-          AI 可以把代码修改、构建、串口日志分析和回归测试连接成闭环，但“能执行命令”不等于“可以无限自动操作硬件”。可靠流程需要固定工程边界、明确设备身份、把烧录设为授权门，并让每轮结论都对应可复核证据。
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2026-07-28 13:20" pubdate>
-              2026-07-28
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/%E6%90%AD%E5%BB%BA%E6%95%99%E7%A8%8B/" class="category-chain-item">搭建教程</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/ai/">#AI</a>
-            
-              <a href="/tags/telink/">#Telink</a>
-            
-              <a href="/tags/zephyr/">#Zephyr</a>
-            
-              <a href="/tags/matter/">#Matter</a>
-            
-              <a href="/tags/%E4%B8%B2%E5%8F%A3%E8%B0%83%E8%AF%95/">#串口调试</a>
-            
-              <a href="/tags/%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95/">#自动化测试</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/posts/debugging-with-an-evidence-chain/" target="_self">
-          从日志到协议阶段：建立嵌入式排障的证据链
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/posts/debugging-with-an-evidence-chain/" target="_self">
-        <div>
-          一条错误日志通常只能证明“某个位置观察到了异常”，不能自动证明根因。有效的嵌入式排障，需要先把事件还原成时间线，再把每条证据放回正确的协议层和代码阶段。
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2026-07-28 09:20" pubdate>
-              2026-07-28
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/" class="category-chain-item">工程实践</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E8%B0%83%E8%AF%95/">#调试</a>
-            
-              <a href="/tags/%E6%97%A5%E5%BF%97/">#日志</a>
-            
-              <a href="/tags/%E8%AF%81%E6%8D%AE%E9%93%BE/">#证据链</a>
+              <a href="/tags/border-router/">#Border Router</a>
             
           </div>
         
@@ -1074,7 +1072,7 @@
 
   <nav aria-label="navigation">
     <span class="pagination" id="pagination">
-      <span class="page-number current">1</span><a class="page-number" href="/page/2/#board">2</a><a class="extend next" rel="next" href="/page/2/#board"><i class="iconfont icon-arrowright"></i></a>
+      <span class="page-number current">1</span><a class="page-number" href="/page/2/#board">2</a><a class="page-number" href="/page/3/#board">3</a><a class="extend next" rel="next" href="/page/2/#board"><i class="iconfont icon-arrowright"></i></a>
     </span>
   </nav>
 

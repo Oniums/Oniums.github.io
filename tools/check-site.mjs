@@ -9,6 +9,7 @@ const requiredFiles = [
   "experience/index.html",
   "projects/index.html",
   "page/2/index.html",
+  "page/3/index.html",
   "archives/index.html",
   "categories/index.html",
   "tags/index.html",
@@ -29,7 +30,19 @@ const requiredFiles = [
   "posts/telink-matter-external-application-workspace/index.html",
   "posts/wireshark-thread-packet-capture/index.html",
   "posts/obsidian-github-private-knowledge-base/index.html",
-  "posts/ai-firmware-closed-loop-workflow/index.html"
+  "posts/ai-firmware-closed-loop-workflow/index.html",
+  "posts/zigbee-foundations/index.html",
+  "posts/zigbee-network-joining-flow/index.html",
+  "posts/zigbee-security-key-scope/index.html",
+  "posts/zigbee-centralized-distributed-networks/index.html",
+  "posts/zigbee-touchlink-commissioning/index.html",
+  "posts/zigbee-3-certification-self-test/index.html",
+  "posts/zigbee-3-certification-process/index.html",
+  "posts/matter-foundations/index.html",
+  "posts/thread-foundations/index.html",
+  "posts/matter-zigbee-concept-mapping/index.html",
+  "posts/matter-certification-test-environment/index.html",
+  "posts/matter-certificate-relationships/index.html"
 ];
 
 const forbiddenMarkers = [
