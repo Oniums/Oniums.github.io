@@ -21,6 +21,7 @@ const generatedTargets = [
   "js",
   "local-search.xml",
   "open-source",
+  "page",
   "posts",
   "projects",
   "sitemap.xml",

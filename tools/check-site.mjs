@@ -8,6 +8,7 @@ const requiredFiles = [
   "about/index.html",
   "experience/index.html",
   "projects/index.html",
+  "page/2/index.html",
   "archives/index.html",
   "categories/index.html",
   "tags/index.html",
@@ -20,7 +21,15 @@ const requiredFiles = [
   "posts/hello-oniums/index.html",
   "posts/debugging-with-an-evidence-chain/index.html",
   "posts/matter-thread-zigbee-layers/index.html",
-  "posts/from-private-notes-to-public-writing/index.html"
+  "posts/from-private-notes-to-public-writing/index.html",
+  "posts/zephyr-stale-build-cache/index.html",
+  "posts/multi-image-firmware-variant-verification/index.html",
+  "posts/gpio-isr-deferred-processing/index.html",
+  "posts/hexo-github-pages-safe-publishing/index.html",
+  "posts/telink-matter-external-application-workspace/index.html",
+  "posts/wireshark-thread-packet-capture/index.html",
+  "posts/obsidian-github-private-knowledge-base/index.html",
+  "posts/ai-firmware-closed-loop-workflow/index.html"
 ];
 
 const forbiddenMarkers = [
@@ -94,28 +103,36 @@ const missingRequired = requiredFiles.filter(
   (file) => !existsSync(path.join(publicDir, file))
 );
 
-const htmlFiles = walk(publicDir).filter((file) => file.endsWith(".html"));
+const generatedFiles = walk(publicDir);
+const htmlFiles = generatedFiles.filter((file) => file.endsWith(".html"));
+const scannableFiles = generatedFiles.filter((file) =>
+  /\.(?:html|xml|json|txt)$/i.test(file)
+);
 const brokenReferences = [];
 const forbiddenMatches = [];
 const forbiddenPatternMatches = [];
 
-for (const htmlFile of htmlFiles) {
-  const html = readFileSync(htmlFile, "utf8");
-  const relativeHtml = path.relative(publicDir, htmlFile);
+for (const file of scannableFiles) {
+  const content = readFileSync(file, "utf8");
+  const relativeFile = path.relative(publicDir, file);
 
   for (const marker of forbiddenMarkers) {
-    if (html.includes(marker)) {
-      forbiddenMatches.push(`${relativeHtml}: ${marker}`);
+    if (content.includes(marker)) {
+      forbiddenMatches.push(`${relativeFile}: ${marker}`);
     }
   }
 
   for (const { label, pattern } of forbiddenPatterns) {
     pattern.lastIndex = 0;
-    if (pattern.test(html)) {
-      forbiddenPatternMatches.push(`${relativeHtml}: ${label}`);
+    if (pattern.test(content)) {
+      forbiddenPatternMatches.push(`${relativeFile}: ${label}`);
     }
   }
+}
 
+for (const htmlFile of htmlFiles) {
+  const html = readFileSync(htmlFile, "utf8");
+  const relativeHtml = path.relative(publicDir, htmlFile);
   for (const match of html.matchAll(/(?:href|src)="([^"]+)"/g)) {
     const target = resolveLocalReference(htmlFile, match[1]);
     if (target && !existsSync(target)) {
