@@ -2,7 +2,34 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>https://oniums.github.io/posts/from-private-notes-to-public-writing/</loc>
+    <loc>https://oniums.github.io/about/index.html</loc>
+    
+    <lastmod>2026-07-28</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://oniums.github.io/experience/index.html</loc>
+    
+    <lastmod>2026-07-28</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://oniums.github.io/projects/index.html</loc>
+    
+    <lastmod>2026-07-28</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://oniums.github.io/open-source/index.html</loc>
     
     <lastmod>2026-07-28</lastmod>
     
@@ -12,6 +39,15 @@
   
   <url>
     <loc>https://oniums.github.io/posts/debugging-with-an-evidence-chain/</loc>
+    
+    <lastmod>2026-07-28</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://oniums.github.io/posts/from-private-notes-to-public-writing/</loc>
     
     <lastmod>2026-07-28</lastmod>
     
@@ -47,25 +83,7 @@
   </url>
   
   <url>
-    <loc>https://oniums.github.io/about/index.html</loc>
-    
-    <lastmod>2026-07-28</lastmod>
-    
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <url>
     <loc>https://oniums.github.io/categories/index.html</loc>
-    
-    <lastmod>2026-07-28</lastmod>
-    
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <url>
-    <loc>https://oniums.github.io/projects/index.html</loc>
     
     <lastmod>2026-07-28</lastmod>
     
@@ -83,27 +101,6 @@
 
   
   <url>
-    <loc>https://oniums.github.io/tags/markdown/</loc>
-    <lastmod>2026-07-28</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://oniums.github.io/tags/git/</loc>
-    <lastmod>2026-07-28</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://oniums.github.io/tags/%E6%8A%80%E6%9C%AF%E5%86%99%E4%BD%9C/</loc>
-    <lastmod>2026-07-28</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
     <loc>https://oniums.github.io/tags/%E8%B0%83%E8%AF%95/</loc>
     <lastmod>2026-07-28</lastmod>
     <changefreq>weekly</changefreq>
@@ -119,6 +116,27 @@
   
   <url>
     <loc>https://oniums.github.io/tags/%E8%AF%81%E6%8D%AE%E9%93%BE/</loc>
+    <lastmod>2026-07-28</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://oniums.github.io/tags/markdown/</loc>
+    <lastmod>2026-07-28</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://oniums.github.io/tags/git/</loc>
+    <lastmod>2026-07-28</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://oniums.github.io/tags/%E6%8A%80%E6%9C%AF%E5%86%99%E4%BD%9C/</loc>
     <lastmod>2026-07-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -169,14 +187,14 @@
 
   
   <url>
-    <loc>https://oniums.github.io/categories/%E7%9F%A5%E8%AF%86%E7%AE%A1%E7%90%86/</loc>
+    <loc>https://oniums.github.io/categories/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/</loc>
     <lastmod>2026-07-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://oniums.github.io/categories/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/</loc>
+    <loc>https://oniums.github.io/categories/%E7%9F%A5%E8%AF%86%E7%AE%A1%E7%90%86/</loc>
     <lastmod>2026-07-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>

@@ -27,7 +27,9 @@ Hexo 首先把生成结果写入 `public/`，站点检查通过后，再由受�
 
 - `source/_posts/`：公开技术文章
 - `source/about/`：个人介绍
+- `source/experience/`：匿名化工作经历
 - `source/projects/`：项目与实践方向
+- `source/open-source/`：可核验的公开贡献
 - `_config.yml`：Hexo 配置
 - `_config.fluid.yml`：Fluid 主题覆盖配置
 
@@ -35,5 +37,6 @@ Hexo 首先把生成结果写入 `public/`，站点检查通过后，再由受�
 
 - 只发布可公开、经过整理的内容。
 - 不发布公司内部信息、未公开产品细节、密钥、证书、设备标识或原始工作日志。
+- 不发布姓名、照片、手机号、薪资、公司名称或具体产品型号。
 - 私人知识库只作为选题来源，不与本站自动同步。
 - 当前 GitHub Pages 从 `main` 根目录直接发布，提交前必须运行 `npm run prepare-pages`。

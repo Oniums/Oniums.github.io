@@ -6,6 +6,8 @@ const requiredFiles = [
   "index.html",
   "404.html",
   "about/index.html",
+  "experience/index.html",
+  "open-source/index.html",
   "projects/index.html",
   "archives/index.html",
   "categories/index.html",
@@ -25,7 +27,19 @@ const requiredFiles = [
 const forbiddenMarkers = [
   "Hello World - Hexo",
   "An elegant Material-Design theme for Hexo",
-  "An elegant theme for Hexo"
+  "An elegant theme for Hexo",
+  "赵德熙",
+  "深圳松诺技术有限公司",
+  "伟易达电子实业",
+  "深圳市江机实业有限公司",
+  "SNZT-",
+  "SNZB-",
+  "19-22K",
+  "期望薪资"
+];
+
+const forbiddenPatterns = [
+  { label: "中国大陆手机号", pattern: /\b1[3-9]\d{9}\b/g }
 ];
 
 function walk(directory) {
@@ -79,6 +93,7 @@ const missingRequired = requiredFiles.filter(
 const htmlFiles = walk(publicDir).filter((file) => file.endsWith(".html"));
 const brokenReferences = [];
 const forbiddenMatches = [];
+const forbiddenPatternMatches = [];
 
 for (const htmlFile of htmlFiles) {
   const html = readFileSync(htmlFile, "utf8");
@@ -87,6 +102,13 @@ for (const htmlFile of htmlFiles) {
   for (const marker of forbiddenMarkers) {
     if (html.includes(marker)) {
       forbiddenMatches.push(`${relativeHtml}: ${marker}`);
+    }
+  }
+
+  for (const { label, pattern } of forbiddenPatterns) {
+    pattern.lastIndex = 0;
+    if (pattern.test(html)) {
+      forbiddenPatternMatches.push(`${relativeHtml}: ${label}`);
     }
   }
 
@@ -101,6 +123,7 @@ for (const htmlFile of htmlFiles) {
 const failures = [
   ...missingRequired.map((file) => `缺少构建产物: ${file}`),
   ...forbiddenMatches.map((match) => `发现默认内容: ${match}`),
+  ...forbiddenPatternMatches.map((match) => `发现敏感格式: ${match}`),
   ...brokenReferences.map((reference) => `站内链接无目标: ${reference}`)
 ];
 
