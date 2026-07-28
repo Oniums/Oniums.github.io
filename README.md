@@ -29,7 +29,6 @@ Hexo 首先把生成结果写入 `public/`，站点检查通过后，再由受�
 - `source/about/`：个人介绍
 - `source/experience/`：匿名化工作经历
 - `source/projects/`：项目与实践方向
-- `source/open-source/`：可核验的公开贡献
 - `_config.yml`：Hexo 配置
 - `_config.fluid.yml`：Fluid 主题覆盖配置
 

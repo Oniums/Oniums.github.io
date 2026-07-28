@@ -7,7 +7,6 @@ const requiredFiles = [
   "404.html",
   "about/index.html",
   "experience/index.html",
-  "open-source/index.html",
   "projects/index.html",
   "archives/index.html",
   "categories/index.html",
@@ -35,7 +34,12 @@ const forbiddenMarkers = [
   "SNZT-",
   "SNZB-",
   "19-22K",
-  "期望薪资"
+  "期望薪资",
+  "开源贡献",
+  "zigbee-herdsman-converters/pull/",
+  "zha-device-handlers/pull/",
+  "SmartThingsEdgeDrivers/pull/",
+  "zigbee-OTA/pull/"
 ];
 
 const forbiddenPatterns = [
