@@ -1,0 +1,161 @@
+favicon: /img/avatar.png
+apple_touch_icon: /img/avatar.png
+force_https: true
+
+dark_mode:
+  enable: true
+  default: auto
+
+color:
+  body_bg_color: "#f3f5f7"
+  body_bg_color_dark: "#111827"
+  navbar_bg_color: "#0f172a"
+  navbar_bg_color_dark: "#020617"
+  post_link_color: "#2563eb"
+  post_link_color_dark: "#60a5fa"
+  link_hover_color: "#0ea5e9"
+  link_hover_color_dark: "#38bdf8"
+
+font:
+  font_size: 16px
+  font_family: '"Inter", "Noto Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
+  letter_spacing: 0.02em
+  code_font_size: 90%
+
+custom_css:
+  - /css/custom.css
+
+web_analytics:
+  enable: false
+
+navbar:
+  blog_title: "Oniums"
+  ground_glass:
+    enable: true
+    px: 6
+    alpha: 0.72
+  menu:
+    - { key: "home", name: "首页", link: "/", icon: "iconfont icon-home-fill" }
+    - { key: "archive", name: "归档", link: "/archives/", icon: "iconfont icon-archive-fill" }
+    - { key: "category", name: "分类", link: "/categories/", icon: "iconfont icon-category-fill" }
+    - { key: "tag", name: "标签", link: "/tags/", icon: "iconfont icon-tags-fill" }
+    - { key: "projects", name: "项目", link: "/projects/" }
+    - { key: "about", name: "关于", link: "/about/", icon: "iconfont icon-user-fill" }
+
+search:
+  enable: true
+  path: /local-search.xml
+  generate_path: /local-search.xml
+  field: all
+  content: true
+
+banner:
+  random_img: false
+  parallax: true
+  width_height_ratio: 1.0
+
+footer:
+  content: 'Built with <a href="https://hexo.io" target="_blank" rel="nofollow noopener">Hexo</a> and <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener">Fluid</a>.'
+  statistics:
+    enable: false
+  beian:
+    enable: false
+
+index:
+  banner_img: /img/banner.jpg
+  banner_img_height: 100
+  banner_mask_alpha: 0.42
+  slogan:
+    enable: true
+    text:
+      - "Embedded firmware. Wireless protocols. Evidence-led engineering."
+      - "把复杂系统拆成可以验证的证据链。"
+  auto_excerpt:
+    enable: true
+  post_url_target: _self
+  post_meta:
+    date: true
+    category: true
+    tag: true
+
+post:
+  banner_img: /img/banner.jpg
+  banner_img_height: 62
+  banner_mask_alpha: 0.48
+  meta:
+    author:
+      enable: false
+    date:
+      enable: true
+      format: "LL"
+    wordcount:
+      enable: true
+    min2read:
+      enable: true
+      awl: 2
+      wpm: 80
+    views:
+      enable: false
+  toc:
+    enable: true
+    expand_all: false
+    placement: right
+    headingSelector: "h1,h2,h3,h4"
+    collapseDepth: 2
+  copyright:
+    enable: true
+    license: "BY-NC-SA"
+    author:
+      enable: true
+    post_date:
+      enable: true
+      format: "LL"
+    update_date:
+      enable: false
+  comments:
+    enable: false
+
+archive:
+  banner_img: /img/banner.jpg
+  banner_img_height: 48
+  banner_mask_alpha: 0.5
+
+category:
+  enable: true
+  banner_img: /img/banner.jpg
+  banner_img_height: 48
+  banner_mask_alpha: 0.5
+  order_by: "-length"
+  post_order_by: "-date"
+
+tag:
+  enable: true
+  banner_img: /img/banner.jpg
+  banner_img_height: 48
+  banner_mask_alpha: 0.5
+
+about:
+  enable: true
+  banner_img: /img/banner.jpg
+  banner_img_height: 52
+  banner_mask_alpha: 0.5
+  avatar: /img/avatar.png
+  name: "Oniums"
+  intro: "嵌入式固件开发者，关注无线协议、低功耗系统与可靠工程实践。"
+  icons:
+    - { class: "iconfont icon-github-fill", link: "https://github.com/Oniums", tip: "GitHub" }
+
+page:
+  banner_img: /img/banner.jpg
+  banner_img_height: 52
+  banner_mask_alpha: 0.5
+
+page404:
+  enable: true
+  banner_img: /img/banner.jpg
+  banner_img_height: 85
+  banner_mask_alpha: 0.55
+  redirect_delay: 5000
+
+links:
+  enable: false

@@ -1,0 +1,52 @@
+:root {
+  --oniums-accent: #38bdf8;
+  --oniums-accent-deep: #2563eb;
+}
+
+.navbar-brand {
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.text-center#subtitle,
+#subtitle {
+  letter-spacing: 0.04em;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.55);
+}
+
+.index-card {
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 14px;
+  box-shadow: 0 12px 35px rgba(15, 23, 42, 0.08);
+  overflow: hidden;
+}
+
+.markdown-body h2 {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.markdown-body blockquote {
+  border-left-color: var(--oniums-accent);
+  background: rgba(56, 189, 248, 0.08);
+  border-radius: 0 8px 8px 0;
+}
+
+.markdown-body code {
+  border-radius: 5px;
+}
+
+.about-avatar img {
+  border: 3px solid rgba(56, 189, 248, 0.35);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.16);
+}
+
+@media (max-width: 767px) {
+  .index-card {
+    border-radius: 10px;
+  }
+
+  #subtitle {
+    font-size: 1.1rem;
+  }
+}

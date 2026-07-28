@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <author>
+    <name>Oniums</name>
+  </author>
+  <generator uri="https://hexo.io/">Hexo</generator>
+  <id>https://oniums.github.io/</id>
+  <link href="https://oniums.github.io/" rel="alternate"/>
+  <link href="https://oniums.github.io/atom.xml" rel="self"/>
+  <rights>All rights reserved 2026, Oniums</rights>
+  <subtitle>嵌入式固件、无线协议与工程实践</subtitle>
+  <title>Oniums</title>
+  <updated>2026-07-28T12:23:31.561Z</updated>
+  <entry>
+    <author>
+      <name>Oniums</name>
+    </author>
+    <category term="站点" scheme="https://oniums.github.io/categories/%E7%AB%99%E7%82%B9/"/>
+    <category term="写作" scheme="https://oniums.github.io/tags/%E5%86%99%E4%BD%9C/"/>
+    <category term="工程实践" scheme="https://oniums.github.io/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/"/>
+    <content>
+      <![CDATA[<p>这是一个关于嵌入式固件、无线协议与工程实践的个人站点。</p><span id="more"></span><h2 id="为什么重新开始"><a href="#为什么重新开始" class="headerlink" title="为什么重新开始"></a>为什么重新开始</h2><p>技术工作很容易留下大量碎片：一段日志、一个临时脚本、某次失败的构建，以及“当时好像是这样解决的”。</p><p>如果这些信息没有被整理成可验证的过程，它们很快就会失去价值。因此我希望这里不只是文章列表，而是一层公开、精炼的技术输出：每篇内容都尽量说明问题发生在哪一层、证据来自哪里、结论能够覆盖到什么范围。</p><h2 id="这里会写什么"><a href="#这里会写什么" class="headerlink" title="这里会写什么"></a>这里会写什么</h2><ul><li>嵌入式固件的设计、调试与验证；</li><li>Matter、Thread、Zigbee 和 Bluetooth Low Energy；</li><li>Zephyr、构建系统、自动化和工程工具；</li><li>日志分析、协议抓包与故障证据链；</li><li>从具体问题中提炼出的通用方法。</li></ul><h2 id="写作原则"><a href="#写作原则" class="headerlink" title="写作原则"></a>写作原则</h2><h3 id="先给结论，再展开证据"><a href="#先给结论，再展开证据" class="headerlink" title="先给结论，再展开证据"></a>先给结论，再展开证据</h3><p>读者应该先知道文章解决了什么，再决定是否继续阅读细节。</p><h3 id="区分事实与推断"><a href="#区分事实与推断" class="headerlink" title="区分事实与推断"></a>区分事实与推断</h3><p>代码、规范、日志和实验结果可以互相印证，但不能彼此替代。无法验证的部分会明确写成假设或待确认项。</p><h3 id="保持公开边界"><a href="#保持公开边界" class="headerlink" title="保持公开边界"></a>保持公开边界</h3><p>这里不会出现公司内部信息、未公开产品细节、密钥、证书、设备身份数据或未经整理的原始日志。</p><p>接下来，我会从协议分层、日志诊断和知识整理这几个主题开始。</p>]]>
+    </content>
+    <id>https://oniums.github.io/posts/hello-oniums/</id>
+    <link href="https://oniums.github.io/posts/hello-oniums/"/>
+    <published>2026-07-28T01:30:00.000Z</published>
+    <summary>
+      <![CDATA[<p>这是一个关于嵌入式固件、无线协议与工程实践的个人站点。</p>]]>
+    </summary>
+    <title>你好，这里是 Oniums</title>
+    <updated>2026-07-28T12:23:31.561Z</updated>
+  </entry>
+  <entry>
+    <author>
+      <name>Oniums</name>
+    </author>
+    <category term="工程实践" scheme="https://oniums.github.io/categories/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/"/>
+    <category term="调试" scheme="https://oniums.github.io/tags/%E8%B0%83%E8%AF%95/"/>
+    <category term="日志" scheme="https://oniums.github.io/tags/%E6%97%A5%E5%BF%97/"/>
+    <category term="证据链" scheme="https://oniums.github.io/tags/%E8%AF%81%E6%8D%AE%E9%93%BE/"/>
+    <content>
+      <![CDATA[<p>一条错误日志通常只能证明“某个位置观察到了异常”，不能自动证明根因。有效的嵌入式排障，需要先把事件还原成时间线，再把每条证据放回正确的协议层和代码阶段。</p><span id="more"></span><h2 id="从现象开始，但不要停在现象"><a href="#从现象开始，但不要停在现象" class="headerlink" title="从现象开始，但不要停在现象"></a>从现象开始，但不要停在现象</h2><p>设备掉线、入网失败或升级超时，都是用户能够感知的结果。它们可以作为调查入口，却不是足够精确的问题定义。</p><p>更有用的第一轮问题是：</p><ol><li>最后一个明确成功的阶段是什么？</li><li>第一个明确失败的阶段是什么？</li><li>两者之间有哪些代码路径和异步事件？</li><li>当前日志能证明什么，又不能证明什么？</li></ol><p>例如，“帧已发送”与“对端应用已经接受”之间，可能还隔着链路确认、网络层路由、安全处理、重放检查和应用层解析。把这些阶段折叠成一个“通信失败”，搜索范围只会越来越大。</p><h2 id="建立时间线"><a href="#建立时间线" class="headerlink" title="建立时间线"></a>建立时间线</h2><p>先按照单调时间或可靠时间戳整理关键事件：</p><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs text">T0  用户动作或外部触发<br>T1  状态机接收事件<br>T2  协议请求发出<br>T3  底层确认或超时<br>T4  上层状态发生变化<br>T5  最终成功或失败回调<br></code></pre></td></tr></table></figure><p>时间线不要求一开始就完整。它的价值在于暴露缺口：如果只有 T2 和 T5，就应该在 T3、T4 附近补充观察点，而不是在整个工程里随意增加日志。</p><h2 id="追完整调用链"><a href="#追完整调用链" class="headerlink" title="追完整调用链"></a>追完整调用链</h2><p>定位一条日志后，至少沿两个方向阅读代码：</p><ul><li>向上：是谁触发了这个函数，触发条件是什么；</li><li>向下：返回之后由谁消费结果，成功条件在哪里。</li></ul><p>嵌入式系统中常见的陷阱是异步边界。函数返回成功可能只表示“请求已排队”，真正结果要等中断、回调、工作队列或协议事件。如果忽略这一点，就很容易把“开始成功”误写成“操作成功”。</p><h2 id="给证据分级"><a href="#给证据分级" class="headerlink" title="给证据分级"></a>给证据分级</h2><p>我习惯把调查结果分成三类：</p><table><thead><tr><th>类型</th><th>含义</th><th>示例</th></tr></thead><tbody><tr><td>已证实</td><td>能由代码、日志、抓包或实验直接支持</td><td>某回调返回了指定错误码</td></tr><tr><td>高概率推断</td><td>与多项证据一致，但缺少决定性观察点</td><td>失败可能发生在安全校验阶段</td></tr><tr><td>未知</td><td>当前信息不足，存在多个可行解释</td><td>对端为什么拒绝该消息</td></tr></tbody></table><p>这种区分不是保守措辞，而是决定下一步实验是否有效的基础。</p><h2 id="设计最小诊断"><a href="#设计最小诊断" class="headerlink" title="设计最小诊断"></a>设计最小诊断</h2><p>新增诊断点时，优先记录阶段，而不是倾倒数据：</p><ul><li>进入阶段；</li><li>关键条件；</li><li>结果与错误码；</li><li>与一次流程关联的非敏感标识；</li><li>必要的耗时。</li></ul><p>安全材料、完整凭据和唯一设备身份不应该出现在日志中。诊断能力必须服从安全边界。</p><h2 id="用成功样本校准"><a href="#用成功样本校准" class="headerlink" title="用成功样本校准"></a>用成功样本校准</h2><p>只有失败样本时，很难判断哪些日志是正常噪声。拿一份相同版本、相同场景的成功日志做对照，通常能快速找到真正分叉的位置。</p><p>最终目标不是“找到一条红色错误”，而是给出一条可复核的结论：</p><blockquote><p>流程已通过 A，在 B 之前失败；现有证据支持 C，不足以证明 D；下一项最小实验是 E。</p></blockquote><p>这样的结论才能稳定地转化为修复、测试和长期知识。</p>]]>
+    </content>
+    <id>https://oniums.github.io/posts/debugging-with-an-evidence-chain/</id>
+    <link href="https://oniums.github.io/posts/debugging-with-an-evidence-chain/"/>
+    <published>2026-07-28T01:20:00.000Z</published>
+    <summary>
+      <![CDATA[<p>一条错误日志通常只能证明“某个位置观察到了异常”，不能自动证明根因。有效的嵌入式排障，需要先把事件还原成时间线，再把每条证据放回正确的协议层和代码阶段。</p>]]>
+    </summary>
+    <title>从日志到协议阶段：建立嵌入式排障的证据链</title>
+    <updated>2026-07-28T12:23:31.561Z</updated>
+  </entry>
+  <entry>
+    <author>
+      <name>Oniums</name>
+    </author>
+    <category term="无线协议" scheme="https://oniums.github.io/categories/%E6%97%A0%E7%BA%BF%E5%8D%8F%E8%AE%AE/"/>
+    <category term="Matter" scheme="https://oniums.github.io/tags/matter/"/>
+    <category term="Thread" scheme="https://oniums.github.io/tags/thread/"/>
+    <category term="Zigbee" scheme="https://oniums.github.io/tags/zigbee/"/>
+    <category term="协议分层" scheme="https://oniums.github.io/tags/%E5%8D%8F%E8%AE%AE%E5%88%86%E5%B1%82/"/>
+    <content>
+      <![CDATA[<p>Matter、Thread 和 Zigbee 经常同时出现在低功耗智能设备中，但它们解决的问题并不相同。排障前先确认自己观察的是应用层、IP 网络还是完整的 Zigbee 协议栈，可以避免大量无效推断。</p><span id="more"></span><h2 id="一个简化视图"><a href="#一个简化视图" class="headerlink" title="一个简化视图"></a>一个简化视图</h2><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs text">Matter 应用与数据模型<br>        │<br>        ├── Thread ── IEEE 802.15.4<br>        ├── Wi-Fi<br>        └── Ethernet<br><br>Zigbee 应用与 Cluster<br>        │<br>Zigbee 网络与安全<br>        │<br>IEEE 802.15.4<br></code></pre></td></tr></table></figure><p>这张图刻意省略了许多细节，但保留了最重要的边界：</p><ul><li>Matter 是基于 IP 的连接协议，可运行在 Thread、Wi-Fi 和 Ethernet 等网络之上；</li><li>Thread 是面向低功耗物联网的 IPv6 Mesh 网络协议，底层使用 IEEE 802.15.4 MAC&#x2F;PHY；</li><li>Zigbee 从 Mesh 网络到应用数据模型提供完整协议栈，同样可以使用 IEEE 802.15.4，但不是 Thread 的另一种名称。</li></ul><p>这些关系可以分别在 <a href="https://csa-iot.org/all-solutions/matter/">Connectivity Standards Alliance 的 Matter 说明</a>、<a href="https://threadgroup.org/what-Is-thread/overview">Thread Group 概览</a> 和 <a href="https://csa-iot.org/all-solutions/zigbee/">Zigbee 官方介绍</a>中确认。</p><h2 id="共享无线底层，不代表协议互通"><a href="#共享无线底层，不代表协议互通" class="headerlink" title="共享无线底层，不代表协议互通"></a>共享无线底层，不代表协议互通</h2><p>Thread 与常见 Zigbee 设备都可能使用 2.4 GHz IEEE 802.15.4。抓包工具能够看到相同类型的物理层或 MAC 层帧，并不意味着上层网络、安全机制和应用负载相同。</p><p>因此，“信道上看到数据”最多只能证明有无线活动。要判断它属于 Thread 还是 Zigbee，需要继续查看网络层特征；要判断 Matter 操作是否成功，还要继续追踪 IP、会话和应用交互。</p><h2 id="Matter-与-Thread-的分工"><a href="#Matter-与-Thread-的分工" class="headerlink" title="Matter 与 Thread 的分工"></a>Matter 与 Thread 的分工</h2><p>Thread 负责把低功耗节点连接进 IPv6 网络。Matter 在它之上定义设备发现、安全会话、数据模型和应用交互。</p><p>这意味着：</p><ul><li>Thread 已附着，不等于 Matter 已完成配置；</li><li>IPv6 可达，不等于 Matter 安全会话已建立；</li><li>Matter 属性读写失败，也不一定是 802.15.4 射频问题。</li></ul><p>排障时应分别为网络附着、IP 可达、安全会话和应用操作设置成功锚点。</p><h2 id="Zigbee-是另一条完整路径"><a href="#Zigbee-是另一条完整路径" class="headerlink" title="Zigbee 是另一条完整路径"></a>Zigbee 是另一条完整路径</h2><p>Zigbee 自己定义网络、安全和应用层行为。它可以通过桥接进入 Matter 生态，但 Matter 与 Zigbee 设备之间没有原生的直接协议互通。Connectivity Standards Alliance 的 <a href="https://csa-iot.org/all-solutions/matter/matter-faq/">Matter FAQ</a> 对这一边界有明确说明。</p><p>所以，在 Zigbee 日志里看到 Cluster、APS 或 Network Key 时，不应套用 Matter 的 CASE、Fabric 或 Interaction Model 概念；反过来也一样。</p><h2 id="排障时先问四个问题"><a href="#排障时先问四个问题" class="headerlink" title="排障时先问四个问题"></a>排障时先问四个问题</h2><ol><li>当前证据来自哪个层级？</li><li>它证明的是发送、接收、解密，还是应用接受？</li><li>哪个协议阶段已经成功？</li><li>下一个决定性观察点是什么？</li></ol><p>协议名称很多，但排障方法可以很稳定：先分层，再按阶段收集证据。</p>]]>
+    </content>
+    <id>https://oniums.github.io/posts/matter-thread-zigbee-layers/</id>
+    <link href="https://oniums.github.io/posts/matter-thread-zigbee-layers/"/>
+    <published>2026-07-28T01:10:00.000Z</published>
+    <summary>
+      <![CDATA[<p>Matter、Thread 和 Zigbee 经常同时出现在低功耗智能设备中，但它们解决的问题并不相同。排障前先确认自己观察的是应用层、IP 网络还是完整的 Zigbee 协议栈，可以避免大量无效推断。</p>]]>
+    </summary>
+    <title>Matter、Thread 与 Zigbee：先分清它们在哪一层</title>
+    <updated>2026-07-28T12:23:31.561Z</updated>
+  </entry>
+  <entry>
+    <author>
+      <name>Oniums</name>
+    </author>
+    <category term="知识管理" scheme="https://oniums.github.io/categories/%E7%9F%A5%E8%AF%86%E7%AE%A1%E7%90%86/"/>
+    <category term="Markdown" scheme="https://oniums.github.io/tags/markdown/"/>
+    <category term="Git" scheme="https://oniums.github.io/tags/git/"/>
+    <category term="技术写作" scheme="https://oniums.github.io/tags/%E6%8A%80%E6%9C%AF%E5%86%99%E4%BD%9C/"/>
+    <content>
+      <![CDATA[<p>工作笔记追求及时，公开文章追求准确、完整和可传播。把两者放进同一个目录并自动同步，看起来省事，却容易带来上下文缺失、内容过期和敏感信息外泄。</p><span id="more"></span><h2 id="两种内容承担不同职责"><a href="#两种内容承担不同职责" class="headerlink" title="两种内容承担不同职责"></a>两种内容承担不同职责</h2><p>私人笔记可以包含：</p><ul><li>尚未验证的假设；</li><li>临时命令和原始日志；</li><li>与具体代码版本绑定的路径；</li><li>只对自己有意义的缩写和上下文。</li></ul><p>公开文章则需要：</p><ul><li>读者可以独立理解的背景；</li><li>明确的证据来源和适用范围；</li><li>已清理的示例；</li><li>稳定链接和可维护结构。</li></ul><p>因此，私人知识库更适合作为选题和证据索引，公开站点则是经过编辑的输出层。</p><h2 id="推荐的四步流转"><a href="#推荐的四步流转" class="headerlink" title="推荐的四步流转"></a>推荐的四步流转</h2><h3 id="1-捕获"><a href="#1-捕获" class="headerlink" title="1. 捕获"></a>1. 捕获</h3><p>先快速记录事实、日志位置和当前判断，不为了排版打断调查。</p><h3 id="2-验证"><a href="#2-验证" class="headerlink" title="2. 验证"></a>2. 验证</h3><p>回到代码、规范、构建或实验，确认哪些结论可以复现。把事实、推断和未知项分开。</p><h3 id="3-脱敏与抽象"><a href="#3-脱敏与抽象" class="headerlink" title="3. 脱敏与抽象"></a>3. 脱敏与抽象</h3><p>删除密钥、证书、设备标识、内部地址和未公开产品信息。把只适用于一个项目的细节抽象成可迁移的方法，同时保留适用边界。</p><h3 id="4-发布"><a href="#4-发布" class="headerlink" title="4. 发布"></a>4. 发布</h3><p>把整理后的 Markdown 放入公开站点，经过本地构建、链接检查和人工预览后再推送。</p><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">原始记录 → 验证笔记 → 脱敏稿件 → 公开文章<br></code></pre></td></tr></table></figure><h2 id="为什么不做自动全量同步"><a href="#为什么不做自动全量同步" class="headerlink" title="为什么不做自动全量同步"></a>为什么不做自动全量同步</h2><p>自动同步最大的风险不是格式错误，而是语境错误。一条在私人笔记中很清楚的结论，离开对应代码版本和实验条件后，可能被读者理解成普遍事实。</p><p>更稳妥的自动化边界是：</p><ul><li>自动创建文章草稿；</li><li>自动检查链接、格式和构建；</li><li>自动生成预览；</li><li>保留人工确认发布。</li></ul><h2 id="用-Git-保留演进过程"><a href="#用-Git-保留演进过程" class="headerlink" title="用 Git 保留演进过程"></a>用 Git 保留演进过程</h2><p>Markdown 与 Git 的组合足够轻量：</p><ul><li>diff 能看出结论如何变化；</li><li>commit 能把文章与验证节点关联；</li><li>回滚不会依赖特定编辑器；</li><li>GitHub Pages 可以自动构建发布。</li></ul><p>工具的价值不在于把所有内容塞到一起，而在于让每一种内容都拥有清晰的生命周期和公开边界。</p>]]>
+    </content>
+    <id>https://oniums.github.io/posts/from-private-notes-to-public-writing/</id>
+    <link href="https://oniums.github.io/posts/from-private-notes-to-public-writing/"/>
+    <published>2026-07-28T01:00:00.000Z</published>
+    <summary>
+      <![CDATA[<p>工作笔记追求及时，公开文章追求准确、完整和可传播。把两者放进同一个目录并自动同步，看起来省事，却容易带来上下文缺失、内容过期和敏感信息外泄。</p>]]>
+    </summary>
+    <title>从私人笔记到公开文章：建立一条可控的输出路径</title>
+    <updated>2026-07-28T12:23:31.561Z</updated>
+  </entry>
+</feed>

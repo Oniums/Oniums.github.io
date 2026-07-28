@@ -1,0 +1,37 @@
+{
+  "name": "oniums.github.io",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Oniums 的个人技术主页与公开技术笔记",
+  "scripts": {
+    "clean": "hexo clean",
+    "build": "hexo generate",
+    "check": "npm run clean && npm run build && node tools/check-site.mjs",
+    "prepare-pages": "npm run check && node tools/sync-pages-output.mjs",
+    "server": "hexo server"
+  },
+  "hexo": {
+    "version": "8.1.2"
+  },
+  "dependencies": {
+    "@adobe/css-tools": "4.5.0",
+    "hexo": "8.1.2",
+    "hexo-generator-archive": "2.0.0",
+    "hexo-generator-category": "2.0.0",
+    "hexo-generator-feed": "4.0.0",
+    "hexo-generator-index": "4.0.0",
+    "hexo-generator-search": "2.4.3",
+    "hexo-generator-sitemap": "3.0.1",
+    "hexo-generator-tag": "2.0.0",
+    "hexo-renderer-ejs": "2.0.0",
+    "hexo-renderer-marked": "7.0.1",
+    "hexo-renderer-stylus": "3.0.1",
+    "hexo-server": "3.0.0",
+    "hexo-theme-fluid": "1.9.9",
+    "nunjucks": "3.2.4"
+  },
+  "overrides": {
+    "brace-expansion": "5.0.8",
+    "jake": "12.10.1"
+  }
+}
