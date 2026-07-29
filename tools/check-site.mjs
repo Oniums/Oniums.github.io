@@ -42,7 +42,11 @@ const requiredFiles = [
   "posts/thread-foundations/index.html",
   "posts/matter-zigbee-concept-mapping/index.html",
   "posts/matter-certification-test-environment/index.html",
-  "posts/matter-certificate-relationships/index.html"
+  "posts/matter-certificate-relationships/index.html",
+  "posts/zigbee-third-party-platform-compatibility/index.html",
+  "posts/zha-custom-quirk-development/index.html",
+  "posts/zigbee2mqtt-external-converter-development/index.html",
+  "posts/smartthings-edge-zigbee-driver-development/index.html"
 ];
 
 const forbiddenMarkers = [
@@ -55,6 +59,11 @@ const forbiddenMarkers = [
   "深圳市江机实业有限公司",
   "SNZT-",
   "SNZB-",
+  "/home/onium",
+  "fwsn_",
+  "telink-tl323x",
+  "smartthingsedgedrivers_develop",
+  "Oniums/zha-device-handlers",
   "19-22K",
   "期望薪资",
   "开源贡献",

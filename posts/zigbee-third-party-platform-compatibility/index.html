@@ -21,25 +21,25 @@
   <meta name="author" content="Oniums">
   <meta name="keywords" content="Embedded,Firmware,Matter,Thread,Zigbee,Zephyr">
   
-    <meta name="description" content="理解 Zigbee 最有效的方法，不是先背命令，而是把“无线、组网、传输、设备管理、应用功能”分层。这样看日志或抓包时，才能知道一条成功信息究竟证明了哪一步。">
+    <meta name="description" content="同一台 Zigbee 设备在 ZHA、Zigbee2MQTT 和 SmartThings 中可能需要三套适配代码，但协议事实应该只有一份。高质量兼容工作的关键，是先建立产品中立的 Zigbee 行为矩阵，再把它映射到各平台的数据模型。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Zigbee 基础概念：从无线帧到 Endpoint 与 Cluster">
-<meta property="og:url" content="https://oniums.github.io/posts/zigbee-foundations/index.html">
+<meta property="og:title" content="Zigbee 第三方平台适配：ZHA、Z2M 与 SmartThings 的统一方法">
+<meta property="og:url" content="https://oniums.github.io/posts/zigbee-third-party-platform-compatibility/index.html">
 <meta property="og:site_name" content="Oniums">
-<meta property="og:description" content="理解 Zigbee 最有效的方法，不是先背命令，而是把“无线、组网、传输、设备管理、应用功能”分层。这样看日志或抓包时，才能知道一条成功信息究竟证明了哪一步。">
+<meta property="og:description" content="同一台 Zigbee 设备在 ZHA、Zigbee2MQTT 和 SmartThings 中可能需要三套适配代码，但协议事实应该只有一份。高质量兼容工作的关键，是先建立产品中立的 Zigbee 行为矩阵，再把它映射到各平台的数据模型。">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2026-07-28T13:30:00.000Z">
-<meta property="article:modified_time" content="2026-07-28T13:36:40.299Z">
+<meta property="article:published_time" content="2026-07-29T02:40:00.000Z">
+<meta property="article:modified_time" content="2026-07-29T02:49:46.132Z">
 <meta property="article:author" content="Oniums">
-<meta property="article:tag" content="IEEE 802.15.4">
-<meta property="article:tag" content="Mesh">
-<meta property="article:tag" content="ZCL">
+<meta property="article:tag" content="SmartThings">
+<meta property="article:tag" content="ZHA">
 <meta property="article:tag" content="Zigbee">
+<meta property="article:tag" content="Zigbee2MQTT">
 <meta name="twitter:card" content="summary_large_image">
   
   
   
-  <title>Zigbee 基础概念：从无线帧到 Endpoint 与 Cluster - Oniums</title>
+  <title>Zigbee 第三方平台适配：ZHA、Z2M 与 SmartThings 的统一方法 - Oniums</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -365,7 +365,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="Zigbee 基础概念：从无线帧到 Endpoint 与 Cluster"></span>
+            <span id="subtitle" data-typed-text="Zigbee 第三方平台适配：ZHA、Z2M 与 SmartThings 的统一方法"></span>
           
         </div>
 
@@ -376,8 +376,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2026-07-28 21:30" pubdate>
-          2026年7月28日
+        <time datetime="2026-07-29 10:40" pubdate>
+          2026年7月29日
         </time>
       </span>
     
@@ -388,7 +388,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          1.6k 字
+          2.9k 字
         
       </span>
     
@@ -399,7 +399,7 @@
         
         
         
-          11 分钟
+          18 分钟
         
       </span>
     
@@ -438,90 +438,213 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">Zigbee 基础概念：从无线帧到 Endpoint 与 Cluster</h1>
+            <h1 id="seo-header">Zigbee 第三方平台适配：ZHA、Z2M 与 SmartThings 的统一方法</h1>
             
             
               <div class="markdown-body">
                 
-                <p>理解 Zigbee 最有效的方法，不是先背命令，而是把“无线、组网、传输、设备管理、应用功能”分层。这样看日志或抓包时，才能知道一条成功信息究竟证明了哪一步。</p>
+                <p>同一台 Zigbee 设备在 ZHA、Zigbee2MQTT 和 SmartThings 中可能需要三套适配代码，但协议事实应该只有一份。高质量兼容工作的关键，是先建立产品中立的 Zigbee 行为矩阵，再把它映射到各平台的数据模型。</p>
 <span id="more"></span>
 
-<h2 id="协议栈分层"><a href="#协议栈分层" class="headerlink" title="协议栈分层"></a>协议栈分层</h2><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs text">应用逻辑<br>  │<br>ZCL：Cluster、Attribute、Command<br>  │<br>ZDO / ZDP：设备与服务发现、网络管理<br>  │<br>APS：应用数据传输、绑定、组寻址、应用层安全<br>  │<br>NWK：组网、路由、网络地址、网络层安全<br>  │<br>IEEE 802.15.4 MAC / PHY：信道、帧、确认、射频<br></code></pre></td></tr></table></figure>
-
-<ul>
-<li>IEEE 802.15.4 提供低速率无线链路；</li>
-<li>NWK 负责 Zigbee Mesh 网络；</li>
-<li>APS 把上层应用消息送到指定设备和 Endpoint；</li>
-<li>ZDO&#x2F;ZDP 提供节点、Endpoint 和服务发现；</li>
-<li>ZCL 定义设备功能的通用数据模型。</li>
-</ul>
-<p>因此，收到 MAC ACK 只说明链路层收到了帧，不代表 NWK 解密、APS 接受或 ZCL 命令处理成功。</p>
-<h2 id="三种逻辑设备角色"><a href="#三种逻辑设备角色" class="headerlink" title="三种逻辑设备角色"></a>三种逻辑设备角色</h2><table>
+<h2 id="三个平台分别在做什么"><a href="#三个平台分别在做什么" class="headerlink" title="三个平台分别在做什么"></a>三个平台分别在做什么</h2><table>
 <thead>
 <tr>
-<th>角色</th>
-<th>主要职责</th>
-<th>常见限制</th>
+<th>平台</th>
+<th>适配载体</th>
+<th>主要语言</th>
+<th>平台输出</th>
 </tr>
 </thead>
 <tbody><tr>
-<td>Coordinator</td>
-<td>建立网络，通常也是集中式网络的 Trust Center</td>
-<td>一个 Zigbee 网络只有一个 Coordinator</td>
+<td>ZHA</td>
+<td>Device Handler &#x2F; Quirk</td>
+<td>Python</td>
+<td>Home Assistant Entity、Device Automation</td>
 </tr>
 <tr>
-<td>Router</td>
-<td>转发报文并允许子设备接入</td>
-<td>通常需要保持接收能力</td>
+<td>Zigbee2MQTT</td>
+<td>zigbee-herdsman converter</td>
+<td>JavaScript &#x2F; TypeScript</td>
+<td>MQTT State、Command、Exposes</td>
 </tr>
 <tr>
-<td>End Device</td>
-<td>通过父节点通信，不为其他节点路由</td>
-<td>可设计成休眠设备</td>
+<td>SmartThings</td>
+<td>Edge Driver</td>
+<td>Lua</td>
+<td>SmartThings Capability 与 Component</td>
 </tr>
 </tbody></table>
-<p>Coordinator 是网络形成时的角色；网络形成后，Mesh 路由并不要求所有报文都经过它。Router 或 Coordinator 都可以成为 End Device 的父节点。</p>
-<h2 id="地址、Endpoint-与设备功能"><a href="#地址、Endpoint-与设备功能" class="headerlink" title="地址、Endpoint 与设备功能"></a>地址、Endpoint 与设备功能</h2><p>一个 Zigbee 节点通常同时涉及：</p>
-<ul>
-<li>EUI-64：设备的全局扩展地址；</li>
-<li>16 位 NWK 地址：加入网络后使用的短地址，可能变化；</li>
-<li>PAN ID &#x2F; Extended PAN ID：识别网络；</li>
-<li>Endpoint：节点内部的应用端点；</li>
-<li>Profile ID 与 Device ID：声明应用配置和设备类型；</li>
-<li>Cluster：Endpoint 提供或使用的标准功能。</li>
-</ul>
-<p>排障时不要把短地址当作永久身份。跨重启、离网重入或地址冲突处理后，应使用 EUI-64、时间线和设备公告重新确认节点。</p>
-<h2 id="Cluster、Attribute-与-Command"><a href="#Cluster、Attribute-与-Command" class="headerlink" title="Cluster、Attribute 与 Command"></a>Cluster、Attribute 与 Command</h2><p>ZCL 把设备能力拆成 Cluster：</p>
-<ul>
-<li>Server 保存状态、提供属性或接收命令；</li>
-<li>Client 发起命令或消费 Server 产生的信息；</li>
-<li>Attribute 表示状态或配置；</li>
-<li>Command 表示一次操作或协议动作；</li>
-<li>Reporting 让属性按配置主动上报。</li>
-</ul>
-<p>同一个 Cluster ID 的 Server 和 Client 是两个方向，不能因为 Endpoint 列出了 Cluster 就认为双向能力都存在。</p>
-<h2 id="单播、广播、组播与绑定"><a href="#单播、广播、组播与绑定" class="headerlink" title="单播、广播、组播与绑定"></a>单播、广播、组播与绑定</h2><ul>
-<li>单播：发送给一个目标节点；</li>
-<li>广播：发送给一类或全部节点，成本较高；</li>
-<li>组播：发送给 Group ID 对应的一组 Endpoint；</li>
-<li>Binding：在源 Endpoint 中保存逻辑目标，使应用不必每次指定完整目的地址。</li>
-</ul>
-<p>广播不是“更可靠的单播”。它会增加全网负载，且不同广播范围、重试和确认语义并不相同。</p>
-<h2 id="一条应用消息经过什么"><a href="#一条应用消息经过什么" class="headerlink" title="一条应用消息经过什么"></a>一条应用消息经过什么</h2><p>以属性上报为例：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs text">传感器状态变化<br>  -&gt; ZCL 生成 Report Attributes<br>  -&gt; APS 选择目的 Endpoint、绑定或地址<br>  -&gt; NWK 选择下一跳并进行网络层保护<br>  -&gt; MAC 在当前信道发送<br>  -&gt; 目标逐层解密、分发并处理<br></code></pre></td></tr></table></figure>
-
-<p>每一层都有独立失败点。可靠分析应记录：</p>
+<p>它们都要解决三件事：</p>
 <ol>
-<li>应用是否生成消息；</li>
-<li>APS 是否接受发送请求；</li>
-<li>NWK 是否找到路由；</li>
-<li>MAC 是否发出并收到确认；</li>
-<li>对端是否通过安全校验；</li>
-<li>对端 Endpoint 与 Cluster 是否接受；</li>
-<li>应用状态是否真正改变。</li>
+<li>识别是哪一类设备；</li>
+<li>把 Zigbee 消息转换成平台状态；</li>
+<li>把平台操作转换成 Zigbee 命令或属性写入。</li>
 </ol>
-<h2 id="规范边界"><a href="#规范边界" class="headerlink" title="规范边界"></a>规范边界</h2><p>Zigbee 仍在演进。学习基础概念可以使用公开资料，但实现和认证必须冻结对应的 Zigbee Core、BDB、ZCL、Device Type Library、Errata、PICS 和测试规范，不能把不同 Revision 的要求拼在一起。</p>
-<p>可从 <a target="_blank" rel="noopener" href="https://csa-iot.org/all-solutions/zigbee/">Zigbee 官方概览</a>、<a target="_blank" rel="noopener" href="https://csa-iot.org/all-solutions/zigbee/zigbee-faq/">Zigbee FAQ</a> 和 <a target="_blank" rel="noopener" href="https://csa-iot.org/developer-resource/specifications-download-request/">CSA 规范下载入口</a>继续阅读。</p>
+<h2 id="先判断是否真的需要第三方脚本"><a href="#先判断是否真的需要第三方脚本" class="headerlink" title="先判断是否真的需要第三方脚本"></a>先判断是否真的需要第三方脚本</h2><p>如果设备正确实现标准 Device Type、Cluster、Attribute、Command 和 Reporting，平台的通用处理通常已经能够覆盖主要功能。</p>
+<p>适配脚本更适合处理：</p>
+<ul>
+<li>Basic Cluster 身份或描述符与实际行为不一致；</li>
+<li>厂商自定义 Cluster、Attribute 或 Command；</li>
+<li>标准位图需要拆成多个平台实体；</li>
+<li>原始数值需要单位、比例或枚举转换；</li>
+<li>特定固件版本存在兼容差异；</li>
+<li>标准功能存在，但平台没有自动生成期望的实体或 Capability。</li>
+</ul>
+<p>能在固件端修复的标准合规问题，不应长期依赖三个平台分别打补丁。</p>
+<h2 id="建立一份协议事实矩阵"><a href="#建立一份协议事实矩阵" class="headerlink" title="建立一份协议事实矩阵"></a>建立一份协议事实矩阵</h2><p>每项能力至少记录：</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>身份</td>
+<td>Manufacturer、Model、固件版本</td>
+</tr>
+<tr>
+<td>拓扑</td>
+<td>Endpoint、Profile ID、Device ID</td>
+</tr>
+<tr>
+<td>Cluster</td>
+<td>Server &#x2F; Client 方向</td>
+</tr>
+<tr>
+<td>数据源</td>
+<td>Attribute、Command 或 ZDO 消息</td>
+</tr>
+<tr>
+<td>原始类型</td>
+<td>bitmap、enum、signed、unsigned、string</td>
+</tr>
+<tr>
+<td>转换</td>
+<td>单位、倍率、范围、无效值</td>
+</tr>
+<tr>
+<td>上行</td>
+<td>Report、Read Response、Cluster Command</td>
+</tr>
+<tr>
+<td>下行</td>
+<td>Write、Command、Configure Reporting</td>
+</tr>
+<tr>
+<td>生命周期</td>
+<td>首次加入、重启、rejoin、恢复出厂</td>
+</tr>
+<tr>
+<td>低功耗</td>
+<td>Poll、唤醒窗口和配置时机</td>
+</tr>
+</tbody></table>
+<p>平台代码只消费这份事实，不重新猜测协议含义。</p>
+<h2 id="平台映射表"><a href="#平台映射表" class="headerlink" title="平台映射表"></a>平台映射表</h2><table>
+<thead>
+<tr>
+<th>Zigbee 事实</th>
+<th>ZHA</th>
+<th>Zigbee2MQTT</th>
+<th>SmartThings</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Manufacturer &#x2F; Model</td>
+<td>QuirkBuilder matcher</td>
+<td><code>zigbeeModel</code> &#x2F; fingerprint</td>
+<td><code>fingerprints.yml</code></td>
+</tr>
+<tr>
+<td>Attribute Report</td>
+<td>Cluster update &#x2F; Entity</td>
+<td><code>fromZigbee</code> &#x2F; modern extend</td>
+<td><code>zigbee_handlers.attr</code></td>
+</tr>
+<tr>
+<td>Cluster Command</td>
+<td>automation trigger</td>
+<td><code>fromZigbee</code> action</td>
+<td><code>zigbee_handlers.cluster</code></td>
+</tr>
+<tr>
+<td>平台控制</td>
+<td>Entity write&#x2F;command</td>
+<td><code>toZigbee</code></td>
+<td>Capability handler</td>
+</tr>
+<tr>
+<td>对外能力</td>
+<td>Entity metadata</td>
+<td><code>exposes</code></td>
+<td>Profile Capability</td>
+</tr>
+<tr>
+<td>Reporting</td>
+<td>ReportingConfig</td>
+<td><code>configure</code> &#x2F; modern extend</td>
+<td>configured&#x2F;monitored attribute</td>
+</tr>
+<tr>
+<td>设备变体</td>
+<td>firmware filter &#x2F; matcher</td>
+<td>fingerprint &#x2F; meta</td>
+<td>sub-driver <code>can_handle</code></td>
+</tr>
+</tbody></table>
+<p>名字相近不表示行为自动相同。例如同一个 IAS Zone 位图，在一个平台可能拆成多个 Binary Sensor，在另一个平台可能形成一组 MQTT 属性，在 SmartThings 中则对应多个 Capability。</p>
+<h2 id="推荐开发顺序"><a href="#推荐开发顺序" class="headerlink" title="推荐开发顺序"></a>推荐开发顺序</h2><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs text">抓取真实 interview 与空口行为<br>  -&gt; 建立协议事实矩阵<br>  -&gt; 先验证标准能力<br>  -&gt; 实现最小身份匹配<br>  -&gt; 实现上行状态<br>  -&gt; 实现下行控制<br>  -&gt; 配置 reporting / binding<br>  -&gt; 验证重启、rejoin 与低功耗<br>  -&gt; 三平台对照回归<br></code></pre></td></tr></table></figure>
+
+<p>不要一开始就复制相似设备脚本。先比较 Endpoint、Cluster 方向、属性类型和命令载荷，确认差异后再复用。</p>
+<h2 id="身份匹配要足够窄"><a href="#身份匹配要足够窄" class="headerlink" title="身份匹配要足够窄"></a>身份匹配要足够窄</h2><p>过宽匹配会让行为不同的设备误用同一脚本：</p>
+<ul>
+<li>只按常见 Model ID 匹配，可能碰到多个厂商共用；</li>
+<li>只按 Cluster 集合匹配，可能覆盖大量标准设备；</li>
+<li>忽略固件版本，可能把旧固件 workaround 应用于新固件；</li>
+<li>忽略 Endpoint，可能把多路设备映射到错误 Component。</li>
+</ul>
+<p>优先使用稳定的 Manufacturer + Model；必要时叠加 Endpoint、Cluster 或固件版本条件。更换身份字符串会破坏已经发布的三平台兼容代码，应视为协议接口变更。</p>
+<h2 id="上行与下行必须成对验证"><a href="#上行与下行必须成对验证" class="headerlink" title="上行与下行必须成对验证"></a>上行与下行必须成对验证</h2><p>一个“可见的开关”不代表完整兼容：</p>
+<ul>
+<li>设备主动变化能否更新平台；</li>
+<li>平台写入能否改变设备；</li>
+<li>Read Back 是否与平台状态一致；</li>
+<li>失败是否返回真实错误；</li>
+<li>重启后状态能否恢复；</li>
+<li>reporting 丢失后能否重新配置；</li>
+<li>Sleepy End Device 是否在唤醒窗口处理配置。</li>
+</ul>
+<p>如果只验证 UI 点击成功，很容易漏掉设备侧主动变化和离线恢复。</p>
+<h2 id="三个平台的状态命名"><a href="#三个平台的状态命名" class="headerlink" title="三个平台的状态命名"></a>三个平台的状态命名</h2><p>建议先定义平台无关语义：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs text">contact: open / closed<br>tamper: detected / clear<br>battery: percentage<br>alarm: active / inactive<br></code></pre></td></tr></table></figure>
+
+<p>然后分别映射为：</p>
+<ul>
+<li>ZHA 的 Entity 和 Device Class；</li>
+<li>Z2M 的 <code>exposes</code> property；</li>
+<li>SmartThings 的 Capability attribute&#x2F;event。</li>
+</ul>
+<p>协议枚举值保持不变，显示文案可以平台化。不要为了让 UI 好看而改变空口数值。</p>
+<h2 id="低功耗设备专项"><a href="#低功耗设备专项" class="headerlink" title="低功耗设备专项"></a>低功耗设备专项</h2><p>兼容脚本常在设备刚加入时集中执行 bind、read 和 configure reporting。对休眠设备，应检查：</p>
+<ul>
+<li>配置发生时设备是否仍处于 Fast Poll；</li>
+<li>平台是否会自动重试；</li>
+<li>rejoin 后 reporting 是否保留；</li>
+<li>父节点更换后是否需要重新绑定；</li>
+<li>多条配置是否超出单次唤醒窗口；</li>
+<li>失败是否被静默忽略。</li>
+</ul>
+<p>“第一次加入能用”不足以证明长期兼容。</p>
+<h2 id="验证证据分层"><a href="#验证证据分层" class="headerlink" title="验证证据分层"></a>验证证据分层</h2><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs text">脚本能加载<br>  != 匹配到目标设备<br>  != Entity / Exposes / Capability 正确<br>  != 上行状态正确<br>  != 下行控制正确<br>  != 重启和 rejoin 正确<br>  != 平台正式收录<br>  != Zigbee 认证或生态认证<br></code></pre></td></tr></table></figure>
+
+<p>每个平台都应保存版本、脚本提交、interview、调试日志、测试动作和预期结果。公开问题单要脱敏设备唯一地址、Network Key、install code 和私有仓库信息。</p>
+<p>继续阅读：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/zigpy/zha-device-handlers">ZHA Device Handlers</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.zigbee2mqtt.io/advanced/support-new-devices/01_support_new_devices.html">Zigbee2MQTT 新设备支持</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.smartthings.com/docs/devices/hub-connected/edge-architecture">SmartThings Edge 架构</a></li>
+</ul>
 
                 
               </div>
@@ -540,7 +663,7 @@
     
       <span class="category-chain">
         
-  <a href="/categories/%E6%97%A0%E7%BA%BF%E5%8D%8F%E8%AE%AE/" class="category-chain-item">无线协议</a>
+  <a href="/categories/%E7%94%9F%E6%80%81%E9%80%82%E9%85%8D/" class="category-chain-item">生态适配</a>
   
   
 
@@ -557,11 +680,11 @@
       
         <a href="/tags/zigbee/" class="print-no-link">#Zigbee</a>
       
-        <a href="/tags/ieee-802-15-4/" class="print-no-link">#IEEE 802.15.4</a>
+        <a href="/tags/smartthings/" class="print-no-link">#SmartThings</a>
       
-        <a href="/tags/zcl/" class="print-no-link">#ZCL</a>
+        <a href="/tags/zha/" class="print-no-link">#ZHA</a>
       
-        <a href="/tags/mesh/" class="print-no-link">#Mesh</a>
+        <a href="/tags/zigbee2mqtt/" class="print-no-link">#Zigbee2MQTT</a>
       
     </div>
   
@@ -573,8 +696,8 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>Zigbee 基础概念：从无线帧到 Endpoint 与 Cluster</div>
-      <div>https://oniums.github.io/posts/zigbee-foundations/</div>
+      <div>Zigbee 第三方平台适配：ZHA、Z2M 与 SmartThings 的统一方法</div>
+      <div>https://oniums.github.io/posts/zigbee-third-party-platform-compatibility/</div>
     </div>
     <div class="license-meta">
       
@@ -586,7 +709,7 @@
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2026年7月28日</div>
+          <div>2026年7月29日</div>
         </div>
       
       
@@ -630,18 +753,12 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/posts/smartthings-edge-zigbee-driver-development/" title="SmartThings Zigbee 第三方设备兼容：Edge Driver 的匹配、映射与测试">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">SmartThings Zigbee 第三方设备兼容：Edge Driver 的匹配、映射与测试</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/posts/zigbee-network-joining-flow/" title="Zigbee 入网流程：从 Network Steering 到可用设备">
-                        <span class="hidden-mobile">Zigbee 入网流程：从 Network Steering 到可用设备</span>
+                      <a href="/posts/zha-custom-quirk-development/" title="ZHA 第三方设备兼容：用 V2 Quirk 精确匹配和映射实体">
+                        <span class="hidden-mobile">ZHA 第三方设备兼容：用 V2 Quirk 精确匹配和映射实体</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>

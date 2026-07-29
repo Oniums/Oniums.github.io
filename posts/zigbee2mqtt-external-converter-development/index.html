@@ -21,25 +21,25 @@
   <meta name="author" content="Oniums">
   <meta name="keywords" content="Embedded,Firmware,Matter,Thread,Zigbee,Zephyr">
   
-    <meta name="description" content="理解 Zigbee 最有效的方法，不是先背命令，而是把“无线、组网、传输、设备管理、应用功能”分层。这样看日志或抓包时，才能知道一条成功信息究竟证明了哪一步。">
+    <meta name="description" content="Zigbee2MQTT 使用 zigbee-herdsman-converters 把 Zigbee 消息转换成 MQTT 状态和命令。External Converter 可以在不修改正式安装包的情况下开发和验证新设备支持。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Zigbee 基础概念：从无线帧到 Endpoint 与 Cluster">
-<meta property="og:url" content="https://oniums.github.io/posts/zigbee-foundations/index.html">
+<meta property="og:title" content="Zigbee2MQTT 第三方设备兼容：External Converter 开发与验证">
+<meta property="og:url" content="https://oniums.github.io/posts/zigbee2mqtt-external-converter-development/index.html">
 <meta property="og:site_name" content="Oniums">
-<meta property="og:description" content="理解 Zigbee 最有效的方法，不是先背命令，而是把“无线、组网、传输、设备管理、应用功能”分层。这样看日志或抓包时，才能知道一条成功信息究竟证明了哪一步。">
+<meta property="og:description" content="Zigbee2MQTT 使用 zigbee-herdsman-converters 把 Zigbee 消息转换成 MQTT 状态和命令。External Converter 可以在不修改正式安装包的情况下开发和验证新设备支持。">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2026-07-28T13:30:00.000Z">
-<meta property="article:modified_time" content="2026-07-28T13:36:40.299Z">
+<meta property="article:published_time" content="2026-07-29T02:20:00.000Z">
+<meta property="article:modified_time" content="2026-07-29T02:49:46.134Z">
 <meta property="article:author" content="Oniums">
-<meta property="article:tag" content="IEEE 802.15.4">
-<meta property="article:tag" content="Mesh">
-<meta property="article:tag" content="ZCL">
+<meta property="article:tag" content="JavaScript">
+<meta property="article:tag" content="MQTT">
 <meta property="article:tag" content="Zigbee">
+<meta property="article:tag" content="Zigbee2MQTT">
 <meta name="twitter:card" content="summary_large_image">
   
   
   
-  <title>Zigbee 基础概念：从无线帧到 Endpoint 与 Cluster - Oniums</title>
+  <title>Zigbee2MQTT 第三方设备兼容：External Converter 开发与验证 - Oniums</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -365,7 +365,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="Zigbee 基础概念：从无线帧到 Endpoint 与 Cluster"></span>
+            <span id="subtitle" data-typed-text="Zigbee2MQTT 第三方设备兼容：External Converter 开发与验证"></span>
           
         </div>
 
@@ -376,8 +376,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2026-07-28 21:30" pubdate>
-          2026年7月28日
+        <time datetime="2026-07-29 10:20" pubdate>
+          2026年7月29日
         </time>
       </span>
     
@@ -388,7 +388,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          1.6k 字
+          2.6k 字
         
       </span>
     
@@ -399,7 +399,7 @@
         
         
         
-          11 分钟
+          17 分钟
         
       </span>
     
@@ -438,90 +438,107 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">Zigbee 基础概念：从无线帧到 Endpoint 与 Cluster</h1>
+            <h1 id="seo-header">Zigbee2MQTT 第三方设备兼容：External Converter 开发与验证</h1>
             
             
               <div class="markdown-body">
                 
-                <p>理解 Zigbee 最有效的方法，不是先背命令，而是把“无线、组网、传输、设备管理、应用功能”分层。这样看日志或抓包时，才能知道一条成功信息究竟证明了哪一步。</p>
+                <p>Zigbee2MQTT 使用 zigbee-herdsman-converters 把 Zigbee 消息转换成 MQTT 状态和命令。External Converter 可以在不修改正式安装包的情况下开发和验证新设备支持。</p>
 <span id="more"></span>
 
-<h2 id="协议栈分层"><a href="#协议栈分层" class="headerlink" title="协议栈分层"></a>协议栈分层</h2><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs text">应用逻辑<br>  │<br>ZCL：Cluster、Attribute、Command<br>  │<br>ZDO / ZDP：设备与服务发现、网络管理<br>  │<br>APS：应用数据传输、绑定、组寻址、应用层安全<br>  │<br>NWK：组网、路由、网络地址、网络层安全<br>  │<br>IEEE 802.15.4 MAC / PHY：信道、帧、确认、射频<br></code></pre></td></tr></table></figure>
-
-<ul>
-<li>IEEE 802.15.4 提供低速率无线链路；</li>
-<li>NWK 负责 Zigbee Mesh 网络；</li>
-<li>APS 把上层应用消息送到指定设备和 Endpoint；</li>
-<li>ZDO&#x2F;ZDP 提供节点、Endpoint 和服务发现；</li>
-<li>ZCL 定义设备功能的通用数据模型。</li>
-</ul>
-<p>因此，收到 MAC ACK 只说明链路层收到了帧，不代表 NWK 解密、APS 接受或 ZCL 命令处理成功。</p>
-<h2 id="三种逻辑设备角色"><a href="#三种逻辑设备角色" class="headerlink" title="三种逻辑设备角色"></a>三种逻辑设备角色</h2><table>
-<thead>
-<tr>
-<th>角色</th>
-<th>主要职责</th>
-<th>常见限制</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>Coordinator</td>
-<td>建立网络，通常也是集中式网络的 Trust Center</td>
-<td>一个 Zigbee 网络只有一个 Coordinator</td>
-</tr>
-<tr>
-<td>Router</td>
-<td>转发报文并允许子设备接入</td>
-<td>通常需要保持接收能力</td>
-</tr>
-<tr>
-<td>End Device</td>
-<td>通过父节点通信，不为其他节点路由</td>
-<td>可设计成休眠设备</td>
-</tr>
-</tbody></table>
-<p>Coordinator 是网络形成时的角色；网络形成后，Mesh 路由并不要求所有报文都经过它。Router 或 Coordinator 都可以成为 End Device 的父节点。</p>
-<h2 id="地址、Endpoint-与设备功能"><a href="#地址、Endpoint-与设备功能" class="headerlink" title="地址、Endpoint 与设备功能"></a>地址、Endpoint 与设备功能</h2><p>一个 Zigbee 节点通常同时涉及：</p>
-<ul>
-<li>EUI-64：设备的全局扩展地址；</li>
-<li>16 位 NWK 地址：加入网络后使用的短地址，可能变化；</li>
-<li>PAN ID &#x2F; Extended PAN ID：识别网络；</li>
-<li>Endpoint：节点内部的应用端点；</li>
-<li>Profile ID 与 Device ID：声明应用配置和设备类型；</li>
-<li>Cluster：Endpoint 提供或使用的标准功能。</li>
-</ul>
-<p>排障时不要把短地址当作永久身份。跨重启、离网重入或地址冲突处理后，应使用 EUI-64、时间线和设备公告重新确认节点。</p>
-<h2 id="Cluster、Attribute-与-Command"><a href="#Cluster、Attribute-与-Command" class="headerlink" title="Cluster、Attribute 与 Command"></a>Cluster、Attribute 与 Command</h2><p>ZCL 把设备能力拆成 Cluster：</p>
-<ul>
-<li>Server 保存状态、提供属性或接收命令；</li>
-<li>Client 发起命令或消费 Server 产生的信息；</li>
-<li>Attribute 表示状态或配置；</li>
-<li>Command 表示一次操作或协议动作；</li>
-<li>Reporting 让属性按配置主动上报。</li>
-</ul>
-<p>同一个 Cluster ID 的 Server 和 Client 是两个方向，不能因为 Endpoint 列出了 Cluster 就认为双向能力都存在。</p>
-<h2 id="单播、广播、组播与绑定"><a href="#单播、广播、组播与绑定" class="headerlink" title="单播、广播、组播与绑定"></a>单播、广播、组播与绑定</h2><ul>
-<li>单播：发送给一个目标节点；</li>
-<li>广播：发送给一类或全部节点，成本较高；</li>
-<li>组播：发送给 Group ID 对应的一组 Endpoint；</li>
-<li>Binding：在源 Endpoint 中保存逻辑目标，使应用不必每次指定完整目的地址。</li>
-</ul>
-<p>广播不是“更可靠的单播”。它会增加全网负载，且不同广播范围、重试和确认语义并不相同。</p>
-<h2 id="一条应用消息经过什么"><a href="#一条应用消息经过什么" class="headerlink" title="一条应用消息经过什么"></a>一条应用消息经过什么</h2><p>以属性上报为例：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs text">传感器状态变化<br>  -&gt; ZCL 生成 Report Attributes<br>  -&gt; APS 选择目的 Endpoint、绑定或地址<br>  -&gt; NWK 选择下一跳并进行网络层保护<br>  -&gt; MAC 在当前信道发送<br>  -&gt; 目标逐层解密、分发并处理<br></code></pre></td></tr></table></figure>
-
-<p>每一层都有独立失败点。可靠分析应记录：</p>
-<ol>
-<li>应用是否生成消息；</li>
-<li>APS 是否接受发送请求；</li>
-<li>NWK 是否找到路由；</li>
-<li>MAC 是否发出并收到确认；</li>
-<li>对端是否通过安全校验；</li>
-<li>对端 Endpoint 与 Cluster 是否接受；</li>
-<li>应用状态是否真正改变。</li>
+<h2 id="开始前先做三件事"><a href="#开始前先做三件事" class="headerlink" title="开始前先做三件事"></a>开始前先做三件事</h2><ol>
+<li>检查设备是否已在 Zigbee2MQTT 开发分支获得支持；</li>
+<li>把日志级别设为 Debug；</li>
+<li>完成设备 interview，并保存 Endpoint、Cluster 与 Basic 信息。</li>
 </ol>
-<h2 id="规范边界"><a href="#规范边界" class="headerlink" title="规范边界"></a>规范边界</h2><p>Zigbee 仍在演进。学习基础概念可以使用公开资料，但实现和认证必须冻结对应的 Zigbee Core、BDB、ZCL、Device Type Library、Errata、PICS 和测试规范，不能把不同 Revision 的要求拼在一起。</p>
-<p>可从 <a target="_blank" rel="noopener" href="https://csa-iot.org/all-solutions/zigbee/">Zigbee 官方概览</a>、<a target="_blank" rel="noopener" href="https://csa-iot.org/all-solutions/zigbee/zigbee-faq/">Zigbee FAQ</a> 和 <a target="_blank" rel="noopener" href="https://csa-iot.org/developer-resource/specifications-download-request/">CSA 规范下载入口</a>继续阅读。</p>
+<p>能加入网络只代表 Zigbee2MQTT 可以访问设备，不代表已有 converter 能理解它。</p>
+<h2 id="先生成外部定义"><a href="#先生成外部定义" class="headerlink" title="先生成外部定义"></a>先生成外部定义</h2><p>当前 Zigbee2MQTT 前端可以在设备的 Dev console 中生成 external definition。生成结果基于发现到的标准 Cluster，应先验证 Exposes 页面中的能力是否真实可用。</p>
+<p>自动生成的定义是起点，不是最终结论：</p>
+<ul>
+<li>设备可能没有上报全部能力；</li>
+<li>厂商 Cluster 无法自动理解；</li>
+<li>reporting 可能尚未配置；</li>
+<li>命令型遥控器可能没有普通状态属性；</li>
+<li>相同 Model ID 可能对应多个厂商变体。</li>
+</ul>
+<h2 id="Modern-Extend-示例"><a href="#Modern-Extend-示例" class="headerlink" title="Modern Extend 示例"></a>Modern Extend 示例</h2><p>标准温湿度与电池设备可以从最小定义开始：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs javascript"><span class="hljs-keyword">import</span> &#123;<br>    battery,<br>    humidity,<br>    temperature,<br>&#125; <span class="hljs-keyword">from</span> <span class="hljs-string">&quot;zigbee-herdsman-converters/lib/modernExtend&quot;</span>;<br><br><span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> &#123;<br>    <span class="hljs-attr">zigbeeModel</span>: [<span class="hljs-string">&quot;GENERIC-ENV-01&quot;</span>],<br>    <span class="hljs-attr">model</span>: <span class="hljs-string">&quot;GENERIC-ENV-01&quot;</span>,<br>    <span class="hljs-attr">vendor</span>: <span class="hljs-string">&quot;Example Vendor&quot;</span>,<br>    <span class="hljs-attr">description</span>: <span class="hljs-string">&quot;Temperature and humidity sensor&quot;</span>,<br>    <span class="hljs-attr">extend</span>: [<br>        <span class="hljs-title function_">temperature</span>(),<br>        <span class="hljs-title function_">humidity</span>(),<br>        <span class="hljs-title function_">battery</span>(),<br>    ],<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<p>Modern extends 会组合常见的 <code>fromZigbee</code>、<code>toZigbee</code>、<code>exposes</code> 和配置逻辑。能复用时优先复用，减少重复的解析和 reporting 代码。</p>
+<h2 id="External-Converter-放在哪里"><a href="#External-Converter-放在哪里" class="headerlink" title="External Converter 放在哪里"></a>External Converter 放在哪里</h2><p>文件通常放在与 Zigbee2MQTT <code>configuration.yaml</code> 同级的 <code>external_converters</code> 目录，例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs text">data/<br>├── configuration.yaml<br>└── external_converters/<br>    └── generic-env.mjs<br></code></pre></td></tr></table></figure>
+
+<p>也可以从前端的 Settings → Dev console → External converters 加载和更新。</p>
+<p>当前版本对外部 JavaScript 有额外安全控制。它会在 Zigbee2MQTT 进程中执行任意代码，只应在隔离的开发环境中启用，并只加载经过审查的来源。</p>
+<h2 id="什么时候使用-fromZigbee"><a href="#什么时候使用-fromZigbee" class="headerlink" title="什么时候使用 fromZigbee"></a>什么时候使用 fromZigbee</h2><p><code>fromZigbee</code> 负责把设备发来的消息转换成平台状态或 action：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">Attribute Report / Read Response / Cluster Command<br>  -&gt; 匹配 cluster 与 message type<br>  -&gt; 解析原始字段<br>  -&gt; 校验范围和特殊值<br>  -&gt; 返回 MQTT property<br></code></pre></td></tr></table></figure>
+
+<p>如果日志持续出现 <code>No converter available</code>，先确认：</p>
+<ul>
+<li>Cluster 名称；</li>
+<li>Message type；</li>
+<li>Endpoint；</li>
+<li>Attribute 或 Command ID；</li>
+<li>是否已存在可复用 converter；</li>
+<li>是否已经被某个 modern extend 覆盖。</li>
+</ul>
+<p>不要用一个接受所有消息的 converter 隐藏未知数据。</p>
+<h2 id="什么时候使用-toZigbee"><a href="#什么时候使用-toZigbee" class="headerlink" title="什么时候使用 toZigbee"></a>什么时候使用 toZigbee</h2><p><code>toZigbee</code> 把 MQTT Set&#x2F;Get 转换成 Attribute Read&#x2F;Write 或 Cluster Command。必须定义：</p>
+<ul>
+<li>支持的 property；</li>
+<li>输入类型和范围；</li>
+<li>枚举字符串与协议数值；</li>
+<li>目标 Endpoint；</li>
+<li>Manufacturer Code；</li>
+<li>写入后的状态确认策略；</li>
+<li>错误返回。</li>
+</ul>
+<p>下发函数返回成功不等于设备状态已经改变。应结合响应、Read Back 或后续 Report。</p>
+<h2 id="Exposes-是公开契约"><a href="#Exposes-是公开契约" class="headerlink" title="Exposes 是公开契约"></a>Exposes 是公开契约</h2><p><code>exposes</code> 决定前端和 MQTT 使用者看到什么。每个 property 应明确：</p>
+<ul>
+<li>名称与显示 Label；</li>
+<li>读、写、状态访问；</li>
+<li>数据类型；</li>
+<li>单位；</li>
+<li>最小值、最大值和步进；</li>
+<li>枚举；</li>
+<li>Endpoint 后缀；</li>
+<li>描述。</li>
+</ul>
+<p>一旦用户用 property 编写自动化，随意改名会造成兼容破坏。显示文案可以优化，但 MQTT property 应保持稳定。</p>
+<h2 id="Configure-与-reporting"><a href="#Configure-与-reporting" class="headerlink" title="Configure 与 reporting"></a>Configure 与 reporting</h2><p>设备没有主动上报时，可能需要在 <code>configure</code> 中：</p>
+<ul>
+<li>bind 到 Coordinator Endpoint；</li>
+<li>Configure Reporting；</li>
+<li>读取倍率、除数或初始状态；</li>
+<li>设置厂商初始化属性。</li>
+</ul>
+<p>对 Sleepy End Device，配置必须落在唤醒窗口，并验证失败重试。不要假设一次 <code>configure</code> 成功就会永久保留；还要测试断电、rejoin 和恢复出厂。</p>
+<h2 id="匹配多个设备变体"><a href="#匹配多个设备变体" class="headerlink" title="匹配多个设备变体"></a>匹配多个设备变体</h2><p><code>zigbeeModel</code> 简单但可能过宽。多个厂商共用同一 Model ID 时，应使用更精确的 fingerprint 条件，并把真正相同的行为复用到公共 extend。</p>
+<p>兼容层次建议：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs text">标准 modern extend<br>  -&gt; 品类公共 converter<br>  -&gt; 厂商公共逻辑<br>  -&gt; 设备或固件差异<br></code></pre></td></tr></table></figure>
+
+<p>不要把所有变体堆进一个充满 Model 判断的转换函数。</p>
+<h2 id="验证清单"><a href="#验证清单" class="headerlink" title="验证清单"></a>验证清单</h2><ol>
+<li>Converter 成功加载；</li>
+<li>只匹配预期设备；</li>
+<li>Exposes 完整且访问方向正确；</li>
+<li>所有上行属性和命令均可解析；</li>
+<li>Set&#x2F;Get 有真实设备结果；</li>
+<li>reporting、单位和缩放正确；</li>
+<li>多 Endpoint property 不冲突；</li>
+<li>Zigbee2MQTT 重启后仍可加载；</li>
+<li>设备断电和 rejoin 后恢复；</li>
+<li>Debug 日志没有未解释的消息和异常。</li>
+</ol>
+<p>External Converter 验证完成后，可按 zigbee-herdsman-converters 当前结构转成正式 TypeScript definition 并提交上游。发布版本已经包含支持后，应移除本地 converter，避免重复匹配。</p>
+<p>官方资料：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.zigbee2mqtt.io/advanced/support-new-devices/01_support_new_devices.html">支持新设备</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.zigbee2mqtt.io/advanced/more/external_converters.html">External Converters</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.zigbee2mqtt.io/guide/usage/exposes.html">Exposes</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.zigbee2mqtt.io/advanced/zigbee/03_secure_network.html">外部脚本安全说明</a></li>
+</ul>
 
                 
               </div>
@@ -540,7 +557,7 @@
     
       <span class="category-chain">
         
-  <a href="/categories/%E6%97%A0%E7%BA%BF%E5%8D%8F%E8%AE%AE/" class="category-chain-item">无线协议</a>
+  <a href="/categories/%E7%94%9F%E6%80%81%E9%80%82%E9%85%8D/" class="category-chain-item">生态适配</a>
   
   
 
@@ -557,11 +574,11 @@
       
         <a href="/tags/zigbee/" class="print-no-link">#Zigbee</a>
       
-        <a href="/tags/ieee-802-15-4/" class="print-no-link">#IEEE 802.15.4</a>
+        <a href="/tags/zigbee2mqtt/" class="print-no-link">#Zigbee2MQTT</a>
       
-        <a href="/tags/zcl/" class="print-no-link">#ZCL</a>
+        <a href="/tags/javascript/" class="print-no-link">#JavaScript</a>
       
-        <a href="/tags/mesh/" class="print-no-link">#Mesh</a>
+        <a href="/tags/mqtt/" class="print-no-link">#MQTT</a>
       
     </div>
   
@@ -573,8 +590,8 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>Zigbee 基础概念：从无线帧到 Endpoint 与 Cluster</div>
-      <div>https://oniums.github.io/posts/zigbee-foundations/</div>
+      <div>Zigbee2MQTT 第三方设备兼容：External Converter 开发与验证</div>
+      <div>https://oniums.github.io/posts/zigbee2mqtt-external-converter-development/</div>
     </div>
     <div class="license-meta">
       
@@ -586,7 +603,7 @@
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2026年7月28日</div>
+          <div>2026年7月29日</div>
         </div>
       
       
@@ -630,9 +647,9 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/posts/smartthings-edge-zigbee-driver-development/" title="SmartThings Zigbee 第三方设备兼容：Edge Driver 的匹配、映射与测试">
+                      <a href="/posts/zha-custom-quirk-development/" title="ZHA 第三方设备兼容：用 V2 Quirk 精确匹配和映射实体">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">SmartThings Zigbee 第三方设备兼容：Edge Driver 的匹配、映射与测试</span>
+                        <span class="hidden-mobile">ZHA 第三方设备兼容：用 V2 Quirk 精确匹配和映射实体</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
@@ -640,8 +657,8 @@
                   <article class="post-next col-6">
                     
                     
-                      <a href="/posts/zigbee-network-joining-flow/" title="Zigbee 入网流程：从 Network Steering 到可用设备">
-                        <span class="hidden-mobile">Zigbee 入网流程：从 Network Steering 到可用设备</span>
+                      <a href="/posts/smartthings-edge-zigbee-driver-development/" title="SmartThings Zigbee 第三方设备兼容：Edge Driver 的匹配、映射与测试">
+                        <span class="hidden-mobile">SmartThings Zigbee 第三方设备兼容：Edge Driver 的匹配、映射与测试</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
