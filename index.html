@@ -471,6 +471,73 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
+        <a href="/posts/ambient-light-sensor-low-power-sampling/" target="_self">
+          电池设备的环境光传感器：IRQ、单次采样与低功耗取舍
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/posts/ambient-light-sensor-low-power-sampling/" target="_self">
+        <div>
+          在电池供电设备里，环境光传感器通常只需要偶尔提供一个 lux 值。此时“传感器带 IRQ”并不代表 IRQ 一定比定时读取省电。真正决定功耗的是：等待 IRQ 时传感器处于什么模式、转换期间 MCU 能否休眠，以及业务究竟需要周期数据还是实时阈值事件。
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-07-29 15:30" pubdate>
+              2026-07-29
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E4%BC%98%E5%8C%96%E5%AE%9E%E8%B7%B5/" class="category-chain-item">优化实践</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E4%BD%8E%E5%8A%9F%E8%80%97/">#低功耗</a>
+            
+              <a href="/tags/i2c/">#I2C</a>
+            
+              <a href="/tags/%E4%BC%A0%E6%84%9F%E5%99%A8/">#传感器</a>
+            
+              <a href="/tags/%E7%8A%B6%E6%80%81%E6%9C%BA/">#状态机</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
         <a href="/posts/zigbee-third-party-platform-compatibility/" target="_self">
           Zigbee 第三方平台适配：ZHA、Z2M 与 SmartThings 的统一方法
         </a>
@@ -994,73 +1061,6 @@
               <a href="/tags/%E9%9B%86%E4%B8%AD%E5%BC%8F%E7%BD%91%E7%BB%9C/">#集中式网络</a>
             
               <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%BD%91%E7%BB%9C/">#分布式网络</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/posts/zigbee-touchlink-commissioning/" target="_self">
-          Zigbee Touchlink 流程：近距离发现、识别与入网
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/posts/zigbee-touchlink-commissioning/" target="_self">
-        <div>
-          Touchlink 是 Zigbee 的一种近距离 commissioning 机制，最初广泛用于照明设备。它不是普通的 Network Steering，也不是“按键后信号强就自动入网”这么简单。
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2026-07-28 20:50" pubdate>
-              2026-07-28
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/%E6%97%A0%E7%BA%BF%E5%8D%8F%E8%AE%AE/" class="category-chain-item">无线协议</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/commissioning/">#Commissioning</a>
-            
-              <a href="/tags/zigbee/">#Zigbee</a>
-            
-              <a href="/tags/zcl/">#ZCL</a>
-            
-              <a href="/tags/touchlink/">#Touchlink</a>
             
           </div>
         
