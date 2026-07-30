@@ -46,7 +46,8 @@ const requiredFiles = [
   "posts/zigbee-third-party-platform-compatibility/index.html",
   "posts/zha-custom-quirk-development/index.html",
   "posts/zigbee2mqtt-external-converter-development/index.html",
-  "posts/smartthings-edge-zigbee-driver-development/index.html"
+  "posts/smartthings-edge-zigbee-driver-development/index.html",
+  "posts/smartthings-edge-driver-channel-invitation-workflow/index.html"
 ];
 
 const forbiddenMarkers = [
