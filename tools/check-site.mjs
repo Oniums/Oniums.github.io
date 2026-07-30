@@ -41,6 +41,7 @@ const requiredFiles = [
   "posts/matter-foundations/index.html",
   "posts/thread-foundations/index.html",
   "posts/matter-zigbee-concept-mapping/index.html",
+  "posts/matter-over-thread-zigbee-commissioning-comparison/index.html",
   "posts/matter-certification-test-environment/index.html",
   "posts/matter-certificate-relationships/index.html",
   "posts/zigbee-third-party-platform-compatibility/index.html",
