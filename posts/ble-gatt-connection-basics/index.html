@@ -1,0 +1,945 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>BLE GATT 入门：手机连上设备后，到底发生了什么？ | Oniums</title><meta name="author" content="Oniums"><meta name="copyright" content="Oniums"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#f3f6f8"><meta name="description" content="打开一个蓝牙调试工具，点下 Connect，页面很快显示“Connected”。这是不是说明手机已经能读到设备数据，也能正常控制设备了？ 不一定。 BLE 连接成功，只表示两台设备已经建立了一条无线链路。 后面通常还要发现 Service、找到 Characteristic、确认读写方式、订阅通知，应用数据才真正开始流动。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="BLE GATT 入门：手机连上设备后，到底发生了什么？">
+<meta property="og:url" content="https://onium.top/posts/ble-gatt-connection-basics/index.html">
+<meta property="og:site_name" content="Oniums">
+<meta property="og:description" content="打开一个蓝牙调试工具，点下 Connect，页面很快显示“Connected”。这是不是说明手机已经能读到设备数据，也能正常控制设备了？ 不一定。 BLE 连接成功，只表示两台设备已经建立了一条无线链路。 后面通常还要发现 Service、找到 Characteristic、确认读写方式、订阅通知，应用数据才真正开始流动。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://onium.top/img/github-avatar.jpg">
+<meta property="article:published_time" content="2026-08-02T07:00:00.000Z">
+<meta property="article:modified_time" content="2026-08-02T15:49:56.060Z">
+<meta property="article:author" content="Oniums">
+<meta property="article:tag" content="ATT">
+<meta property="article:tag" content="BLE">
+<meta property="article:tag" content="Bluetooth LE">
+<meta property="article:tag" content="GATT">
+<meta property="article:tag" content="入门">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://onium.top/img/github-avatar.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "BLE GATT 入门：手机连上设备后，到底发生了什么？",
+  "url": "https://onium.top/posts/ble-gatt-connection-basics/",
+  "image": "https://onium.top/img/github-avatar.jpg",
+  "datePublished": "2026-08-02T07:00:00.000Z",
+  "dateModified": "2026-08-02T15:49:56.060Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Oniums",
+      "url": "https://github.com/Oniums"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/avatar.png"><link rel="canonical" href="https://onium.top/posts/ble-gatt-connection-basics/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.6.1"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        const data = { value }
+
+        if (ttl != null) {
+          data.expiry = Date.now() + ttl * 86400000
+        }
+
+        localStorage.setItem(key, JSON.stringify(data))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return
+
+        try {
+          const data = JSON.parse(itemStr)
+
+          if (data.expiry && Date.now() > data.expiry) {
+            localStorage.removeItem(key)
+            return
+          }
+
+          return data.value
+        } catch {
+          localStorage.removeItem(key)
+        }
+      }
+    }
+
+    const scriptCache = new Map()
+    const cssCache = new Map()
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => {
+        if (scriptCache.has(url)) {
+          return scriptCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+
+          script.src = url
+          script.async = true
+
+          for (const key in attr) {
+            script.setAttribute(key, attr[key])
+          }
+
+          script.onload = resolve
+          script.onerror = reject
+
+          document.head.appendChild(script)
+        })
+
+        scriptCache.set(url, promise)
+
+        return promise
+      },
+      getCSS: (url, id) => {
+        if (cssCache.has(url)) {
+          return cssCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+
+          link.rel = 'stylesheet'
+          link.href = url
+
+          if (id) {
+            link.id = id
+          }
+
+          link.onload = resolve
+          link.onerror = reject
+
+          document.head.appendChild(link)
+        })
+
+        cssCache.set(url, promise)
+
+        return promise
+      },
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const activateDarkMode = () => {
+        document.documentElement.dataset.theme = 'dark'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#0b1220')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.dataset.theme = 'light'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#f3f6f8')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const start = 6
+              const end = 18
+              const isNight =
+                start < end
+                    ? hour < start || hour >= end
+                    : hour >= start || hour < end
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', e => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/local-search.xml","preload":false,"top_n_per_article":2,"unescape":false,"pagination":{"enable":true,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":true,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'medium_zoom',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'BLE GATT 入门：手机连上设备后，到底发生了什么？',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/custom.css"><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Oniums" type="application/atom+xml">
+</head><body><div class="bg-animation" id="web_bg" style="background-color: #f3f6f8;"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/github-avatar.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">32</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">82</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">9</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><span class="site-page group"><span> 文章</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-box-archive"></i><span> 归档</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/projects/"><i class="fa-fw fas fa-microchip"></i><span> 项目</span></a></div><div class="menus_item"><a class="site-page" href="/experience/"><i class="fa-fw fas fa-route"></i><span> 经历</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="not-top-img fixed" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Oniums</span></a><a class="nav-page-title" href="/"><span class="site-name">BLE GATT 入门：手机连上设备后，到底发生了什么？</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><span class="site-page group"><span> 文章</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-box-archive"></i><span> 归档</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/projects/"><i class="fa-fw fas fa-microchip"></i><span> 项目</span></a></div><div class="menus_item"><a class="site-page" href="/experience/"><i class="fa-fw fas fa-route"></i><span> 经历</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav></header><main class="layout" id="content-inner"><div id="post"><div id="post-info"><h1 class="post-title">BLE GATT 入门：手机连上设备后，到底发生了什么？</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="fa-fw post-meta-icon far fa-calendar-alt"></i><span class="post-meta-label">发表于</span><time datetime="2026-08-02T07:00:00.000Z" title="发表于 2026-08-02 15:00:00">2026-08-02</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%97%A0%E7%BA%BF%E5%8D%8F%E8%AE%AE/">无线协议</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div><article class="container post-content" id="article-container"><div id="post-outdate-notice" data="{&quot;limitDay&quot;:540,&quot;messagePrev&quot;:&quot;本文发布距今已超过&quot;,&quot;messageNext&quot;:&quot;天，工具版本与生态行为可能已经变化。&quot;,&quot;postUpdate&quot;:&quot;2026-08-02 23:49:56&quot;}" hidden></div><p>打开一个蓝牙调试工具，点下 Connect，页面很快显示“Connected”。这是不是说明手机已经能读到设备数据，也能正常控制设备了？</p>
+<p>不一定。</p>
+<p><strong>BLE 连接成功，只表示两台设备已经建立了一条无线链路。</strong> 后面通常还要发现 Service、找到 Characteristic、确认读写方式、订阅通知，应用数据才真正开始流动。</p>
+<span id="more"></span>
+
+<p>本文不从复杂的协议分层开始，而是跟着一台简单的 BLE 温度计，看清手机从“发现设备”到“收到温度变化”之间发生了什么。</p>
+<p>读完后，你应该能够回答三个问题：</p>
+<ol>
+<li>Service、Characteristic 和 Descriptor 分别是什么？</li>
+<li>BLE 显示 Connected 后，手机为什么还要继续发现和订阅？</li>
+<li>怎样判断问题卡在连接、GATT，还是设备自己的业务协议？</li>
+</ol>
+<h2 id="先看结论：一次常见的-BLE-通信过程"><a href="#先看结论：一次常见的-BLE-通信过程" class="headerlink" title="先看结论：一次常见的 BLE 通信过程"></a>先看结论：一次常见的 BLE 通信过程</h2><p>先不管每个名词的精确定义，只看一条最常见的时间线：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">温度计发送广播</span><br><span class="line">  ↓</span><br><span class="line">手机扫描并发现温度计</span><br><span class="line">  ↓</span><br><span class="line">手机发起连接</span><br><span class="line">  ↓</span><br><span class="line">BLE 链路建立：Connected</span><br><span class="line">  ↓</span><br><span class="line">双方可能进行配对、加密和 MTU 交换</span><br><span class="line">  ↓</span><br><span class="line">手机发现设备提供的 Service</span><br><span class="line">  ↓</span><br><span class="line">手机发现 Service 里的 Characteristic 和 Descriptor</span><br><span class="line">  ↓</span><br><span class="line">手机读取数据、写入命令，或者订阅通知</span><br><span class="line">  ↓</span><br><span class="line">温度变化时，设备主动向手机发送新值</span><br></pre></td></tr></table></figure>
+
+<p>这里最容易混淆的是中间那条线：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">建立 BLE 连接 ≠ 已经找到 GATT 服务 ≠ 已经订阅数据 ≠ 业务功能正常</span><br></pre></td></tr></table></figure>
+
+<p>每一步成功，都只能证明这一小步已经完成。</p>
+<h2 id="连接前：广播和扫描是在做什么？"><a href="#连接前：广播和扫描是在做什么？" class="headerlink" title="连接前：广播和扫描是在做什么？"></a>连接前：广播和扫描是在做什么？</h2><p>BLE 设备在没有连接时，可以周期性发送很短的广播数据。广播通常可能包含：</p>
+<ul>
+<li>设备名称；</li>
+<li>设备地址或身份相关信息；</li>
+<li>某些重要 Service 的 UUID；</li>
+<li>厂商自定义数据；</li>
+<li>设备是否允许连接等信息。</li>
+</ul>
+<p>温度计不断发送广播，就像它在说：</p>
+<blockquote>
+<p>“我在这里，我叫客厅温度计，现在可以连接。”</p>
+</blockquote>
+<p>手机进行扫描，是在附近收听这些广播。收到广播，只证明手机“看见”了设备，并不代表双方已经连接。</p>
+<p>当手机决定连接时，它会向目标设备发起连接请求。连接建立后，双方按照约定的时间间隔交换无线数据。此时调试工具通常会显示 Connected。</p>
+<h3 id="三组角色不要混在一起"><a href="#三组角色不要混在一起" class="headerlink" title="三组角色不要混在一起"></a>三组角色不要混在一起</h3><p>BLE 中会遇到几组看起来相似的角色：</p>
+<table>
+<thead>
+<tr>
+<th>所处阶段</th>
+<th>角色</th>
+<th>简单理解</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>广播阶段</td>
+<td>Advertiser &#x2F; Scanner</td>
+<td>一个发送广播，一个扫描广播</td>
+</tr>
+<tr>
+<td>连接阶段</td>
+<td>Peripheral &#x2F; Central</td>
+<td>一个接受连接，一个发起连接</td>
+</tr>
+<tr>
+<td>GATT 阶段</td>
+<td>Server &#x2F; Client</td>
+<td>一个提供数据，一个访问数据</td>
+</tr>
+</tbody></table>
+<p>在常见的手机连接传感器场景中：</p>
+<ul>
+<li>手机通常是 Central，也是 GATT Client；</li>
+<li>传感器通常是 Peripheral，也是 GATT Server。</li>
+</ul>
+<p>但这只是常见组合，不是强制绑定。Central 不一定永远是 GATT Client，Peripheral 也不一定永远是 GATT Server。</p>
+<h2 id="连接后：GATT-像一组整理好的资料柜"><a href="#连接后：GATT-像一组整理好的资料柜" class="headerlink" title="连接后：GATT 像一组整理好的资料柜"></a>连接后：GATT 像一组整理好的资料柜</h2><p>连接只解决“怎样把数据送到对方”。设备究竟提供哪些数据、哪些可以读取、哪些可以写入，则主要由 GATT 描述。</p>
+<p>可以把一台 GATT Server 想成一个资料柜：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">GATT Server</span><br><span class="line">├── Service：电池</span><br><span class="line">│   └── Characteristic：当前电量</span><br><span class="line">├── Service：设备信息</span><br><span class="line">│   ├── Characteristic：厂商名称</span><br><span class="line">│   └── Characteristic：固件版本</span><br><span class="line">└── Service：温度计功能</span><br><span class="line">    ├── Characteristic：当前温度</span><br><span class="line">    └── Characteristic：测量间隔</span><br></pre></td></tr></table></figure>
+
+<p>Service、Characteristic 和 Descriptor，就是整理这个资料柜的三种基本结构。</p>
+<h3 id="Service：一组相关功能"><a href="#Service：一组相关功能" class="headerlink" title="Service：一组相关功能"></a>Service：一组相关功能</h3><p>Service 用来把同一类功能放在一起，可以先把它理解成一个文件夹。</p>
+<p>常见的标准 Service 有：</p>
+<table>
+<thead>
+<tr>
+<th>Service</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Generic Access</td>
+<td>设备名称、外观等基础访问数据</td>
+</tr>
+<tr>
+<td>Generic Attribute</td>
+<td>GATT 数据库自身发生变化时的相关能力</td>
+</tr>
+<tr>
+<td>Device Information</td>
+<td>厂商、型号、序列号、固件版本等设备信息</td>
+</tr>
+<tr>
+<td>Battery Service</td>
+<td>电池电量和电池状态</td>
+</tr>
+</tbody></table>
+<p>设备也可以定义自己的 Service。例如，一台温度计可以使用自定义 Service 表达测量结果和设置项。</p>
+<h3 id="Characteristic：真正要读写的数据项"><a href="#Characteristic：真正要读写的数据项" class="headerlink" title="Characteristic：真正要读写的数据项"></a>Characteristic：真正要读写的数据项</h3><p>Characteristic 是 Service 中具体的数据项。它通常包含：</p>
+<ul>
+<li>UUID：这是什么类型的数据；</li>
+<li>Value：当前数据值；</li>
+<li>Properties：允许怎样操作，例如 Read、Write、Notify；</li>
+<li>Descriptor：对这个数据项的补充说明或配置。</li>
+</ul>
+<p>Properties 回答“支持什么操作”，Permissions 则回答“满足什么安全条件才允许操作”。所以，一个 Characteristic 即使带有 Read 属性，也可能要求链路先加密才能读取。</p>
+<p>例如，标准 Battery Service 的 UUID 是 <code>0x180F</code>，其中 Battery Level Characteristic 的 UUID 是 <code>0x2A19</code>。如果它当前的 Value 是十进制 <code>83</code>，就表示剩余电量为 83%。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Battery Service（0x180F）</span><br><span class="line">└── Battery Level Characteristic（0x2A19）</span><br><span class="line">    ├── Value：83</span><br><span class="line">    ├── Properties：Read、Notify</span><br><span class="line">    └── Descriptor：通知开关</span><br></pre></td></tr></table></figure>
+
+<p>标准功能通常使用 Bluetooth SIG 分配的 UUID。产品自己的功能则常使用 128-bit 自定义 UUID。</p>
+<h3 id="Descriptor：Characteristic-的补充信息和开关"><a href="#Descriptor：Characteristic-的补充信息和开关" class="headerlink" title="Descriptor：Characteristic 的补充信息和开关"></a>Descriptor：Characteristic 的补充信息和开关</h3><p>Descriptor 属于某个 Characteristic，可以描述数据格式，也可以控制它的行为。</p>
+<p>初学者最常见的是 Client Characteristic Configuration Descriptor，通常简称 <strong>CCCD</strong>，UUID 为 <code>0x2902</code>。</p>
+<p>如果一个 Characteristic 支持 Notify 或 Indicate，Client 通常要先写入 CCCD，告诉 Server：</p>
+<blockquote>
+<p>“这个数据变化时，请主动发给我。”</p>
+</blockquote>
+<p>因此，看见 Characteristic 支持 Notify，不等于手机已经能收到通知。<strong>支持通知是一种能力，写入 CCCD 才是实际订阅。</strong></p>
+<h2 id="UUID-和-Handle-有什么区别？"><a href="#UUID-和-Handle-有什么区别？" class="headerlink" title="UUID 和 Handle 有什么区别？"></a>UUID 和 Handle 有什么区别？</h2><p>调试工具里经常同时显示 UUID 和 Handle，它们不是一回事。</p>
+<table>
+<thead>
+<tr>
+<th>名称</th>
+<th>用途</th>
+<th>类比</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>UUID</td>
+<td>说明这个 Attribute 是什么类型</td>
+<td>资料名称</td>
+</tr>
+<tr>
+<td>Handle</td>
+<td>指向当前 GATT 数据库中的具体条目</td>
+<td>资料柜里的编号</td>
+</tr>
+</tbody></table>
+<p>同一种标准 Characteristic 在不同设备上可以使用相同 UUID，但它在各自数据库里的 Handle 不一定相同。</p>
+<p>应用通常先通过 UUID 发现目标，再使用发现到的 Handle 访问它。不要因为某次连接中 Handle 是 <code>0x0012</code>，就假设所有设备和所有固件版本都永远相同。</p>
+<h2 id="Read、Write、Notify-和-Indicate"><a href="#Read、Write、Notify-和-Indicate" class="headerlink" title="Read、Write、Notify 和 Indicate"></a>Read、Write、Notify 和 Indicate</h2><p>找到 Characteristic 后，双方常用下面几种方式交换数据：</p>
+<table>
+<thead>
+<tr>
+<th>操作</th>
+<th>谁先发起</th>
+<th>简单理解</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Read</td>
+<td>Client</td>
+<td>“把现在的值告诉我”</td>
+</tr>
+<tr>
+<td>Write</td>
+<td>Client</td>
+<td>“请把这个值改成我发送的内容”，并等待 GATT 层响应</td>
+</tr>
+<tr>
+<td>Write Without Response</td>
+<td>Client</td>
+<td>“快速写入这个内容”，不等待对应的 GATT 写响应</td>
+</tr>
+<tr>
+<td>Notify</td>
+<td>Server</td>
+<td>“数据变了，我主动告诉你”，不要求 ATT 层确认</td>
+</tr>
+<tr>
+<td>Indicate</td>
+<td>Server</td>
+<td>“数据变了，我主动告诉你”，要求 Client 在 ATT 层确认</td>
+</tr>
+</tbody></table>
+<p>假设温度计每次变化都要上报：</p>
+<ol>
+<li>手机发现温度 Characteristic；</li>
+<li>手机写入它的 CCCD，开启 Notify；</li>
+<li>温度从 24.1°C 变为 24.3°C；</li>
+<li>设备发送 Notification；</li>
+<li>手机收到新值并更新页面。</li>
+</ol>
+<p>如果第 2 步没有完成，设备即使一直在测温，手机也可能什么都收不到。</p>
+<p>Notify 没有 ATT 层的逐条确认，Indicate 则有。这里说的是 GATT&#x2F;ATT 这一层，不表示底层无线链路完全没有校验或重传。</p>
+<h2 id="ATT-又是什么？它和-GATT-有什么关系？"><a href="#ATT-又是什么？它和-GATT-有什么关系？" class="headerlink" title="ATT 又是什么？它和 GATT 有什么关系？"></a>ATT 又是什么？它和 GATT 有什么关系？</h2><p>可以先记住一句话：</p>
+<blockquote>
+<p>GATT 负责把数据组织成 Service、Characteristic 和 Descriptor；ATT 负责发现、读取、写入和传送这些 Attribute。</p>
+</blockquote>
+<p>如果 GATT 像餐厅菜单，ATT 就像点单和上菜时使用的规则：</p>
+<ul>
+<li>菜单怎样分组、一道菜叫什么，由 GATT 描述；</li>
+<li>“读取这个值”“写入那个值”“这个值变化了”等消息怎样发送，由 ATT 处理。</li>
+</ul>
+<p>开发时经常直接使用平台提供的 GATT API，不需要手工拼每一个 ATT 数据包。但抓包、看日志或定位超时时，ATT Read、Write、Notification、MTU Exchange 等名字就会出现。</p>
+<h2 id="MTU：一次-ATT-消息能装多少"><a href="#MTU：一次-ATT-消息能装多少" class="headerlink" title="MTU：一次 ATT 消息能装多少"></a>MTU：一次 ATT 消息能装多少</h2><p>MTU 可以先理解成“一次允许携带多大的包裹”。BLE 的默认 ATT MTU 是 23 字节，但这 23 字节还包含 ATT 自己的字段，并不全是应用数据。</p>
+<p>连接后，Client 和 Server 可以交换各自支持的 MTU，最终使用双方都能接受的大小。更大的 MTU 通常能让较长数据减少拆分，但需要注意：</p>
+<ul>
+<li>MTU 交换成功，不代表 Service 已经发现；</li>
+<li>MTU 更大，不代表通知已经订阅；</li>
+<li>MTU 更大，也不保证业务一定更快；</li>
+<li>真正能放入的 Characteristic Value 通常小于 ATT MTU。</li>
+</ul>
+<p>初学阶段不用急着计算每一层开销。先把 MTU 当成连接建立后可能进行的一项“传输能力协商”即可。</p>
+<h2 id="配对、绑定和加密是不是每次都有？"><a href="#配对、绑定和加密是不是每次都有？" class="headerlink" title="配对、绑定和加密是不是每次都有？"></a>配对、绑定和加密是不是每次都有？</h2><p>不一定。</p>
+<p>有些 Characteristic 允许连接后直接读取；有些数据要求链路加密，甚至要求经过身份验证。此时双方可能进行配对，生成安全密钥并启用加密。</p>
+<ul>
+<li>Pairing：协商安全能力并生成密钥；</li>
+<li>Bonding：把密钥保存下来，方便以后重连；</li>
+<li>Encryption：使用密钥保护当前链路中的数据。</li>
+</ul>
+<p>它们有关联，但不是同义词。<strong>BLE Connected 也不自动等于已经配对、已经绑定或已经加密。</strong></p>
+<p>如果读取某个 Characteristic 时提示权限或认证错误，应检查它的访问权限和当前安全级别，而不是只看连接状态。</p>
+<h2 id="从连接到收到数据，逐步证明了什么？"><a href="#从连接到收到数据，逐步证明了什么？" class="headerlink" title="从连接到收到数据，逐步证明了什么？"></a>从连接到收到数据，逐步证明了什么？</h2><p>下面这张表很适合在调试时使用：</p>
+<table>
+<thead>
+<tr>
+<th>看到的现象</th>
+<th>能证明什么</th>
+<th>还不能证明什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>扫描到设备</td>
+<td>广播可被接收，手机能发现它</td>
+<td>可以建立连接</td>
+</tr>
+<tr>
+<td>Connected</td>
+<td>BLE 链路已经建立</td>
+<td>GATT Service 正常、业务正常</td>
+</tr>
+<tr>
+<td>MTU Exchange 完成</td>
+<td>双方协商了 ATT 消息大小</td>
+<td>Service 已发现、吞吐一定更高</td>
+</tr>
+<tr>
+<td>找到目标 Service</td>
+<td>GATT Client 发现了这组功能</td>
+<td>目标 Characteristic 可正常使用</td>
+</tr>
+<tr>
+<td>找到 Characteristic</td>
+<td>UUID 和 Handle 已发现</td>
+<td>权限满足、数据格式正确</td>
+</tr>
+<tr>
+<td>CCCD 已写为开启值</td>
+<td>Client 已请求 Notify 或 Indicate</td>
+<td>Server 一定会产生业务数据</td>
+</tr>
+<tr>
+<td>收到第一条 Notification</td>
+<td>Server 到 Client 的这条数据路径已跑通</td>
+<td>所有命令、异常和重连都正常</td>
+</tr>
+<tr>
+<td>一次完整且被正确解析的读写成功</td>
+<td>本次操作的业务格式和方向基本正确</td>
+<td>长时间稳定性和所有边界情况正常</td>
+</tr>
+</tbody></table>
+<p>所以，“连接上了但不能用”并不矛盾。它只是说明故障范围已经从广播和连接阶段，缩小到了后续阶段。</p>
+<h2 id="初学者最容易遇到的五个误区"><a href="#初学者最容易遇到的五个误区" class="headerlink" title="初学者最容易遇到的五个误区"></a>初学者最容易遇到的五个误区</h2><h3 id="误区一：广播里有-Service-UUID，连接后就一定能用"><a href="#误区一：广播里有-Service-UUID，连接后就一定能用" class="headerlink" title="误区一：广播里有 Service UUID，连接后就一定能用"></a>误区一：广播里有 Service UUID，连接后就一定能用</h3><p>广播中的 Service UUID 主要帮助扫描端识别设备。真正的 Service、Characteristic、权限和数据仍要在连接后通过 GATT 访问。</p>
+<h3 id="误区二：能-Read，就一定能-Notify"><a href="#误区二：能-Read，就一定能-Notify" class="headerlink" title="误区二：能 Read，就一定能 Notify"></a>误区二：能 Read，就一定能 Notify</h3><p>Read 和 Notify 是不同能力。Notify 还需要 Client 完成订阅，Server 也要在合适时机主动发送数据。</p>
+<h3 id="误区三：Notify-和-Indicate-完全一样"><a href="#误区三：Notify-和-Indicate-完全一样" class="headerlink" title="误区三：Notify 和 Indicate 完全一样"></a>误区三：Notify 和 Indicate 完全一样</h3><p>两者都由 Server 主动发送，但 Indicate 要求 ATT 层确认，Notify 不要求。具体选择要看实时性、流量和可靠性需求。</p>
+<h3 id="误区四：UUID-就是数据内容"><a href="#误区四：UUID-就是数据内容" class="headerlink" title="误区四：UUID 就是数据内容"></a>误区四：UUID 就是数据内容</h3><p>UUID 只说明数据类型，真正内容在 Value 中。Value 往往是一串字节，还要按照该 Characteristic 的格式解释。</p>
+<h3 id="误区五：MTU-越大，速度一定越快"><a href="#误区五：MTU-越大，速度一定越快" class="headerlink" title="误区五：MTU 越大，速度一定越快"></a>误区五：MTU 越大，速度一定越快</h3><p>MTU 只是影响一次 ATT 消息可以携带的大小。实际速度还受到连接间隔、PHY、数据长度、设备处理速度和应用交互方式等因素影响。</p>
+<h2 id="最简单的动手顺序"><a href="#最简单的动手顺序" class="headerlink" title="最简单的动手顺序"></a>最简单的动手顺序</h2><p>准备一台支持 BLE 的设备和一个能够查看 GATT 的调试工具，然后只做下面几步：</p>
+<ol>
+<li>扫描设备，观察名称、信号强度和广播内容；</li>
+<li>建立连接，确认 Connected；</li>
+<li>展开 Service 列表，先找 Device Information 和 Battery Service；</li>
+<li>查看 Characteristic 的 UUID、Properties 和 Value；</li>
+<li>对允许 Read 的 Characteristic 执行一次读取；</li>
+<li>对允许 Notify 的 Characteristic 开启订阅，观察 CCCD 和后续数据；</li>
+<li>断开再连接一次，观察哪些步骤需要重新执行。</li>
+</ol>
+<p>不要随意向含义未知的 Characteristic 写入数据。它可能代表重启、清空数据、进入升级模式或其他控制命令。</p>
+<p>第一次动手的目标不是记住所有 UUID，而是建立一条判断链：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">能扫描到吗？</span><br><span class="line">  -&gt; 能连接吗？</span><br><span class="line">  -&gt; 能发现目标 Service 吗？</span><br><span class="line">  -&gt; 能找到目标 Characteristic 吗？</span><br><span class="line">  -&gt; 权限和安全条件满足吗？</span><br><span class="line">  -&gt; CCCD 订阅成功吗？</span><br><span class="line">  -&gt; 第一条读、写或通知出现了吗？</span><br></pre></td></tr></table></figure>
+
+<h2 id="一页小抄"><a href="#一页小抄" class="headerlink" title="一页小抄"></a>一页小抄</h2><table>
+<thead>
+<tr>
+<th>名词</th>
+<th>一句话理解</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Advertising</td>
+<td>设备在连接前发送“我在这里”等信息</td>
+</tr>
+<tr>
+<td>Scanning</td>
+<td>手机收听附近广播</td>
+</tr>
+<tr>
+<td>Connection</td>
+<td>双方建立可持续交换数据的 BLE 链路</td>
+</tr>
+<tr>
+<td>GATT Server</td>
+<td>保存并提供 GATT 数据库的一方</td>
+</tr>
+<tr>
+<td>GATT Client</td>
+<td>发现、读取、写入和订阅数据的一方</td>
+</tr>
+<tr>
+<td>Service</td>
+<td>一组相关功能</td>
+</tr>
+<tr>
+<td>Characteristic</td>
+<td>一个具体数据项及其操作方式</td>
+</tr>
+<tr>
+<td>Descriptor</td>
+<td>Characteristic 的补充说明或配置</td>
+</tr>
+<tr>
+<td>UUID</td>
+<td>Attribute 的类型标识</td>
+</tr>
+<tr>
+<td>Handle</td>
+<td>GATT 数据库中具体条目的编号</td>
+</tr>
+<tr>
+<td>CCCD</td>
+<td>Client 用来开启或关闭 Notify、Indicate 的配置项</td>
+</tr>
+<tr>
+<td>ATT</td>
+<td>操作和传送 Attribute 的底层协议</td>
+</tr>
+<tr>
+<td>MTU</td>
+<td>单个 ATT PDU 允许的最大尺寸</td>
+</tr>
+</tbody></table>
+<h2 id="最后再看一次完整过程"><a href="#最后再看一次完整过程" class="headerlink" title="最后再看一次完整过程"></a>最后再看一次完整过程</h2><p>一台 BLE 设备“真正可用”，通常不是一个瞬间，而是一串连续的小成功：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">广播可见</span><br><span class="line">  -&gt; 连接建立</span><br><span class="line">  -&gt; 安全条件满足</span><br><span class="line">  -&gt; 如有需要，完成 MTU 等传输参数协商</span><br><span class="line">  -&gt; Service / Characteristic / Descriptor 被发现</span><br><span class="line">  -&gt; Read、Write 或 CCCD 订阅完成</span><br><span class="line">  -&gt; 第一条业务数据成功传输</span><br></pre></td></tr></table></figure>
+
+<p>以后再看到“BLE 已连接但没有数据”，不要把所有问题都叫作“连接失败”。沿着这条时间线向下检查，很快就能知道自己是在找不到服务、订阅没有完成，还是业务命令根本没有开始。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://www.bluetooth.com/bluetooth-le-primer/">Bluetooth SIG：Bluetooth Low Energy Primer</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.bluetooth.com/wp-content/uploads/Files/Specification/HTML/Core-61/out/en/host/generic-attribute-profile--gatt-.html">Bluetooth SIG：Generic Attribute Profile</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.bluetooth.com/specifications/specs/battery-service/">Bluetooth SIG：Battery Service 1.1</a></li>
+<li><a target="_blank" rel="noopener" href="https://docs.zephyrproject.org/latest/services/connectivity/bluetooth/api/gatt.html">Zephyr：Generic Attribute Profile 文档</a></li>
+<li><a target="_blank" rel="noopener" href="https://docs.zephyrproject.org/latest/samples/bluetooth/mtu_update/README.html">Zephyr：MTU Update 示例</a></li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a target="_blank" rel="noopener" href="https://github.com/Oniums">Oniums</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://onium.top/posts/ble-gatt-connection-basics/">https://onium.top/posts/ble-gatt-connection-basics/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://onium.top" target="_blank">Oniums</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/bluetooth-le/">Bluetooth LE</a><a class="post-meta__tags" href="/tags/ble/">BLE</a><a class="post-meta__tags" href="/tags/gatt/">GATT</a><a class="post-meta__tags" href="/tags/att/">ATT</a><a class="post-meta__tags" href="/tags/%E5%85%A5%E9%97%A8/">入门</a></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/posts/matter-over-thread-zigbee-commissioning-comparison/" title="Matter over Thread 入网为什么这么复杂？与 Zigbee 一步一步对照看懂"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Matter over Thread 入网为什么这么复杂？与 Zigbee 一步一步对照看懂</div></div><div class="info-2"><div class="info-item-1">Zigbee 设备打开允许加入、搜索网络、获得密钥，似乎就能完成入网。Matter over Thread 为什么还要扫码、连接 Bluetooth LE、建立临时安全通道、验证设备证书、写入长期身份、加入 Thread，再切换到 IP 网络重新连接？ 这些步骤是在把简单问题复杂化，还是在解决不同的问题？   本文跟随一台刚恢复出厂的门磁传感器，从拆箱一直走到 App 能稳定显示“门已打开”或“门已关闭”。每走一步，我们都回答五个...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%88%E7%9C%8B%E7%BB%93%E8%AE%BA%EF%BC%9A%E4%B8%80%E6%AC%A1%E5%B8%B8%E8%A7%81%E7%9A%84-BLE-%E9%80%9A%E4%BF%A1%E8%BF%87%E7%A8%8B"><span class="toc-text">先看结论：一次常见的 BLE 通信过程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%BF%9E%E6%8E%A5%E5%89%8D%EF%BC%9A%E5%B9%BF%E6%92%AD%E5%92%8C%E6%89%AB%E6%8F%8F%E6%98%AF%E5%9C%A8%E5%81%9A%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="toc-text">连接前：广播和扫描是在做什么？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%89%E7%BB%84%E8%A7%92%E8%89%B2%E4%B8%8D%E8%A6%81%E6%B7%B7%E5%9C%A8%E4%B8%80%E8%B5%B7"><span class="toc-text">三组角色不要混在一起</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%BF%9E%E6%8E%A5%E5%90%8E%EF%BC%9AGATT-%E5%83%8F%E4%B8%80%E7%BB%84%E6%95%B4%E7%90%86%E5%A5%BD%E7%9A%84%E8%B5%84%E6%96%99%E6%9F%9C"><span class="toc-text">连接后：GATT 像一组整理好的资料柜</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Service%EF%BC%9A%E4%B8%80%E7%BB%84%E7%9B%B8%E5%85%B3%E5%8A%9F%E8%83%BD"><span class="toc-text">Service：一组相关功能</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Characteristic%EF%BC%9A%E7%9C%9F%E6%AD%A3%E8%A6%81%E8%AF%BB%E5%86%99%E7%9A%84%E6%95%B0%E6%8D%AE%E9%A1%B9"><span class="toc-text">Characteristic：真正要读写的数据项</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Descriptor%EF%BC%9ACharacteristic-%E7%9A%84%E8%A1%A5%E5%85%85%E4%BF%A1%E6%81%AF%E5%92%8C%E5%BC%80%E5%85%B3"><span class="toc-text">Descriptor：Characteristic 的补充信息和开关</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#UUID-%E5%92%8C-Handle-%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%EF%BC%9F"><span class="toc-text">UUID 和 Handle 有什么区别？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Read%E3%80%81Write%E3%80%81Notify-%E5%92%8C-Indicate"><span class="toc-text">Read、Write、Notify 和 Indicate</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ATT-%E5%8F%88%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F%E5%AE%83%E5%92%8C-GATT-%E6%9C%89%E4%BB%80%E4%B9%88%E5%85%B3%E7%B3%BB%EF%BC%9F"><span class="toc-text">ATT 又是什么？它和 GATT 有什么关系？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#MTU%EF%BC%9A%E4%B8%80%E6%AC%A1-ATT-%E6%B6%88%E6%81%AF%E8%83%BD%E8%A3%85%E5%A4%9A%E5%B0%91"><span class="toc-text">MTU：一次 ATT 消息能装多少</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%85%8D%E5%AF%B9%E3%80%81%E7%BB%91%E5%AE%9A%E5%92%8C%E5%8A%A0%E5%AF%86%E6%98%AF%E4%B8%8D%E6%98%AF%E6%AF%8F%E6%AC%A1%E9%83%BD%E6%9C%89%EF%BC%9F"><span class="toc-text">配对、绑定和加密是不是每次都有？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%8E%E8%BF%9E%E6%8E%A5%E5%88%B0%E6%94%B6%E5%88%B0%E6%95%B0%E6%8D%AE%EF%BC%8C%E9%80%90%E6%AD%A5%E8%AF%81%E6%98%8E%E4%BA%86%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="toc-text">从连接到收到数据，逐步证明了什么？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%9D%E5%AD%A6%E8%80%85%E6%9C%80%E5%AE%B9%E6%98%93%E9%81%87%E5%88%B0%E7%9A%84%E4%BA%94%E4%B8%AA%E8%AF%AF%E5%8C%BA"><span class="toc-text">初学者最容易遇到的五个误区</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%AF%E5%8C%BA%E4%B8%80%EF%BC%9A%E5%B9%BF%E6%92%AD%E9%87%8C%E6%9C%89-Service-UUID%EF%BC%8C%E8%BF%9E%E6%8E%A5%E5%90%8E%E5%B0%B1%E4%B8%80%E5%AE%9A%E8%83%BD%E7%94%A8"><span class="toc-text">误区一：广播里有 Service UUID，连接后就一定能用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%AF%E5%8C%BA%E4%BA%8C%EF%BC%9A%E8%83%BD-Read%EF%BC%8C%E5%B0%B1%E4%B8%80%E5%AE%9A%E8%83%BD-Notify"><span class="toc-text">误区二：能 Read，就一定能 Notify</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%AF%E5%8C%BA%E4%B8%89%EF%BC%9ANotify-%E5%92%8C-Indicate-%E5%AE%8C%E5%85%A8%E4%B8%80%E6%A0%B7"><span class="toc-text">误区三：Notify 和 Indicate 完全一样</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%AF%E5%8C%BA%E5%9B%9B%EF%BC%9AUUID-%E5%B0%B1%E6%98%AF%E6%95%B0%E6%8D%AE%E5%86%85%E5%AE%B9"><span class="toc-text">误区四：UUID 就是数据内容</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%AF%E5%8C%BA%E4%BA%94%EF%BC%9AMTU-%E8%B6%8A%E5%A4%A7%EF%BC%8C%E9%80%9F%E5%BA%A6%E4%B8%80%E5%AE%9A%E8%B6%8A%E5%BF%AB"><span class="toc-text">误区五：MTU 越大，速度一定越快</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%80%E7%AE%80%E5%8D%95%E7%9A%84%E5%8A%A8%E6%89%8B%E9%A1%BA%E5%BA%8F"><span class="toc-text">最简单的动手顺序</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E9%A1%B5%E5%B0%8F%E6%8A%84"><span class="toc-text">一页小抄</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%80%E5%90%8E%E5%86%8D%E7%9C%8B%E4%B8%80%E6%AC%A1%E5%AE%8C%E6%95%B4%E8%BF%87%E7%A8%8B"><span class="toc-text">最后再看一次完整过程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-text">参考资料</span></a></li></ol></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"></div><div class="footer_custom_text">&copy; 2026 Oniums · 保持好奇，持续记录。<br><a href="https://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener noreferrer">闽ICP备2021008449号-1</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.6.1"></script><script src="/js/main.js?v=5.6.1"></script><script src="https://cdn.jsdelivr.net/npm/medium-zoom@1.1.0/dist/medium-zoom.min.js"></script><div class="js-pjax"><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.innerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+
+    setTimeout(() => URL.revokeObjectURL(url), 5000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    // Clean up previous event listeners and pending frames
+    if (wrap.__mermaidAbortController) {
+      wrap.__mermaidAbortController.abort()
+      if (wrap.__mermaidRafId) cancelAnimationFrame(wrap.__mermaidRafId)
+    }
+    const ac = new AbortController()
+    wrap.__mermaidAbortController = ac
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+    // Disable default gestures to prevent scroll chaining and pinch-zoom penetration in Chrome
+    svg.style.touchAction = 'none'
+
+    // Cache BoundingClientRect, throttled on scroll to reduce reflow
+    let cachedRect = svg.getBoundingClientRect()
+    let rectDirty = false
+    const markRectDirty = () => { rectDirty = true }
+    window.addEventListener('resize', markRectDirty, { signal: ac.signal })
+    window.addEventListener('scroll', markRectDirty, { signal: ac.signal, capture: true })
+    const getRect = () => {
+      if (rectDirty) {
+        cachedRect = svg.getBoundingClientRect()
+        rectDirty = false
+      }
+      return cachedRect
+    }
+
+    // Precompute clamp bounds from initial viewBox
+    const minW = initVb[2] * 0.1
+    const maxW = initVb[2] * 10
+    const minH = initVb[3] * 0.1
+    const maxH = initVb[3] * 10
+    const clampVb = vb => {
+      const out = vb.slice()
+      out[2] = clamp(out[2], minW, maxW)
+      out[3] = clamp(out[3], minH, maxH)
+      return out
+    }
+
+    // Throttle DOM updates using requestAnimationFrame
+    let pendingVb = null
+    let rafId = null
+    const applyVb = () => {
+      if (pendingVb) {
+        wrap.__mermaidCurViewBox = pendingVb
+        setSvgViewBox(svg, pendingVb)
+        pendingVb = null
+      }
+      rafId = null
+      wrap.__mermaidRafId = null
+    }
+    const setCurVb = vb => {
+      pendingVb = clampVb(vb)
+      if (!rafId) {
+        rafId = requestAnimationFrame(applyVb)
+        wrap.__mermaidRafId = rafId
+      }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      lastPointerX: 0,
+      lastPointerY: 0
+    }
+
+    const onPointerDown = e => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      const curVb = wrap.__mermaidCurViewBox
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      if (state.pointers.size === 1) {
+        state.startVb = curVb.slice()
+        state.lastPointerX = e.clientX
+        state.lastPointerY = e.clientY
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = curVb.slice()
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = state.pointers.values().next().value
+        const dxClient = p.x - state.lastPointerX
+        const dyClient = p.y - state.lastPointerY
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+        const dx = dxClient * (curVb[2] / rect.width)
+        const dy = dyClient * (curVb[3] / rect.height)
+        setCurVb([curVb[0] - dx, curVb[1] - dy, curVb[2], curVb[3]])
+        return
+      }
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const px = curVb[0] + (cx - rect.left) * (curVb[2] / rect.width)
+        const py = curVb[1] + (cy - rect.top) * (curVb[3] / rect.height)
+        setCurVb(zoomAtPoint(state.startVb, factor, px, py))
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      // Release PointerCapture to avoid event capture anomalies
+      if (svg.hasPointerCapture && svg.hasPointerCapture(e.pointerId)) {
+        svg.releasePointerCapture(e.pointerId)
+      }
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+      } else if (state.pointers.size === 1) {
+        const p = state.pointers.values().next().value
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+      }
+    }
+
+    const onWheel = e => {
+      // Prevent event bubbling from triggering external scroll
+      e.preventDefault()
+      e.stopPropagation()
+      // Normalize deltaY across deltaMode (Chrome uses pixels, Safari uses lines)
+      let delta = e.deltaY
+      if (e.deltaMode === 1) delta *= 16
+      else if (e.deltaMode === 2) delta *= 400
+
+      // Continuous zoom factor: smoother than fixed 1.1/0.9 steps
+      const zoomFactor = Math.pow(1.001, delta)
+
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      const px = curVb[0] + (e.clientX - rect.left) * (curVb[2] / rect.width)
+      const py = curVb[1] + (e.clientY - rect.top) * (curVb[3] / rect.height)
+      setCurVb(zoomAtPoint(curVb, zoomFactor, px, py))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (init) setCurVb(init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown, { signal: ac.signal })
+    svg.addEventListener('pointermove', onPointerMove, { signal: ac.signal })
+    svg.addEventListener('pointerup', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('pointercancel', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('wheel', onWheel, { passive: false, signal: ac.signal })
+    svg.addEventListener('dblclick', onDblClick, { signal: ac.signal })
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'neutral'
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      // Clean up event listeners before removing old SVG
+      if (item.__mermaidAbortController) {
+        item.__mermaidAbortController.abort()
+      }
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      let config = {}
+      try {
+        config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      } catch (e) {
+        console.warn('[mermaid] failed to parse dataset.config:', e)
+      }
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+      const handleError = err => {
+        console.error(`[mermaid] render failed for block #${index}:`, err)
+        const errorEl = document.createElement('div')
+        errorEl.className = 'mermaid-error'
+        errorEl.textContent = `Mermaid render error: ${err.message || err}`
+        mermaidSrc.insertAdjacentElement('afterend', errorEl)
+      }
+
+      try {
+        const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+        // mermaid v9 and v10 compatibility
+        if (typeof renderFn === 'string') {
+          renderMermaid(renderFn)
+        } else {
+          renderFn.then(({ svg }) => renderMermaid(svg)).catch(handleError)
+        }
+      } catch (err) {
+        handleError(err)
+      }
+    })
+  }
+
+  const codeToMermaid = $article => {
+    const codeMermaidEle = $article.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    const $article = document.getElementById('article-container')
+    if (!$article) return
+
+    if (true) codeToMermaid($article)
+    const $mermaid = $article.querySelectorAll('.mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.16.0/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索协议、固件与工程实践" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.6.1"></script></div></div></body></html>

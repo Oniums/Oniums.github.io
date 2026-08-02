@@ -2,6 +2,15 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>https://onium.top/posts/ble-gatt-connection-basics/</loc>
+    
+    <lastmod>2026-08-02</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
     <loc>https://onium.top/experience/index.html</loc>
     
     <lastmod>2026-08-02</lastmod>
@@ -405,6 +414,41 @@
   </url>
   
   <url>
+    <loc>https://onium.top/tags/bluetooth-le/</loc>
+    <lastmod>2026-08-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://onium.top/tags/ble/</loc>
+    <lastmod>2026-08-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://onium.top/tags/gatt/</loc>
+    <lastmod>2026-08-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://onium.top/tags/att/</loc>
+    <lastmod>2026-08-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://onium.top/tags/%E5%85%A5%E9%97%A8/</loc>
+    <lastmod>2026-08-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
     <loc>https://onium.top/tags/%E8%B0%83%E8%AF%95/</loc>
     <lastmod>2026-08-02</lastmod>
     <changefreq>weekly</changefreq>
@@ -447,20 +491,6 @@
   </url>
   
   <url>
-    <loc>https://onium.top/tags/gpio/</loc>
-    <lastmod>2026-08-02</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://onium.top/tags/isr/</loc>
-    <lastmod>2026-08-02</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
     <loc>https://onium.top/tags/%E5%86%99%E4%BD%9C/</loc>
     <lastmod>2026-08-02</lastmod>
     <changefreq>weekly</changefreq>
@@ -469,6 +499,20 @@
   
   <url>
     <loc>https://onium.top/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/</loc>
+    <lastmod>2026-08-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://onium.top/tags/gpio/</loc>
+    <lastmod>2026-08-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://onium.top/tags/isr/</loc>
     <lastmod>2026-08-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -890,6 +934,13 @@
   </url>
   
   <url>
+    <loc>https://onium.top/categories/%E6%97%A0%E7%BA%BF%E5%8D%8F%E8%AE%AE/</loc>
+    <lastmod>2026-08-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
     <loc>https://onium.top/categories/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/</loc>
     <lastmod>2026-08-02</lastmod>
     <changefreq>weekly</changefreq>
@@ -905,13 +956,6 @@
   
   <url>
     <loc>https://onium.top/categories/%E7%AB%99%E7%82%B9/</loc>
-    <lastmod>2026-08-02</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://onium.top/categories/%E6%97%A0%E7%BA%BF%E5%8D%8F%E8%AE%AE/</loc>
     <lastmod>2026-08-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
