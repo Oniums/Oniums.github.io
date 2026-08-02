@@ -7,10 +7,46 @@
   --oniums-surface: #ffffff;
   --oniums-border: rgba(148, 163, 184, 0.24);
   --oniums-page: #f3f6f8;
+  --oniums-scrollbar-track: #e8eef5;
+  --oniums-scrollbar-thumb: #4f7fda;
+  --oniums-scrollbar-thumb-hover: #2563eb;
 }
 
 html {
   scroll-behavior: smooth;
+  scrollbar-color: var(--oniums-scrollbar-thumb) var(--oniums-scrollbar-track);
+  scrollbar-width: auto;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+html::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track {
+  background: var(--oniums-scrollbar-track);
+}
+
+html::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb {
+  min-height: 48px;
+  border: 2px solid var(--oniums-scrollbar-track);
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--oniums-accent), var(--oniums-scrollbar-thumb));
+  background-clip: padding-box;
+}
+
+html::-webkit-scrollbar-thumb:hover,
+body::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, var(--oniums-accent-deep), var(--oniums-scrollbar-thumb-hover));
+  background-clip: padding-box;
+}
+
+html::-webkit-scrollbar-corner,
+body::-webkit-scrollbar-corner {
+  background: var(--oniums-scrollbar-track);
 }
 
 body {
@@ -443,6 +479,9 @@ body::before {
   --oniums-muted: #94a3b8;
   --oniums-surface: rgba(30, 41, 59, 0.72);
   --oniums-border: rgba(148, 163, 184, 0.18);
+  --oniums-scrollbar-track: #111827;
+  --oniums-scrollbar-thumb: #3b82f6;
+  --oniums-scrollbar-thumb-hover: #60a5fa;
 }
 
 [data-theme="dark"] {
@@ -451,6 +490,9 @@ body::before {
   --oniums-surface: #111c2e;
   --oniums-border: rgba(148, 163, 184, 0.17);
   --oniums-page: #0b1220;
+  --oniums-scrollbar-track: #111827;
+  --oniums-scrollbar-thumb: #3b82f6;
+  --oniums-scrollbar-thumb-hover: #60a5fa;
 }
 
 [data-theme="dark"] body {

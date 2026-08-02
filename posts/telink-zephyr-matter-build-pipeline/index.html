@@ -1,0 +1,816 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Telink Matter SDK 入门：Zephyr、Matter 与底层库怎样组成一个固件？ | Oniums</title><meta name="author" content="Oniums"><meta name="copyright" content="Oniums"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#f3f6f8"><meta name="description" content="第一次接触 Telink Matter SDK 时，很容易产生一个疑问：Zephyr 在一个仓库，Matter 在另一个仓库，底下还有 HAL、OpenThread 和一些静态库，执行一次 west build 后，它们怎么就变成了一个固件？ 先记住最重要的结论：  通常不是先生成一个 Zephyr 固件和一个 Matter 固件，再把两个 BIN 拼起来。Matter、Zephyr、应用和芯片底">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Telink Matter SDK 入门：Zephyr、Matter 与底层库怎样组成一个固件？">
+<meta property="og:url" content="https://onium.top/posts/telink-zephyr-matter-build-pipeline/index.html">
+<meta property="og:site_name" content="Oniums">
+<meta property="og:description" content="第一次接触 Telink Matter SDK 时，很容易产生一个疑问：Zephyr 在一个仓库，Matter 在另一个仓库，底下还有 HAL、OpenThread 和一些静态库，执行一次 west build 后，它们怎么就变成了一个固件？ 先记住最重要的结论：  通常不是先生成一个 Zephyr 固件和一个 Matter 固件，再把两个 BIN 拼起来。Matter、Zephyr、应用和芯片底">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://onium.top/img/github-avatar.jpg">
+<meta property="article:published_time" content="2026-08-02T15:55:00.000Z">
+<meta property="article:modified_time" content="2026-08-02T16:07:55.768Z">
+<meta property="article:author" content="Oniums">
+<meta property="article:tag" content="CMake">
+<meta property="article:tag" content="Matter">
+<meta property="article:tag" content="Telink">
+<meta property="article:tag" content="Zephyr">
+<meta property="article:tag" content="west">
+<meta property="article:tag" content="固件构建">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://onium.top/img/github-avatar.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Telink Matter SDK 入门：Zephyr、Matter 与底层库怎样组成一个固件？",
+  "url": "https://onium.top/posts/telink-zephyr-matter-build-pipeline/",
+  "image": "https://onium.top/img/github-avatar.jpg",
+  "datePublished": "2026-08-02T15:55:00.000Z",
+  "dateModified": "2026-08-02T16:07:55.768Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Oniums",
+      "url": "https://github.com/Oniums"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/avatar.png"><link rel="canonical" href="https://onium.top/posts/telink-zephyr-matter-build-pipeline/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.6.1"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        const data = { value }
+
+        if (ttl != null) {
+          data.expiry = Date.now() + ttl * 86400000
+        }
+
+        localStorage.setItem(key, JSON.stringify(data))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return
+
+        try {
+          const data = JSON.parse(itemStr)
+
+          if (data.expiry && Date.now() > data.expiry) {
+            localStorage.removeItem(key)
+            return
+          }
+
+          return data.value
+        } catch {
+          localStorage.removeItem(key)
+        }
+      }
+    }
+
+    const scriptCache = new Map()
+    const cssCache = new Map()
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => {
+        if (scriptCache.has(url)) {
+          return scriptCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+
+          script.src = url
+          script.async = true
+
+          for (const key in attr) {
+            script.setAttribute(key, attr[key])
+          }
+
+          script.onload = resolve
+          script.onerror = reject
+
+          document.head.appendChild(script)
+        })
+
+        scriptCache.set(url, promise)
+
+        return promise
+      },
+      getCSS: (url, id) => {
+        if (cssCache.has(url)) {
+          return cssCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+
+          link.rel = 'stylesheet'
+          link.href = url
+
+          if (id) {
+            link.id = id
+          }
+
+          link.onload = resolve
+          link.onerror = reject
+
+          document.head.appendChild(link)
+        })
+
+        cssCache.set(url, promise)
+
+        return promise
+      },
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const activateDarkMode = () => {
+        document.documentElement.dataset.theme = 'dark'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#0b1220')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.dataset.theme = 'light'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#f3f6f8')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const start = 6
+              const end = 18
+              const isNight =
+                start < end
+                    ? hour < start || hour >= end
+                    : hour >= start || hour < end
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', e => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/local-search.xml","preload":false,"top_n_per_article":2,"unescape":false,"pagination":{"enable":true,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":true,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'medium_zoom',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Telink Matter SDK 入门：Zephyr、Matter 与底层库怎样组成一个固件？',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/custom.css"><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Oniums" type="application/atom+xml">
+</head><body><div class="bg-animation" id="web_bg" style="background-color: #f3f6f8;"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/github-avatar.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">33</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">82</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">9</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><span class="site-page group"><span> 文章</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-box-archive"></i><span> 归档</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/projects/"><i class="fa-fw fas fa-microchip"></i><span> 项目</span></a></div><div class="menus_item"><a class="site-page" href="/experience/"><i class="fa-fw fas fa-route"></i><span> 经历</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="not-top-img fixed" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Oniums</span></a><a class="nav-page-title" href="/"><span class="site-name">Telink Matter SDK 入门：Zephyr、Matter 与底层库怎样组成一个固件？</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><span class="site-page group"><span> 文章</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-box-archive"></i><span> 归档</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/projects/"><i class="fa-fw fas fa-microchip"></i><span> 项目</span></a></div><div class="menus_item"><a class="site-page" href="/experience/"><i class="fa-fw fas fa-route"></i><span> 经历</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav></header><main class="layout" id="content-inner"><div id="post"><div id="post-info"><h1 class="post-title">Telink Matter SDK 入门：Zephyr、Matter 与底层库怎样组成一个固件？</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="fa-fw post-meta-icon far fa-calendar-alt"></i><span class="post-meta-label">发表于</span><time datetime="2026-08-02T15:55:00.000Z" title="发表于 2026-08-02 23:55:00">2026-08-02</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%90%AD%E5%BB%BA%E6%95%99%E7%A8%8B/">搭建教程</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div><article class="container post-content" id="article-container"><div id="post-outdate-notice" data="{&quot;limitDay&quot;:540,&quot;messagePrev&quot;:&quot;本文发布距今已超过&quot;,&quot;messageNext&quot;:&quot;天，工具版本与生态行为可能已经变化。&quot;,&quot;postUpdate&quot;:&quot;2026-08-03 00:07:55&quot;}" hidden></div><p>第一次接触 Telink Matter SDK 时，很容易产生一个疑问：Zephyr 在一个仓库，Matter 在另一个仓库，底下还有 HAL、OpenThread 和一些静态库，执行一次 <code>west build</code> 后，它们怎么就变成了一个固件？</p>
+<p>先记住最重要的结论：</p>
+<blockquote>
+<p><strong>通常不是先生成一个 Zephyr 固件和一个 Matter 固件，再把两个 BIN 拼起来。Matter、Zephyr、应用和芯片底层会先分别编译成许多目标文件或静态库，最后由链接器装进同一个 <code>zephyr.elf</code>，再转换成 <code>zephyr.bin</code>。</strong></p>
+</blockquote>
+<span id="more"></span>
+
+<p>如果启用了 MCUboot、签名或出厂数据，后面还会有一次镜像签名或按 Flash 地址合并。那属于“固件打包”，不是把 Zephyr 和 Matter 两套程序硬拼在一起。</p>
+<p>本文以公开的 Telink、Zephyr 和 Matter 仓库为线索，不要求读者先懂 CMake、Kconfig 或链接器。读完后，你应该能回答：</p>
+<ol>
+<li>每个仓库分别负责什么？</li>
+<li><code>west build</code> 到底调用了谁？</li>
+<li>Zephyr 在哪里进入 Telink 的底层 API？</li>
+<li><code>zephyr.elf</code>、<code>zephyr.bin</code> 和 <code>merged.bin</code> 有什么区别？</li>
+</ol>
+<h2 id="先认识几位参与者"><a href="#先认识几位参与者" class="headerlink" title="先认识几位参与者"></a>先认识几位参与者</h2><p>可以把一次固件构建想成盖房子：</p>
+<table>
+<thead>
+<tr>
+<th>组成部分</th>
+<th>主要职责</th>
+<th>类比</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>产品应用</td>
+<td>按键、传感器、状态机和产品逻辑</td>
+<td>房屋的使用需求</td>
+</tr>
+<tr>
+<td>Matter</td>
+<td>配网、设备模型、Cluster 和安全通信</td>
+<td>智能家居的通用规则</td>
+</tr>
+<tr>
+<td>Zephyr</td>
+<td>线程、定时器、内存、日志、驱动框架和构建系统</td>
+<td>施工组织与基础设施</td>
+</tr>
+<tr>
+<td>OpenThread</td>
+<td>Thread 网络协议</td>
+<td>通往外界的道路系统</td>
+</tr>
+<tr>
+<td>Telink 驱动与 HAL</td>
+<td>把通用接口落到具体芯片外设和射频</td>
+<td>真正操作机器的工人</td>
+</tr>
+<tr>
+<td>工具链</td>
+<td>编译、链接并转换文件格式</td>
+<td>加工与装配设备</td>
+</tr>
+</tbody></table>
+<p>这些部分不是彼此独立运行的几个固件。它们更像不同来源的零件，最后被装进同一个可执行程序。</p>
+<p>下面的仓库与文件关系核对时间为 2026 年 8 月 2 日。公开开发环境里，常见结构可以简化为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Zephyr workspace</span><br><span class="line">├── zephyr/                       # RTOS、驱动框架、west manifest</span><br><span class="line">├── modules/hal/telink/           # Telink HAL、适配层和底层依赖</span><br><span class="line">├── modules/lib/openthread/       # OpenThread</span><br><span class="line">├── modules/lib/openthread_telink_lib/  # 某些配置使用的 Telink OpenThread 库</span><br><span class="line">└── matter/                       # connectedhomeip，Matter SDK 与示例应用</span><br></pre></td></tr></table></figure>
+
+<p>实际目录名会随 SDK 版本变化，但角色基本不变。<code>west.yml</code> 像一张依赖清单：它记录要取哪些仓库、放在哪个目录、固定到哪个 revision。Telink 官方环境准备流程中的 <code>west update</code> 和 <code>west blobs fetch hal_telink</code>，就是根据工作区描述取回源码模块和 HAL 所需内容。</p>
+<h2 id="从一条命令开始"><a href="#从一条命令开始" class="headerlink" title="从一条命令开始"></a>从一条命令开始</h2><p>Telink 的公开 Matter 示例通常从类似命令开始：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">source</span> scripts/activate.sh</span><br><span class="line">west build -b &lt;board&gt; -- -DFLASH_SIZE=&lt;size&gt;</span><br></pre></td></tr></table></figure>
+
+<p>表面上只运行了 <code>west</code>，背后大致会经过这条链：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">west build</span><br><span class="line">  ↓</span><br><span class="line">CMake 配置应用和 Zephyr</span><br><span class="line">  ├── 读取 CMakeLists.txt</span><br><span class="line">  ├── 合并 prj.conf / Kconfig</span><br><span class="line">  ├── 解析 board 与 Devicetree overlay</span><br><span class="line">  └── 生成 Ninja 构建规则</span><br><span class="line">  ↓</span><br><span class="line">GN + Ninja 编译 Matter 库</span><br><span class="line">  ↓</span><br><span class="line">Ninja 编译应用、Zephyr、OpenThread、驱动和 HAL</span><br><span class="line">  ↓</span><br><span class="line">链接为 build/zephyr/zephyr.elf</span><br><span class="line">  ↓</span><br><span class="line">objcopy 转换为 build/zephyr/zephyr.bin</span><br><span class="line">  ↓</span><br><span class="line">按配置执行签名、OTA 或多镜像合并</span><br></pre></td></tr></table></figure>
+
+<p>下面逐步拆开看。</p>
+<h2 id="第一步：应用把构建入口交给-Zephyr"><a href="#第一步：应用把构建入口交给-Zephyr" class="headerlink" title="第一步：应用把构建入口交给 Zephyr"></a>第一步：应用把构建入口交给 Zephyr</h2><p>以公开的 Matter Telink 示例为例，应用目录里通常能看到：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">telink/</span><br><span class="line">├── CMakeLists.txt</span><br><span class="line">├── prj.conf</span><br><span class="line">├── boards/</span><br><span class="line">├── src/</span><br><span class="line">└── *.zap 或其他数据模型文件</span><br></pre></td></tr></table></figure>
+
+<p>这些文件分别回答不同问题：</p>
+<ul>
+<li><code>CMakeLists.txt</code>：哪些源码要参与编译，还要加载哪些构建模块；</li>
+<li><code>prj.conf</code>：要打开哪些 Zephyr、Matter、网络和驱动功能；</li>
+<li>board 与 overlay：芯片、内存、GPIO、UART、Flash 分区等硬件描述；</li>
+<li>ZAP 或数据模型文件：Matter Endpoint、Cluster、Attribute 和 Command；</li>
+<li><code>src/</code>：应用自己的 C&#x2F;C++ 代码。</li>
+</ul>
+<p>Matter 示例的 Telink <code>common.cmake</code> 会整理配置和 overlay，然后把 <code>config/telink/chip-module</code> 加入 <code>ZEPHYR_EXTRA_MODULES</code>，最后调用 <code>find_package(Zephyr ...)</code>。这一步可以简单理解为：</p>
+<blockquote>
+<p>“这是一个 Matter 应用，但请使用 Zephyr 的规则来组织整次构建。”</p>
+</blockquote>
+<h2 id="第二步：Kconfig-和-Devicetree-决定“编什么”和“硬件在哪”"><a href="#第二步：Kconfig-和-Devicetree-决定“编什么”和“硬件在哪”" class="headerlink" title="第二步：Kconfig 和 Devicetree 决定“编什么”和“硬件在哪”"></a>第二步：Kconfig 和 Devicetree 决定“编什么”和“硬件在哪”</h2><p>初学者经常把 <code>prj.conf</code> 和 Devicetree 混在一起，可以先这样区分：</p>
+<ul>
+<li><strong>Kconfig &#x2F; <code>prj.conf</code> 决定要不要某个功能。</strong> 例如是否启用 Bluetooth、OpenThread、日志或 MCUboot。</li>
+<li><strong>Devicetree 决定硬件是什么、地址在哪、引脚怎样接。</strong> 例如某个 UART、GPIO 或 Flash 分区的位置。</li>
+</ul>
+<p>CMake 配置阶段会把这些输入转换成后续编译能使用的结果，例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">build/zephyr/.config          # 最终生效的 Kconfig</span><br><span class="line">build/zephyr/zephyr.dts       # 最终合并后的硬件描述</span><br><span class="line">build/zephyr/include/generated/...  # 生成的配置头文件</span><br></pre></td></tr></table></figure>
+
+<p>所以，改了 <code>prj.conf</code> 或 overlay 后，变化并不是运行时才被“读取”，而是在编译前就决定哪些代码存在、使用哪些地址和参数。</p>
+<h2 id="第三步：Matter-为什么使用-GN，又怎样回到-Zephyr？"><a href="#第三步：Matter-为什么使用-GN，又怎样回到-Zephyr？" class="headerlink" title="第三步：Matter 为什么使用 GN，又怎样回到 Zephyr？"></a>第三步：Matter 为什么使用 GN，又怎样回到 Zephyr？</h2><p>Matter SDK 本身大量使用 GN + Ninja，Zephyr 则主要使用 CMake。Telink 没有要求初学者手工运行两套互不相干的构建，而是在 <code>config/telink/chip-module</code> 中搭了一座桥。</p>
+<p>这座桥主要做三件事：</p>
+<ol>
+<li>把 Zephyr 的编译器、编译选项和 Kconfig 结果转换为 Matter GN 参数；</li>
+<li>通过 CMake <code>ExternalProject</code> 调用 GN 和 Ninja 编译 Matter；</li>
+<li>把生成的 Matter 静态库加入 Zephyr 最终链接。</li>
+</ol>
+<p>因此，中间过程虽然能看到 CMake、GN 和两次 Ninja，但最终目标仍然是同一个应用镜像：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">Matter 源码</span><br><span class="line">  -&gt; GN 生成规则</span><br><span class="line">  -&gt; Matter 静态库 ───────────┐</span><br><span class="line">                              │</span><br><span class="line">应用源码 -&gt; 目标文件 ─────────┤</span><br><span class="line">Zephyr   -&gt; 内核与子系统库 ───┼─&gt; zephyr.elf</span><br><span class="line">OpenThread -&gt; 网络协议库 ──────┤</span><br><span class="line">Telink HAL -&gt; 驱动/底层库 ─────┘</span><br></pre></td></tr></table></figure>
+
+<p>这里的“静态库”可以先理解成装有很多已编译零件的盒子。链接器会从盒子中取出当前程序真正引用的部分，并解析函数之间的调用关系。</p>
+<h2 id="第四步：Zephyr-在哪里调用-Telink-底层？"><a href="#第四步：Zephyr-在哪里调用-Telink-底层？" class="headerlink" title="第四步：Zephyr 在哪里调用 Telink 底层？"></a>第四步：Zephyr 在哪里调用 Telink 底层？</h2><p>上层应用通常调用的是通用 API，例如 Flash、Bluetooth 或 IEEE 802.15.4 API。Zephyr 的 Telink 驱动负责把这些通用动作翻译成具体芯片函数。</p>
+<p>最值得看的不是所有源码，而是下面三条代表性调用链。</p>
+<h3 id="例一：读写-Flash"><a href="#例一：读写-Flash" class="headerlink" title="例一：读写 Flash"></a>例一：读写 Flash</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">应用 / Settings / 存储模块</span><br><span class="line">  ↓ Zephyr Flash API</span><br><span class="line">zephyr/drivers/flash/soc_flash_tlx.c</span><br><span class="line">  ↓</span><br><span class="line">flash_read_page()</span><br><span class="line">flash_write_page()</span><br><span class="line">flash_erase_sector()</span><br><span class="line">  ↓</span><br><span class="line">Telink HAL / 芯片 Flash 驱动</span><br></pre></td></tr></table></figure>
+
+<p><code>soc_flash_tlx.c</code> 最后注册的是 Zephyr <code>flash_driver_api</code>，但函数内部已经在调用 Telink 的 <code>flash_*</code> API。也就是说，上层看到统一的 Zephyr 接口，底层执行的是 Telink 芯片操作。</p>
+<h3 id="例二：BLE-Host-怎样进入-Telink-Controller"><a href="#例二：BLE-Host-怎样进入-Telink-Controller" class="headerlink" title="例二：BLE Host 怎样进入 Telink Controller"></a>例二：BLE Host 怎样进入 Telink Controller</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">Matter commissioning / Zephyr Bluetooth Host</span><br><span class="line">  ↓ HCI 命令和数据</span><br><span class="line">zephyr/drivers/bluetooth/hci/hci_tlx.c</span><br><span class="line">  ↓</span><br><span class="line">tlx_bt_controller_init()</span><br><span class="line">tlx_bt_host_send_packet()</span><br><span class="line">  ↓</span><br><span class="line">Telink BLE Controller 与射频底层</span><br></pre></td></tr></table></figure>
+
+<p>反方向收到 HCI Event 或 ACL 数据时，Telink 适配层会把数据送回 Zephyr 的 <code>bt_recv()</code>。所以这条链是双向的：Zephyr Host 向下发命令，Controller 向上交事件。</p>
+<p>这也解释了一个常见现象：应用和 GATT 代码可能都在 Matter&#x2F;Zephyr 上层，但 BLE Controller 的核心实现未必位于同一个源码目录。</p>
+<h3 id="例三：OpenThread-怎样使用-Telink-2-4-GHz-射频"><a href="#例三：OpenThread-怎样使用-Telink-2-4-GHz-射频" class="headerlink" title="例三：OpenThread 怎样使用 Telink 2.4 GHz 射频"></a>例三：OpenThread 怎样使用 Telink 2.4 GHz 射频</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">Matter</span><br><span class="line">  ↓</span><br><span class="line">OpenThread</span><br><span class="line">  ↓ Zephyr IEEE 802.15.4 Radio API</span><br><span class="line">zephyr/drivers/ieee802154/ieee802154_tlx.c</span><br><span class="line">  ↓</span><br><span class="line">rf_set_chn()</span><br><span class="line">rf_set_rxmode()</span><br><span class="line">rf_set_txmode()</span><br><span class="line">rf_tx_pkt()</span><br><span class="line">  ↓</span><br><span class="line">Telink RF / DMA / IRQ 底层</span><br></pre></td></tr></table></figure>
+
+<p>OpenThread 负责 Thread 协议，但它不会自己操作 Telink 的射频寄存器。Zephyr 的 IEEE 802.15.4 驱动实现标准 Radio API，再调用 Telink 的 RF、DMA、定时器和中断接口。</p>
+<p>把三条链放在一起，就能看到稳定的分层：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">产品 / Matter / OpenThread</span><br><span class="line">        ↓ 通用接口</span><br><span class="line">Zephyr 子系统和 driver API</span><br><span class="line">        ↓ 芯片适配</span><br><span class="line">Telink Zephyr driver</span><br><span class="line">        ↓ 厂商 API</span><br><span class="line">Telink HAL、驱动源码或静态库</span><br><span class="line">        ↓</span><br><span class="line">芯片外设与射频</span><br></pre></td></tr></table></figure>
+
+<h2 id="“底下还有个库”到底是哪一个？"><a href="#“底下还有个库”到底是哪一个？" class="headerlink" title="“底下还有个库”到底是哪一个？"></a>“底下还有个库”到底是哪一个？</h2><p>这个记忆很可能是对的，但要区分两类库。</p>
+<h3 id="Telink-HAL-与-BLE-芯片底层库"><a href="#Telink-HAL-与-BLE-芯片底层库" class="headerlink" title="Telink HAL 与 BLE&#x2F;芯片底层库"></a>Telink HAL 与 BLE&#x2F;芯片底层库</h3><p>Zephyr 的 manifest 会把 <code>hal_telink</code> 放到 <code>modules/hal/telink</code>。较新的公开 HAL 结构中，<code>hal_v2</code> 还会获取 Telink 的公开 <code>tl_ble_sdk</code> 仓库，并针对目标 SoC 链接对应的静态库。</p>
+<p>以 TL323X 为例，公开文件中可以看到两种容易遇到的命名：</p>
+<ul>
+<li>原始 SDK 的 <code>proj_lib/liblt_TL323X.a</code>；</li>
+<li>Zephyr 集成流程中的 <code>lib_zephyr_tl323x.a</code>。</li>
+</ul>
+<p>具体名字和生成方式会随分支、SDK 发布版发生变化，不要只靠文件名判断版本。更可靠的方法是查看当前 <code>hal_telink</code> 的 <code>CMakeLists.txt</code>、实际链接命令和最终 map 文件。</p>
+<p>同时也不要把 <code>.a</code> 理解成“整个底层只有一个黑盒”。公开 <code>tl_ble_sdk</code> 中还能看到 GPIO、Flash、UART、I2C 等驱动源码和头文件；某些协议栈、控制器或优化实现则可能以静态库参与链接。<strong>仓库可以公开下载，不等于其中每个库都有完整可读源码，也不自动代表所有内容使用同一种开源许可。</strong></p>
+<h3 id="可选的-OpenThread-Telink-库"><a href="#可选的-OpenThread-Telink-库" class="headerlink" title="可选的 OpenThread Telink 库"></a>可选的 OpenThread Telink 库</h3><p><code>openthread_telink_lib</code> 是另一件东西。它公开提供 OpenThread 头文件以及类似下面的库：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">libopenthread-ftd-extended.a</span><br><span class="line">libopenthread-ftd-reduced.a</span><br></pre></td></tr></table></figure>
+
+<p>只有相应 Kconfig 选项开启时，模块的 CMake 才会选择并链接它。它解决的是 OpenThread 库实现选择，不是 BLE Controller 库，也不等于 Telink 全部 HAL。</p>
+<p>因此，当日志或 map 文件里看到一个 <code>.a</code>，先问三个问题：</p>
+<ol>
+<li>它是芯片驱动&#x2F;BLE Controller，还是 OpenThread？</li>
+<li>是当前配置主动选择的，还是只存在于工作区但没有参与链接？</li>
+<li>它有哪些公开头文件和源码，哪些实现只有二进制？</li>
+</ol>
+<h2 id="第五步：链接器怎样变出一个完整程序？"><a href="#第五步：链接器怎样变出一个完整程序？" class="headerlink" title="第五步：链接器怎样变出一个完整程序？"></a>第五步：链接器怎样变出一个完整程序？</h2><p>编译器通常一次只编译一个源码文件，产生许多 <code>.o</code> 目标文件；Matter、Zephyr、OpenThread 和 HAL 也可能先整理成多个 <code>.a</code> 静态库。</p>
+<p>链接阶段会：</p>
+<ul>
+<li>找到 <code>main</code> 和系统启动入口；</li>
+<li>解析一个函数对另一个函数的引用；</li>
+<li>按 linker script 安排代码、只读数据、RAM 数据和保留区；</li>
+<li>丢弃没有被使用的部分；</li>
+<li>生成带符号和段信息的 <code>zephyr.elf</code>。</li>
+</ul>
+<p>所以“完整固件”的第一次成形发生在链接阶段，而不是最后复制 BIN 时。</p>
+<p>想确认某个底层函数有没有真的进入固件，可以查看：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">build/zephyr/zephyr.map</span><br><span class="line">build/zephyr/zephyr.elf</span><br></pre></td></tr></table></figure>
+
+<p>map 文件适合追踪“某个符号来自哪个 <code>.o</code> 或 <code>.a</code>”；ELF 则可以配合 <code>nm</code>、<code>readelf</code>、<code>objdump</code> 和调试器继续分析。</p>
+<h2 id="第六步：ELF、BIN-和-merged-bin-有什么区别？"><a href="#第六步：ELF、BIN-和-merged-bin-有什么区别？" class="headerlink" title="第六步：ELF、BIN 和 merged.bin 有什么区别？"></a>第六步：ELF、BIN 和 merged.bin 有什么区别？</h2><p>常见产物可以这样理解：</p>
+<table>
+<thead>
+<tr>
+<th>文件</th>
+<th>主要用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>zephyr.elf</code></td>
+<td>包含代码、数据、地址和调试符号，适合调试与分析</td>
+</tr>
+<tr>
+<td><code>zephyr.bin</code></td>
+<td>从 ELF 中提取出的原始二进制，常用于烧录</td>
+</tr>
+<tr>
+<td><code>zephyr.map</code></td>
+<td>记录内存布局、符号和来源，适合查大小与调用来源</td>
+</tr>
+<tr>
+<td><code>merged.bin</code></td>
+<td>Telink 后处理得到的最终入口文件；内容取决于配置</td>
+</tr>
+</tbody></table>
+<p>公开的 Telink <code>process_binaries.py</code> 中，如果当前配置没有额外镜像需要合并，<code>merged.bin</code> 可以只是指向 <code>zephyr.bin</code> 的链接。启用不同功能后，它也可能负责：</p>
+<ul>
+<li>把 MCUboot 与签名后的应用放到各自 Flash offset；</li>
+<li>合入出厂数据分区；</li>
+<li>生成 OTA 或 DFU 需要的文件。</li>
+</ul>
+<p>因此，看到 <code>merged.bin</code> 不能立刻推断它一定包含多个镜像；看到只有一个 <code>zephyr.bin</code>，也不能推断它内部只有 Zephyr。Matter、OpenThread 和应用通常早已在 ELF 链接阶段进入其中。</p>
+<h2 id="一个最实用的排查顺序"><a href="#一个最实用的排查顺序" class="headerlink" title="一个最实用的排查顺序"></a>一个最实用的排查顺序</h2><p>如果想亲手确认构建过程，不必一开始读遍所有仓库。按下面顺序就够了：</p>
+<ol>
+<li>看应用 <code>CMakeLists.txt</code>、<code>prj.conf</code> 和 board overlay，确认构建入口；</li>
+<li>看 <code>build/zephyr/.config</code> 与 <code>zephyr.dts</code>，确认最终配置；</li>
+<li>在构建日志或 <code>build.ninja</code> 中找 <code>chip-gn</code>，确认 Matter 子构建；</li>
+<li>在 <code>zephyr.map</code> 中搜索目标函数或 <code>.a</code> 文件名，确认它是否进入最终 ELF；</li>
+<li>看 <code>process_binaries.py</code> 的日志和输出，确认是否又做了签名或镜像合并。</li>
+</ol>
+<p>定位某个外设时，再沿着一条窄链向下追：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">应用调用</span><br><span class="line">  -&gt; Zephyr API</span><br><span class="line">  -&gt; Telink Zephyr driver</span><br><span class="line">  -&gt; Telink 头文件中的函数声明</span><br><span class="line">  -&gt; 对应 .c 或 .a</span><br><span class="line">  -&gt; 最终 map 文件中的来源</span><br></pre></td></tr></table></figure>
+
+<p>这样比在所有仓库里搜索“Telink”更容易建立完整证据。</p>
+<h2 id="初学者最容易混淆的六件事"><a href="#初学者最容易混淆的六件事" class="headerlink" title="初学者最容易混淆的六件事"></a>初学者最容易混淆的六件事</h2><h3 id="1-west-不是编译器"><a href="#1-west-不是编译器" class="headerlink" title="1. west 不是编译器"></a>1. <code>west</code> 不是编译器</h3><p>它主要管理工作区并调用构建系统。真正完成配置、编译和链接的是 CMake、GN、Ninja 与工具链。</p>
+<h3 id="2-Matter-不是另一个独立-RTOS"><a href="#2-Matter-不是另一个独立-RTOS" class="headerlink" title="2. Matter 不是另一个独立 RTOS"></a>2. Matter 不是另一个独立 RTOS</h3><p>在这个平台组合里，Matter 使用 Zephyr 提供的线程、网络、存储、Bluetooth 和驱动能力。</p>
+<h3 id="3-Matter-库不是第二个可单独运行的-BIN"><a href="#3-Matter-库不是第二个可单独运行的-BIN" class="headerlink" title="3. Matter 库不是第二个可单独运行的 BIN"></a>3. Matter 库不是第二个可单独运行的 BIN</h3><p>它通常作为库参与最终链接。只有多核或特殊架构才可能出现额外可执行镜像，不能把特殊情况当成普通流程。</p>
+<h3 id="4-west-update-不等于所有东西都来自-Zephyr-官方仓库"><a href="#4-west-update-不等于所有东西都来自-Zephyr-官方仓库" class="headerlink" title="4. west update 不等于所有东西都来自 Zephyr 官方仓库"></a>4. <code>west update</code> 不等于所有东西都来自 Zephyr 官方仓库</h3><p>它会按照 manifest 拉取多个项目，其中可以包含 Telink fork、HAL 和其他模块。</p>
+<h3 id="5-工作区里有某个库，不代表它进入了当前固件"><a href="#5-工作区里有某个库，不代表它进入了当前固件" class="headerlink" title="5. 工作区里有某个库，不代表它进入了当前固件"></a>5. 工作区里有某个库，不代表它进入了当前固件</h3><p>Kconfig、CMake 条件和链接器引用共同决定它是否参与构建。最终以配置、链接命令和 map 文件为准。</p>
+<h3 id="6-编译成功不等于设备行为已经验证"><a href="#6-编译成功不等于设备行为已经验证" class="headerlink" title="6. 编译成功不等于设备行为已经验证"></a>6. 编译成功不等于设备行为已经验证</h3><p>编译和链接只能证明静态组合成立。启动、配网、BLE、Thread、Flash、低功耗和 OTA 仍需要真机日志、抓包或功耗测量。</p>
+<h2 id="最后用一句话串起来"><a href="#最后用一句话串起来" class="headerlink" title="最后用一句话串起来"></a>最后用一句话串起来</h2><p>一次普通的 Telink Matter 构建，可以浓缩成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">west 找齐工作区</span><br><span class="line">  -&gt; CMake 组织 Zephyr 应用</span><br><span class="line">  -&gt; Kconfig 和 Devicetree 确定配置</span><br><span class="line">  -&gt; GN/Ninja 编译 Matter</span><br><span class="line">  -&gt; Ninja 编译其余模块</span><br><span class="line">  -&gt; 链接器把应用、Matter、Zephyr、OpenThread 和 Telink 底层装进 zephyr.elf</span><br><span class="line">  -&gt; 转成 zephyr.bin</span><br><span class="line">  -&gt; 需要时再签名或合并为最终镜像</span><br></pre></td></tr></table></figure>
+
+<p>以后再面对庞大的 SDK，不需要先记住每个目录。先抓住“谁提供通用接口、谁做芯片适配、谁在最终链接中出现”这三件事，整个构建链就不会再像一个黑盒。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://doc.telink-semi.cn/doc/en/software/res/sdk/matter/telink_matter_developer_guide_en/">Telink Matter Developer Guide</a></li>
+<li><a target="_blank" rel="noopener" href="https://docs.zephyrproject.org/latest/develop/application/index.html">Zephyr：Application Development</a></li>
+<li><a target="_blank" rel="noopener" href="https://docs.zephyrproject.org/latest/build/cmake/index.html">Zephyr：Build System</a></li>
+<li><a target="_blank" rel="noopener" href="https://docs.zephyrproject.org/latest/develop/modules.html">Zephyr：Modules</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/project-chip/connectedhomeip">Matter SDK：connectedhomeip</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/project-chip/connectedhomeip/blob/master/config/telink/chip-module/CMakeLists.txt">Matter Telink 构建桥接模块：CMakeLists.txt</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/project-chip/connectedhomeip/tree/master/src/platform/telink">Matter Telink 平台实现</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/project-chip/connectedhomeip/blob/master/scripts/tools/telink/process_binaries.py">Matter Telink 镜像后处理：process_binaries.py</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/telink-semi/zephyr">Telink Zephyr Fork</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/telink-semi/zephyr/blob/develop_v3.3/drivers/flash/soc_flash_tlx.c">Telink Zephyr Flash Driver</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/telink-semi/zephyr/blob/develop_v3.3/drivers/bluetooth/hci/hci_tlx.c">Telink Zephyr Bluetooth HCI Driver</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/telink-semi/zephyr/blob/develop_v3.3/drivers/ieee802154/ieee802154_tlx.c">Telink Zephyr IEEE 802.15.4 Driver</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/telink-semi/hal_telink">Telink HAL</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/telink-semi/tl_ble_sdk">Telink BLE SDK</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/telink-semi/openthread_telink_lib">Telink OpenThread Library</a></li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a target="_blank" rel="noopener" href="https://github.com/Oniums">Oniums</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://onium.top/posts/telink-zephyr-matter-build-pipeline/">https://onium.top/posts/telink-zephyr-matter-build-pipeline/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://onium.top" target="_blank">Oniums</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/telink/">Telink</a><a class="post-meta__tags" href="/tags/zephyr/">Zephyr</a><a class="post-meta__tags" href="/tags/matter/">Matter</a><a class="post-meta__tags" href="/tags/%E5%9B%BA%E4%BB%B6%E6%9E%84%E5%BB%BA/">固件构建</a><a class="post-meta__tags" href="/tags/cmake/">CMake</a><a class="post-meta__tags" href="/tags/west/">west</a></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/posts/ble-gatt-connection-basics/" title="BLE GATT 入门：手机连上设备后，到底发生了什么？"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">BLE GATT 入门：手机连上设备后，到底发生了什么？</div></div><div class="info-2"><div class="info-item-1">打开一个蓝牙调试工具，点下 Connect，页面很快显示“Connected”。这是不是说明手机已经能读到设备数据，也能正常控制设备了？ 不一定。 BLE 连接成功，只表示两台设备已经建立了一条无线链路。 后面通常还要发现 Service、找到 Characteristic、确认读写方式、订阅通知，应用数据才真正开始流动。   本文不从复杂的协议分层开始，而是跟着一台简单的 BLE 温度计，看清手机从“发现设备”到“收到温度变化”...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/posts/telink-matter-external-application-workspace/" title="Telink Matter 开发环境：把产品应用从 SDK 仓库中抽离"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-28</div><div class="info-item-2">Telink Matter 开发环境：把产品应用从 SDK 仓库中抽离</div></div><div class="info-2"><div class="info-item-1">直接在 Matter SDK 的 example 目录里开发产品，开始很快，长期却会带来 SDK 升级困难、产品提交混入第三方源码、多个应用相互影响等问题。更稳定的方式是把 SDK 当作只读依赖，把产品应用、配置、生成物和构建入口放进独立仓库。   目标结构把环境分成两个边界： 12345678910111213141516171819vendor workspace├── matter/├── zephyr/├── module...</div></div></div></a><a class="pagination-related" href="/posts/zephyr-stale-build-cache/" title="Zephyr 构建仍引用旧 SDK：缓存污染的定位与修复"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-28</div><div class="info-item-2">Zephyr 构建仍引用旧 SDK：缓存污染的定位与修复</div></div><div class="info-2"><div class="info-item-1">切换 Zephyr SDK、临时工作区或 Git worktree 后，如果构建日志仍然引用已经删除的目录，问题通常不在源码，而在复用的构建目录。先确认失败阶段和缓存来源，再清理明确的生成目录，比反复修改代码更有效。   典型现象这类问题经常出现在以下场景：  为验证一个补丁，临时复制了一份 SDK； 在多个 Zephyr 版本或厂商 SDK 之间切换； 使用 worktree 隔离实验，但沿用了原来的输出目录； 临时目录已经删除...</div></div></div></a><a class="pagination-related" href="/posts/ai-firmware-closed-loop-workflow/" title="AI + Zephyr + Matter：构建、烧录与串口调试的可控闭环"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-28</div><div class="info-item-2">AI + Zephyr + Matter：构建、烧录与串口调试的可控闭环</div></div><div class="info-2"><div class="info-item-1">AI 可以把代码修改、构建、串口日志分析和回归测试连接成闭环，但“能执行命令”不等于“可以无限自动操作硬件”。可靠流程需要固定工程边界、明确设备身份、把烧录设为授权门，并让每轮结论都对应可复核证据。   闭环不是无限重试推荐状态机： 1234567891011理解需求  -&gt; 读取工程规则与代码流  -&gt; 修改产品代码  -&gt; 静态检查  -&gt; full build  -&gt; 人工烧录授权门  -&gt...</div></div></div></a><a class="pagination-related" href="/posts/multi-image-firmware-variant-verification/" title="多镜像固件优化：版本配对与最终字节校验"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-28</div><div class="info-item-2">多镜像固件优化：版本配对与最终字节校验</div></div><div class="info-2"><div class="info-item-1">当一个交付固件由 Bootloader、主应用、无线子镜像或协处理器固件合成时，仅靠文件名和流水线顺序无法证明镜像配对正确。可靠的构建流程应该把类型选择、目录隔离、失败语义和最终字节校验连成一条证据链。   问题不只是“文件放错了”多镜像工程常见这样的隐含约定： 12child-debug.bin   -&gt; main debugchild-release.bin -&gt; main release -&gt; produc...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%88%E8%AE%A4%E8%AF%86%E5%87%A0%E4%BD%8D%E5%8F%82%E4%B8%8E%E8%80%85"><span class="toc-text">先认识几位参与者</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%8E%E4%B8%80%E6%9D%A1%E5%91%BD%E4%BB%A4%E5%BC%80%E5%A7%8B"><span class="toc-text">从一条命令开始</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%B8%80%E6%AD%A5%EF%BC%9A%E5%BA%94%E7%94%A8%E6%8A%8A%E6%9E%84%E5%BB%BA%E5%85%A5%E5%8F%A3%E4%BA%A4%E7%BB%99-Zephyr"><span class="toc-text">第一步：应用把构建入口交给 Zephyr</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%BA%8C%E6%AD%A5%EF%BC%9AKconfig-%E5%92%8C-Devicetree-%E5%86%B3%E5%AE%9A%E2%80%9C%E7%BC%96%E4%BB%80%E4%B9%88%E2%80%9D%E5%92%8C%E2%80%9C%E7%A1%AC%E4%BB%B6%E5%9C%A8%E5%93%AA%E2%80%9D"><span class="toc-text">第二步：Kconfig 和 Devicetree 决定“编什么”和“硬件在哪”</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%B8%89%E6%AD%A5%EF%BC%9AMatter-%E4%B8%BA%E4%BB%80%E4%B9%88%E4%BD%BF%E7%94%A8-GN%EF%BC%8C%E5%8F%88%E6%80%8E%E6%A0%B7%E5%9B%9E%E5%88%B0-Zephyr%EF%BC%9F"><span class="toc-text">第三步：Matter 为什么使用 GN，又怎样回到 Zephyr？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E5%9B%9B%E6%AD%A5%EF%BC%9AZephyr-%E5%9C%A8%E5%93%AA%E9%87%8C%E8%B0%83%E7%94%A8-Telink-%E5%BA%95%E5%B1%82%EF%BC%9F"><span class="toc-text">第四步：Zephyr 在哪里调用 Telink 底层？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BE%8B%E4%B8%80%EF%BC%9A%E8%AF%BB%E5%86%99-Flash"><span class="toc-text">例一：读写 Flash</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BE%8B%E4%BA%8C%EF%BC%9ABLE-Host-%E6%80%8E%E6%A0%B7%E8%BF%9B%E5%85%A5-Telink-Controller"><span class="toc-text">例二：BLE Host 怎样进入 Telink Controller</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BE%8B%E4%B8%89%EF%BC%9AOpenThread-%E6%80%8E%E6%A0%B7%E4%BD%BF%E7%94%A8-Telink-2-4-GHz-%E5%B0%84%E9%A2%91"><span class="toc-text">例三：OpenThread 怎样使用 Telink 2.4 GHz 射频</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%80%9C%E5%BA%95%E4%B8%8B%E8%BF%98%E6%9C%89%E4%B8%AA%E5%BA%93%E2%80%9D%E5%88%B0%E5%BA%95%E6%98%AF%E5%93%AA%E4%B8%80%E4%B8%AA%EF%BC%9F"><span class="toc-text">“底下还有个库”到底是哪一个？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Telink-HAL-%E4%B8%8E-BLE-%E8%8A%AF%E7%89%87%E5%BA%95%E5%B1%82%E5%BA%93"><span class="toc-text">Telink HAL 与 BLE&#x2F;芯片底层库</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%AF%E9%80%89%E7%9A%84-OpenThread-Telink-%E5%BA%93"><span class="toc-text">可选的 OpenThread Telink 库</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%BA%94%E6%AD%A5%EF%BC%9A%E9%93%BE%E6%8E%A5%E5%99%A8%E6%80%8E%E6%A0%B7%E5%8F%98%E5%87%BA%E4%B8%80%E4%B8%AA%E5%AE%8C%E6%95%B4%E7%A8%8B%E5%BA%8F%EF%BC%9F"><span class="toc-text">第五步：链接器怎样变出一个完整程序？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E5%85%AD%E6%AD%A5%EF%BC%9AELF%E3%80%81BIN-%E5%92%8C-merged-bin-%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%EF%BC%9F"><span class="toc-text">第六步：ELF、BIN 和 merged.bin 有什么区别？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E4%B8%AA%E6%9C%80%E5%AE%9E%E7%94%A8%E7%9A%84%E6%8E%92%E6%9F%A5%E9%A1%BA%E5%BA%8F"><span class="toc-text">一个最实用的排查顺序</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%9D%E5%AD%A6%E8%80%85%E6%9C%80%E5%AE%B9%E6%98%93%E6%B7%B7%E6%B7%86%E7%9A%84%E5%85%AD%E4%BB%B6%E4%BA%8B"><span class="toc-text">初学者最容易混淆的六件事</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-west-%E4%B8%8D%E6%98%AF%E7%BC%96%E8%AF%91%E5%99%A8"><span class="toc-text">1. west 不是编译器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-Matter-%E4%B8%8D%E6%98%AF%E5%8F%A6%E4%B8%80%E4%B8%AA%E7%8B%AC%E7%AB%8B-RTOS"><span class="toc-text">2. Matter 不是另一个独立 RTOS</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-Matter-%E5%BA%93%E4%B8%8D%E6%98%AF%E7%AC%AC%E4%BA%8C%E4%B8%AA%E5%8F%AF%E5%8D%95%E7%8B%AC%E8%BF%90%E8%A1%8C%E7%9A%84-BIN"><span class="toc-text">3. Matter 库不是第二个可单独运行的 BIN</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-west-update-%E4%B8%8D%E7%AD%89%E4%BA%8E%E6%89%80%E6%9C%89%E4%B8%9C%E8%A5%BF%E9%83%BD%E6%9D%A5%E8%87%AA-Zephyr-%E5%AE%98%E6%96%B9%E4%BB%93%E5%BA%93"><span class="toc-text">4. west update 不等于所有东西都来自 Zephyr 官方仓库</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-%E5%B7%A5%E4%BD%9C%E5%8C%BA%E9%87%8C%E6%9C%89%E6%9F%90%E4%B8%AA%E5%BA%93%EF%BC%8C%E4%B8%8D%E4%BB%A3%E8%A1%A8%E5%AE%83%E8%BF%9B%E5%85%A5%E4%BA%86%E5%BD%93%E5%89%8D%E5%9B%BA%E4%BB%B6"><span class="toc-text">5. 工作区里有某个库，不代表它进入了当前固件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-%E7%BC%96%E8%AF%91%E6%88%90%E5%8A%9F%E4%B8%8D%E7%AD%89%E4%BA%8E%E8%AE%BE%E5%A4%87%E8%A1%8C%E4%B8%BA%E5%B7%B2%E7%BB%8F%E9%AA%8C%E8%AF%81"><span class="toc-text">6. 编译成功不等于设备行为已经验证</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%80%E5%90%8E%E7%94%A8%E4%B8%80%E5%8F%A5%E8%AF%9D%E4%B8%B2%E8%B5%B7%E6%9D%A5"><span class="toc-text">最后用一句话串起来</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-text">参考资料</span></a></li></ol></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"></div><div class="footer_custom_text">&copy; 2026 Oniums · 保持好奇，持续记录。<br><a href="https://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener noreferrer">闽ICP备2021008449号-1</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.6.1"></script><script src="/js/main.js?v=5.6.1"></script><script src="https://cdn.jsdelivr.net/npm/medium-zoom@1.1.0/dist/medium-zoom.min.js"></script><div class="js-pjax"><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.innerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+
+    setTimeout(() => URL.revokeObjectURL(url), 5000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    // Clean up previous event listeners and pending frames
+    if (wrap.__mermaidAbortController) {
+      wrap.__mermaidAbortController.abort()
+      if (wrap.__mermaidRafId) cancelAnimationFrame(wrap.__mermaidRafId)
+    }
+    const ac = new AbortController()
+    wrap.__mermaidAbortController = ac
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+    // Disable default gestures to prevent scroll chaining and pinch-zoom penetration in Chrome
+    svg.style.touchAction = 'none'
+
+    // Cache BoundingClientRect, throttled on scroll to reduce reflow
+    let cachedRect = svg.getBoundingClientRect()
+    let rectDirty = false
+    const markRectDirty = () => { rectDirty = true }
+    window.addEventListener('resize', markRectDirty, { signal: ac.signal })
+    window.addEventListener('scroll', markRectDirty, { signal: ac.signal, capture: true })
+    const getRect = () => {
+      if (rectDirty) {
+        cachedRect = svg.getBoundingClientRect()
+        rectDirty = false
+      }
+      return cachedRect
+    }
+
+    // Precompute clamp bounds from initial viewBox
+    const minW = initVb[2] * 0.1
+    const maxW = initVb[2] * 10
+    const minH = initVb[3] * 0.1
+    const maxH = initVb[3] * 10
+    const clampVb = vb => {
+      const out = vb.slice()
+      out[2] = clamp(out[2], minW, maxW)
+      out[3] = clamp(out[3], minH, maxH)
+      return out
+    }
+
+    // Throttle DOM updates using requestAnimationFrame
+    let pendingVb = null
+    let rafId = null
+    const applyVb = () => {
+      if (pendingVb) {
+        wrap.__mermaidCurViewBox = pendingVb
+        setSvgViewBox(svg, pendingVb)
+        pendingVb = null
+      }
+      rafId = null
+      wrap.__mermaidRafId = null
+    }
+    const setCurVb = vb => {
+      pendingVb = clampVb(vb)
+      if (!rafId) {
+        rafId = requestAnimationFrame(applyVb)
+        wrap.__mermaidRafId = rafId
+      }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      lastPointerX: 0,
+      lastPointerY: 0
+    }
+
+    const onPointerDown = e => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      const curVb = wrap.__mermaidCurViewBox
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      if (state.pointers.size === 1) {
+        state.startVb = curVb.slice()
+        state.lastPointerX = e.clientX
+        state.lastPointerY = e.clientY
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = curVb.slice()
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = state.pointers.values().next().value
+        const dxClient = p.x - state.lastPointerX
+        const dyClient = p.y - state.lastPointerY
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+        const dx = dxClient * (curVb[2] / rect.width)
+        const dy = dyClient * (curVb[3] / rect.height)
+        setCurVb([curVb[0] - dx, curVb[1] - dy, curVb[2], curVb[3]])
+        return
+      }
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const px = curVb[0] + (cx - rect.left) * (curVb[2] / rect.width)
+        const py = curVb[1] + (cy - rect.top) * (curVb[3] / rect.height)
+        setCurVb(zoomAtPoint(state.startVb, factor, px, py))
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      // Release PointerCapture to avoid event capture anomalies
+      if (svg.hasPointerCapture && svg.hasPointerCapture(e.pointerId)) {
+        svg.releasePointerCapture(e.pointerId)
+      }
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+      } else if (state.pointers.size === 1) {
+        const p = state.pointers.values().next().value
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+      }
+    }
+
+    const onWheel = e => {
+      // Prevent event bubbling from triggering external scroll
+      e.preventDefault()
+      e.stopPropagation()
+      // Normalize deltaY across deltaMode (Chrome uses pixels, Safari uses lines)
+      let delta = e.deltaY
+      if (e.deltaMode === 1) delta *= 16
+      else if (e.deltaMode === 2) delta *= 400
+
+      // Continuous zoom factor: smoother than fixed 1.1/0.9 steps
+      const zoomFactor = Math.pow(1.001, delta)
+
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      const px = curVb[0] + (e.clientX - rect.left) * (curVb[2] / rect.width)
+      const py = curVb[1] + (e.clientY - rect.top) * (curVb[3] / rect.height)
+      setCurVb(zoomAtPoint(curVb, zoomFactor, px, py))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (init) setCurVb(init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown, { signal: ac.signal })
+    svg.addEventListener('pointermove', onPointerMove, { signal: ac.signal })
+    svg.addEventListener('pointerup', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('pointercancel', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('wheel', onWheel, { passive: false, signal: ac.signal })
+    svg.addEventListener('dblclick', onDblClick, { signal: ac.signal })
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'neutral'
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      // Clean up event listeners before removing old SVG
+      if (item.__mermaidAbortController) {
+        item.__mermaidAbortController.abort()
+      }
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      let config = {}
+      try {
+        config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      } catch (e) {
+        console.warn('[mermaid] failed to parse dataset.config:', e)
+      }
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+      const handleError = err => {
+        console.error(`[mermaid] render failed for block #${index}:`, err)
+        const errorEl = document.createElement('div')
+        errorEl.className = 'mermaid-error'
+        errorEl.textContent = `Mermaid render error: ${err.message || err}`
+        mermaidSrc.insertAdjacentElement('afterend', errorEl)
+      }
+
+      try {
+        const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+        // mermaid v9 and v10 compatibility
+        if (typeof renderFn === 'string') {
+          renderMermaid(renderFn)
+        } else {
+          renderFn.then(({ svg }) => renderMermaid(svg)).catch(handleError)
+        }
+      } catch (err) {
+        handleError(err)
+      }
+    })
+  }
+
+  const codeToMermaid = $article => {
+    const codeMermaidEle = $article.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    const $article = document.getElementById('article-container')
+    if (!$article) return
+
+    if (true) codeToMermaid($article)
+    const $mermaid = $article.querySelectorAll('.mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.16.0/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索协议、固件与工程实践" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.6.1"></script></div></div></body></html>
