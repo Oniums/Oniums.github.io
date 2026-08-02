@@ -1,7 +1,9 @@
 ---
 title: 关于
 date: 2026-07-28 09:00:00
-layout: about
+layout: page
+aside: false
+top_img: false
 ---
 
 <div class="profile-lead">

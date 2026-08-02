@@ -1,6 +1,6 @@
 # Oniums.github.io
 
-Oniums 的个人技术主页与公开技术笔记，使用 Hexo 和 Fluid 构建，通过 GitHub Pages 发布。
+Oniums 的个人技术主页与公开技术笔记，使用 Hexo 和 Butterfly 构建，通过 GitHub Pages 发布。
 
 ## 本地使用
 
@@ -30,7 +30,8 @@ Hexo 首先把生成结果写入 `public/`，站点检查通过后，再由受�
 - `source/experience/`：匿名化工作经历
 - `source/projects/`：项目与实践方向
 - `_config.yml`：Hexo 配置
-- `_config.fluid.yml`：Fluid 主题覆盖配置
+- `_config.butterfly.yml`：当前 Butterfly 主题覆盖配置
+- `_config.fluid.yml`：旧 Fluid 主题配置，仅保留为回退参考
 
 ## 发布边界
 

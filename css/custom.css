@@ -1,10 +1,218 @@
 :root {
   --oniums-accent: #38bdf8;
   --oniums-accent-deep: #2563eb;
+  --oniums-signal: #0f766e;
   --oniums-ink: #0f172a;
   --oniums-muted: #64748b;
   --oniums-surface: #ffffff;
   --oniums-border: rgba(148, 163, 184, 0.24);
+  --oniums-page: #f3f6f8;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background:
+    radial-gradient(circle at 10% 0, rgba(37, 99, 235, 0.07), transparent 30rem),
+    var(--oniums-page);
+}
+
+body::before {
+  position: fixed;
+  z-index: -1;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(100, 116, 139, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(100, 116, 139, 0.035) 1px, transparent 1px);
+  background-size: 32px 32px;
+  pointer-events: none;
+  content: "";
+}
+
+#page-header.full_page {
+  background-position: center 58%;
+}
+
+#page-header.full_page::before {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(2, 6, 23, 0.2), rgba(2, 6, 23, 0.74)),
+    linear-gradient(90deg, rgba(15, 23, 42, 0.52), transparent 58%);
+  content: "";
+}
+
+#page-header.full_page #site-info {
+  width: min(92%, 1120px);
+  text-align: left;
+}
+
+#site-title {
+  font-size: clamp(2.4rem, 7vw, 4.8rem) !important;
+  font-weight: 760;
+  letter-spacing: -0.04em;
+}
+
+#site-subtitle {
+  margin-top: 0.8rem;
+  font-size: clamp(1rem, 2vw, 1.25rem) !important;
+  letter-spacing: 0.08em;
+  opacity: 0.88;
+}
+
+#nav {
+  padding-right: max(3.5%, 1.25rem);
+  padding-left: max(3.5%, 1.25rem);
+}
+
+#page-header.nav-fixed #nav {
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(248, 250, 252, 0.84);
+  backdrop-filter: saturate(150%) blur(16px);
+}
+
+#page-header.nav-fixed #nav a,
+#page-header.nav-fixed #nav #site-name {
+  color: var(--oniums-ink);
+  text-shadow: none;
+}
+
+#content-inner {
+  padding-top: 2.25rem;
+}
+
+#recent-posts .recent-post-item,
+#aside-content .card-widget,
+#post,
+#page,
+.pagination .page-number,
+.pagination .extend {
+  border: 1px solid var(--oniums-border);
+  background: color-mix(in srgb, var(--oniums-surface) 94%, transparent);
+  box-shadow: 0 14px 38px rgba(15, 23, 42, 0.07);
+}
+
+#recent-posts .recent-post-item {
+  min-height: 0;
+  border-radius: 18px;
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+#recent-posts .recent-post-item:hover {
+  border-color: rgba(37, 99, 235, 0.3);
+  box-shadow: 0 18px 44px rgba(15, 23, 42, 0.11);
+  transform: translateY(-3px);
+}
+
+#recent-posts .recent-post-item > .recent-post-info {
+  width: 100%;
+  padding: 1.55rem 1.75rem;
+}
+
+#recent-posts .recent-post-item .article-title {
+  color: var(--oniums-ink);
+  font-size: clamp(1.2rem, 2vw, 1.48rem);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+#recent-posts .recent-post-item .content {
+  color: var(--oniums-muted);
+  line-height: 1.85;
+}
+
+#aside-content .card-widget {
+  border-radius: 16px;
+}
+
+#aside-content .card-info .author-info-name {
+  color: var(--oniums-ink);
+  font-weight: 700;
+}
+
+#aside-content .card-info .author-info-description {
+  color: var(--oniums-muted);
+  line-height: 1.7;
+}
+
+#aside-content .card-info #card-info-btn {
+  border-radius: 9px;
+  background: linear-gradient(135deg, var(--oniums-accent-deep), var(--oniums-signal));
+}
+
+#aside-content .aside-list > .aside-list-item .content > .title,
+#aside-content .card-categories ul.card-category-list > .card-category-list-item a {
+  color: var(--oniums-ink);
+}
+
+#post,
+#page {
+  border-radius: 20px;
+}
+
+#article-container {
+  color: var(--oniums-ink);
+  font-size: 1rem;
+  line-height: 1.9;
+}
+
+#article-container h2 {
+  margin-top: 2.6rem;
+  border-bottom: 0;
+  color: var(--oniums-ink);
+  font-size: 1.55rem;
+  letter-spacing: -0.02em;
+}
+
+#article-container h2::before {
+  display: inline-block;
+  width: 4px;
+  height: 1.05em;
+  margin-right: 0.65rem;
+  border-radius: 3px;
+  background: linear-gradient(var(--oniums-accent-deep), var(--oniums-signal));
+  vertical-align: -0.12em;
+  content: "";
+}
+
+#article-container blockquote {
+  padding: 1rem 1.25rem;
+  border-left: 4px solid var(--oniums-signal);
+  border-radius: 0 10px 10px 0;
+  background: rgba(15, 118, 110, 0.07);
+  color: #334155;
+}
+
+#article-container table {
+  overflow: hidden;
+  border: 1px solid var(--oniums-border);
+  border-radius: 10px;
+}
+
+#article-container table th {
+  background: rgba(37, 99, 235, 0.08);
+}
+
+#article-container a {
+  text-decoration-color: rgba(37, 99, 235, 0.35);
+  text-underline-offset: 0.18em;
+}
+
+.post-copyright {
+  border: 1px solid rgba(37, 99, 235, 0.18);
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.07), rgba(15, 118, 110, 0.05));
+  box-shadow: none;
+}
+
+#footer {
+  background: #0b1220;
+}
+
+#footer-wrap {
+  color: #94a3b8;
 }
 
 .navbar-brand {
@@ -159,6 +367,11 @@
   font-size: 1.25rem;
 }
 
+.project-card h2::before,
+.timeline-content h2::before {
+  display: none !important;
+}
+
 .project-card p:not(.project-kicker) {
   flex: 1;
   color: #475569;
@@ -230,6 +443,50 @@
   --oniums-muted: #94a3b8;
   --oniums-surface: rgba(30, 41, 59, 0.72);
   --oniums-border: rgba(148, 163, 184, 0.18);
+}
+
+[data-theme="dark"] {
+  --oniums-ink: #e2e8f0;
+  --oniums-muted: #94a3b8;
+  --oniums-surface: #111c2e;
+  --oniums-border: rgba(148, 163, 184, 0.17);
+  --oniums-page: #0b1220;
+}
+
+[data-theme="dark"] body {
+  background:
+    radial-gradient(circle at 10% 0, rgba(37, 99, 235, 0.11), transparent 32rem),
+    var(--oniums-page);
+}
+
+[data-theme="dark"] #page-header.nav-fixed #nav {
+  background: rgba(11, 18, 32, 0.86);
+}
+
+[data-theme="dark"] #page-header.nav-fixed #nav a,
+[data-theme="dark"] #page-header.nav-fixed #nav #site-name {
+  color: var(--oniums-ink);
+}
+
+[data-theme="dark"] #article-container blockquote {
+  color: #cbd5e1;
+}
+
+[data-theme="dark"] .fact-card,
+[data-theme="dark"] .career-summary > div,
+[data-theme="dark"] .project-card,
+[data-theme="dark"] .timeline-content {
+  background: rgba(17, 28, 46, 0.82);
+}
+
+[data-theme="dark"] .project-card p:not(.project-kicker) {
+  color: #cbd5e1;
+}
+
+[data-theme="dark"] .skill-cloud span,
+[data-theme="dark"] .project-tags span {
+  color: #99f6e4;
+  background: rgba(15, 118, 110, 0.16);
 }
 
 [data-user-color-scheme="dark"] .project-card p:not(.project-kicker) {
