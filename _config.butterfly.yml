@@ -34,7 +34,7 @@ social:
 favicon: /img/avatar.png
 
 avatar:
-  img: /img/avatar.png
+  img: /img/github-avatar.jpg
   effect: false
 
 disable_top_img: false
@@ -172,7 +172,9 @@ aside:
     orderBy: date
     order: 1
   card_webinfo:
-    enable: false
+    enable: true
+    post_count: true
+    last_push_date: false
 
 readmode: true
 
@@ -193,9 +195,9 @@ wordcount:
   enable: false
 
 busuanzi:
-  site_uv: false
-  site_pv: false
-  page_pv: false
+  site_uv: true
+  site_pv: true
+  page_pv: true
 
 math:
   use:

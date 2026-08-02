@@ -140,7 +140,7 @@ about:
   banner_img: /img/banner.jpg
   banner_img_height: 52
   banner_mask_alpha: 0.5
-  avatar: /img/avatar.png
+  avatar: /img/github-avatar.jpg
   name: "Oniums"
   intro: "嵌入式固件开发者，关注无线协议、低功耗系统与可靠工程实践。"
   icons:

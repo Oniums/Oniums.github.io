@@ -20,6 +20,7 @@ const requiredFiles = [
   "css/var.css",
   "css/custom.css",
   "img/avatar.png",
+  "img/github-avatar.jpg",
   "img/banner.jpg",
   "posts/hello-oniums/index.html",
   "posts/debugging-with-an-evidence-chain/index.html",
