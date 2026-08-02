@@ -81,7 +81,7 @@ subtitle:
   effect: false
   source: false
   sub:
-    - 嵌入式固件 · 无线协议 · 可验证的工程实践
+    - 记录学习、工作与生活
 
 index_layout: 4
 
@@ -129,7 +129,7 @@ footer:
   copyright:
     enable: true
     version: false
-  custom_text: 用代码、日志、抓包与构建结果建立证据链
+  custom_text: 保持好奇，持续记录。
 
 aside:
   enable: true
@@ -143,7 +143,7 @@ aside:
     category: true
   card_author:
     enable: true
-    description: 嵌入式固件、无线协议与工程实践
+    description: Oniums 的个人博客
     button:
       enable: true
       icon: fab fa-github
@@ -151,7 +151,7 @@ aside:
       link: https://github.com/Oniums
   card_announcement:
     enable: true
-    content: 把复杂系统拆成可以验证的证据链。
+    content: 记录学习、工作与生活中的思考。
   card_recent_post:
     enable: true
     limit: 5

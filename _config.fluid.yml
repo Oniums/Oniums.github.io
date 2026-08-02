@@ -69,8 +69,8 @@ index:
   slogan:
     enable: true
     text:
-      - "Embedded firmware. Wireless protocols. Evidence-led engineering."
-      - "把复杂系统拆成可以验证的证据链。"
+      - "Notes on learning, work, and life."
+      - "记录学习、工作与生活。"
   auto_excerpt:
     enable: true
   post_url_target: _self

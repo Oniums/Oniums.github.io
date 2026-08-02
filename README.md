@@ -1,6 +1,6 @@
 # Oniums.github.io
 
-Oniums 的个人技术主页与公开技术笔记，使用 Hexo 和 Butterfly 构建，通过 GitHub Pages 发布。
+Oniums 的个人博客，使用 Hexo 和 Butterfly 构建，通过 GitHub Pages 发布。
 
 ## 本地使用
 

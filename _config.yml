@@ -1,14 +1,14 @@
 # Site
 title: Oniums
-subtitle: 嵌入式固件、无线协议与工程实践
-description: Oniums 的个人技术主页，记录嵌入式固件、Matter、Thread、Zigbee 与工程工具实践。
+subtitle: 个人博客
+description: Oniums 的个人博客，记录学习、工作与生活。
 keywords:
-  - Embedded
-  - Firmware
-  - Matter
-  - Thread
-  - Zigbee
-  - Zephyr
+  - Oniums
+  - 个人博客
+  - 学习
+  - 工作
+  - 生活
+  - 技术
 author: Oniums
 language: zh-CN
 timezone: Asia/Shanghai
