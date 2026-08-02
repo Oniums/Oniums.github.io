@@ -56,6 +56,11 @@ const requiredFiles = [
   "posts/smartthings-edge-driver-channel-invitation-workflow/index.html"
 ];
 
+const requiredContent = [
+  { file: "categories/index.html", marker: 'class="category-lists"' },
+  { file: "tags/index.html", marker: 'class="tag-cloud-list' }
+];
+
 const forbiddenMarkers = [
   "Hello World - Hexo",
   "An elegant Material-Design theme for Hexo",
@@ -131,6 +136,10 @@ function resolveLocalReference(htmlFile, reference) {
 const missingRequired = requiredFiles.filter(
   (file) => !existsSync(path.join(publicDir, file))
 );
+const missingRequiredContent = requiredContent.filter(({ file, marker }) => {
+  const target = path.join(publicDir, file);
+  return !existsSync(target) || !readFileSync(target, "utf8").includes(marker);
+});
 
 const generatedFiles = walk(publicDir);
 const htmlFiles = generatedFiles.filter((file) => file.endsWith(".html"));
@@ -172,6 +181,9 @@ for (const htmlFile of htmlFiles) {
 
 const failures = [
   ...missingRequired.map((file) => `缺少构建产物: ${file}`),
+  ...missingRequiredContent.map(
+    ({ file }) => `页面缺少预期内容: ${file}`
+  ),
   ...forbiddenMatches.map((match) => `发现默认内容: ${match}`),
   ...forbiddenPatternMatches.map((match) => `发现敏感格式: ${match}`),
   ...brokenReferences.map((reference) => `站内链接无目标: ${reference}`)
