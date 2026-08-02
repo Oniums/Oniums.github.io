@@ -1,0 +1,28 @@
+title: Oniums Lab
+subtitle: 嵌入式协议、低功耗设备与固件调试实验室
+status: active
+modules:
+  - key: knowledge
+    title: Knowledge
+    path: /knowledge/
+    description: 把协议、系统和工程概念组织成可扩展的知识地图。
+  - key: experiments
+    title: Experiments
+    path: /experiments/
+    description: 记录目的、参数、数据、结论和后续问题。
+  - key: source-reading
+    title: Source Reading
+    path: /source-reading/
+    description: 沿着源码调用链阅读一个模块，而不是只摘录 API。
+  - key: debug
+    title: Debug Diary
+    path: /debug/
+    description: 保留现象、假设、验证、根因和修复过程。
+  - key: failures
+    title: Failure Museum
+    path: /failures/
+    description: 把错误判断和被证据推翻的过程沉淀为知识资产。
+  - key: journey
+    title: Learning Journey
+    path: /journey/
+    description: 记录技术能力如何从概念学习走向工程验证。

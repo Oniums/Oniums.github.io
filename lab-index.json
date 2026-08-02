@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "count": 13,
+  "entries": [
+    {
+      "id": "DBG-001",
+      "type": "debug",
+      "title": "DBG-001 从日志到协议阶段",
+      "status": "method-record",
+      "evidence": "public-method-note",
+      "privacy": "public",
+      "url": "https://onium.top/debug/dbg-001/"
+    },
+    {
+      "id": "DBG-002",
+      "type": "debug",
+      "title": "DBG-002 Zephyr 构建引用旧 SDK",
+      "status": "verified-method",
+      "evidence": "public-diagnostic-note",
+      "privacy": "public",
+      "url": "https://onium.top/debug/dbg-002/"
+    },
+    {
+      "id": "DBG-003",
+      "type": "debug",
+      "title": "DBG-003 GPIO 快速跳变与 ISR 延后处理",
+      "status": "method-record",
+      "evidence": "public-firmware-note",
+      "privacy": "public",
+      "url": "https://onium.top/debug/dbg-003/"
+    },
+    {
+      "id": "DBG-004",
+      "type": "debug",
+      "title": "DBG-004 Parent Loss、Leave 与 Rejoin",
+      "status": "verified-lesson",
+      "evidence": "deidentified-technical-note",
+      "privacy": "public",
+      "url": "https://onium.top/debug/dbg-004/"
+    },
+    {
+      "id": "DBG-005",
+      "type": "debug",
+      "title": "DBG-005 有 MAC ACK 但没有 ZCL Response",
+      "status": "verified-method",
+      "evidence": "deidentified-technical-note",
+      "privacy": "public",
+      "url": "https://onium.top/debug/dbg-005/"
+    },
+    {
+      "id": "EXP-001",
+      "type": "experiment",
+      "title": "EXP-001 环境光传感器采样策略",
+      "status": "design-record",
+      "evidence": "public-design-note",
+      "privacy": "public",
+      "url": "https://onium.top/experiments/exp-001/"
+    },
+    {
+      "id": "EXP-002",
+      "type": "experiment",
+      "title": "EXP-002 多镜像固件版本配对",
+      "status": "method-record",
+      "evidence": "public-build-method",
+      "privacy": "public",
+      "url": "https://onium.top/experiments/exp-002/"
+    },
+    {
+      "id": "EXP-004",
+      "type": "experiment",
+      "title": "EXP-004 Poll Interval 与设备可达性",
+      "status": "design-record",
+      "evidence": "deidentified-technical-note",
+      "privacy": "public",
+      "url": "https://onium.top/experiments/exp-004/"
+    },
+    {
+      "id": "FAILURE-001",
+      "type": "failure",
+      "title": "Failure-001 相似名词不等于相同协议",
+      "status": "verified-lesson",
+      "evidence": "public-protocol-note",
+      "privacy": "public",
+      "url": "https://onium.top/failures/failure-001/"
+    },
+    {
+      "id": "FAILURE-002",
+      "type": "failure",
+      "title": "Failure-002 构建缓存问题不一定是源码问题",
+      "status": "verified-lesson",
+      "evidence": "public-diagnostic-note",
+      "privacy": "public",
+      "url": "https://onium.top/failures/failure-002/"
+    },
+    {
+      "id": "FAILURE-003",
+      "type": "failure",
+      "title": "Failure-003 把协议层成功当成应用闭环",
+      "status": "verified-lesson",
+      "evidence": "deidentified-technical-note",
+      "privacy": "public",
+      "url": "https://onium.top/failures/failure-003/"
+    },
+    {
+      "id": "source-reading/openthread-attach",
+      "type": "source-reading",
+      "title": "OpenThread Attach 源码阅读路线",
+      "status": "planned",
+      "evidence": "public-protocol-map",
+      "privacy": "public",
+      "url": "https://onium.top/source-reading/openthread-attach/"
+    },
+    {
+      "id": "source-reading/zigbee-nwk-aps-zcl",
+      "type": "source-reading",
+      "title": "ZigBee NWK 到 ZCL 源码阅读路线",
+      "status": "planned",
+      "evidence": "deidentified-technical-note",
+      "privacy": "public",
+      "url": "https://onium.top/source-reading/zigbee-nwk-aps-zcl/"
+    }
+  ]
+}

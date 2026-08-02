@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>https://onium.top/tags/index.html</loc>
+    <loc>https://onium.top/tags/</loc>
     
     <lastmod>2026-08-02</lastmod>
     
@@ -11,7 +11,187 @@
   </url>
   
   <url>
-    <loc>https://onium.top/categories/index.html</loc>
+    <loc>https://onium.top/knowledge/</loc>
+    
+    <lastmod>2026-08-02</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://onium.top/failures/</loc>
+    
+    <lastmod>2026-08-02</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://onium.top/source-reading/</loc>
+    
+    <lastmod>2026-08-02</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://onium.top/debug/</loc>
+    
+    <lastmod>2026-08-02</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://onium.top/experiments/</loc>
+    
+    <lastmod>2026-08-02</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://onium.top/failures/failure-003/</loc>
+    
+    <lastmod>2026-08-02</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://onium.top/source-reading/zigbee-nwk-aps-zcl/</loc>
+    
+    <lastmod>2026-08-02</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://onium.top/debug/dbg-004/</loc>
+    
+    <lastmod>2026-08-02</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://onium.top/debug/dbg-005/</loc>
+    
+    <lastmod>2026-08-02</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://onium.top/experiments/exp-004/</loc>
+    
+    <lastmod>2026-08-02</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://onium.top/debug/dbg-001/</loc>
+    
+    <lastmod>2026-08-02</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://onium.top/debug/dbg-002/</loc>
+    
+    <lastmod>2026-08-02</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://onium.top/debug/dbg-003/</loc>
+    
+    <lastmod>2026-08-02</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://onium.top/failures/failure-001/</loc>
+    
+    <lastmod>2026-08-02</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://onium.top/failures/failure-002/</loc>
+    
+    <lastmod>2026-08-02</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://onium.top/source-reading/openthread-attach/</loc>
+    
+    <lastmod>2026-08-02</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://onium.top/experiments/exp-001/</loc>
+    
+    <lastmod>2026-08-02</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://onium.top/experiments/exp-002/</loc>
+    
+    <lastmod>2026-08-02</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://onium.top/journey/</loc>
+    
+    <lastmod>2026-08-02</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://onium.top/lab/</loc>
+    
+    <lastmod>2026-08-02</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://onium.top/categories/</loc>
     
     <lastmod>2026-08-02</lastmod>
     
@@ -38,7 +218,7 @@
   </url>
   
   <url>
-    <loc>https://onium.top/experience/index.html</loc>
+    <loc>https://onium.top/experience/</loc>
     
     <lastmod>2026-08-02</lastmod>
     
@@ -47,7 +227,7 @@
   </url>
   
   <url>
-    <loc>https://onium.top/projects/index.html</loc>
+    <loc>https://onium.top/projects/</loc>
     
     <lastmod>2026-08-02</lastmod>
     
@@ -56,7 +236,7 @@
   </url>
   
   <url>
-    <loc>https://onium.top/about/index.html</loc>
+    <loc>https://onium.top/about/</loc>
     
     <lastmod>2026-08-02</lastmod>
     
@@ -137,7 +317,7 @@
   </url>
   
   <url>
-    <loc>https://onium.top/posts/matter-certificate-relationships/</loc>
+    <loc>https://onium.top/posts/matter-certification-test-environment/</loc>
     
     <lastmod>2026-07-28</lastmod>
     
@@ -146,7 +326,7 @@
   </url>
   
   <url>
-    <loc>https://onium.top/posts/matter-certification-test-environment/</loc>
+    <loc>https://onium.top/posts/matter-certificate-relationships/</loc>
     
     <lastmod>2026-07-28</lastmod>
     
@@ -353,6 +533,34 @@
 
   
   <url>
+    <loc>https://onium.top/tags/%E4%BD%8E%E5%8A%9F%E8%80%97/</loc>
+    <lastmod>2026-08-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://onium.top/tags/i2c/</loc>
+    <lastmod>2026-08-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://onium.top/tags/%E4%BC%A0%E6%84%9F%E5%99%A8/</loc>
+    <lastmod>2026-08-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://onium.top/tags/%E7%8A%B6%E6%80%81%E6%9C%BA/</loc>
+    <lastmod>2026-08-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
     <loc>https://onium.top/tags/ai/</loc>
     <lastmod>2026-08-02</lastmod>
     <changefreq>weekly</changefreq>
@@ -389,69 +597,6 @@
   
   <url>
     <loc>https://onium.top/tags/%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95/</loc>
-    <lastmod>2026-08-02</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://onium.top/tags/%E4%BD%8E%E5%8A%9F%E8%80%97/</loc>
-    <lastmod>2026-08-02</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://onium.top/tags/i2c/</loc>
-    <lastmod>2026-08-02</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://onium.top/tags/%E4%BC%A0%E6%84%9F%E5%99%A8/</loc>
-    <lastmod>2026-08-02</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://onium.top/tags/%E7%8A%B6%E6%80%81%E6%9C%BA/</loc>
-    <lastmod>2026-08-02</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://onium.top/tags/bluetooth-le/</loc>
-    <lastmod>2026-08-02</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://onium.top/tags/ble/</loc>
-    <lastmod>2026-08-02</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://onium.top/tags/gatt/</loc>
-    <lastmod>2026-08-02</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://onium.top/tags/att/</loc>
-    <lastmod>2026-08-02</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://onium.top/tags/%E5%85%A5%E9%97%A8/</loc>
     <lastmod>2026-08-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -500,6 +645,41 @@
   </url>
   
   <url>
+    <loc>https://onium.top/tags/bluetooth-le/</loc>
+    <lastmod>2026-08-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://onium.top/tags/ble/</loc>
+    <lastmod>2026-08-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://onium.top/tags/gatt/</loc>
+    <lastmod>2026-08-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://onium.top/tags/att/</loc>
+    <lastmod>2026-08-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://onium.top/tags/%E5%85%A5%E9%97%A8/</loc>
+    <lastmod>2026-08-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
     <loc>https://onium.top/tags/gpio/</loc>
     <lastmod>2026-08-02</lastmod>
     <changefreq>weekly</changefreq>
@@ -508,20 +688,6 @@
   
   <url>
     <loc>https://onium.top/tags/isr/</loc>
-    <lastmod>2026-08-02</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://onium.top/tags/%E5%86%99%E4%BD%9C/</loc>
-    <lastmod>2026-08-02</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://onium.top/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/</loc>
     <lastmod>2026-08-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -556,27 +722,6 @@
   </url>
   
   <url>
-    <loc>https://onium.top/tags/pki/</loc>
-    <lastmod>2026-08-02</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://onium.top/tags/device-attestation/</loc>
-    <lastmod>2026-08-02</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://onium.top/tags/case/</loc>
-    <lastmod>2026-08-02</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
     <loc>https://onium.top/tags/test-harness/</loc>
     <lastmod>2026-08-02</lastmod>
     <changefreq>weekly</changefreq>
@@ -598,21 +743,35 @@
   </url>
   
   <url>
-    <loc>https://onium.top/tags/fabric/</loc>
+    <loc>https://onium.top/tags/%E5%86%99%E4%BD%9C/</loc>
     <lastmod>2026-08-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://onium.top/tags/data-model/</loc>
+    <loc>https://onium.top/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/</loc>
     <lastmod>2026-08-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://onium.top/tags/commissioning/</loc>
+    <loc>https://onium.top/tags/pki/</loc>
+    <lastmod>2026-08-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://onium.top/tags/device-attestation/</loc>
+    <lastmod>2026-08-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://onium.top/tags/case/</loc>
     <lastmod>2026-08-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -633,13 +792,6 @@
   </url>
   
   <url>
-    <loc>https://onium.top/tags/%E5%85%A5%E7%BD%91/</loc>
-    <lastmod>2026-08-02</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
     <loc>https://onium.top/tags/%E5%8D%8F%E8%AE%AE%E5%88%86%E5%B1%82/</loc>
     <lastmod>2026-08-02</lastmod>
     <changefreq>weekly</changefreq>
@@ -647,28 +799,14 @@
   </url>
   
   <url>
-    <loc>https://onium.top/tags/%E5%9B%BA%E4%BB%B6%E6%9E%84%E5%BB%BA/</loc>
+    <loc>https://onium.top/tags/commissioning/</loc>
     <lastmod>2026-08-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://onium.top/tags/%E5%A4%9A%E9%95%9C%E5%83%8F/</loc>
-    <lastmod>2026-08-02</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://onium.top/tags/cmake/</loc>
-    <lastmod>2026-08-02</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://onium.top/tags/ci/</loc>
+    <loc>https://onium.top/tags/%E5%85%A5%E7%BD%91/</loc>
     <lastmod>2026-08-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -690,6 +828,20 @@
   
   <url>
     <loc>https://onium.top/tags/%E7%9F%A5%E8%AF%86%E7%AE%A1%E7%90%86/</loc>
+    <lastmod>2026-08-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://onium.top/tags/fabric/</loc>
+    <lastmod>2026-08-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://onium.top/tags/data-model/</loc>
     <lastmod>2026-08-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -718,6 +870,34 @@
   
   <url>
     <loc>https://onium.top/tags/cli/</loc>
+    <lastmod>2026-08-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://onium.top/tags/%E5%9B%BA%E4%BB%B6%E6%9E%84%E5%BB%BA/</loc>
+    <lastmod>2026-08-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://onium.top/tags/%E5%A4%9A%E9%95%9C%E5%83%8F/</loc>
+    <lastmod>2026-08-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://onium.top/tags/cmake/</loc>
+    <lastmod>2026-08-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://onium.top/tags/ci/</loc>
     <lastmod>2026-08-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -815,7 +995,21 @@
   </url>
   
   <url>
-    <loc>https://onium.top/tags/zuth/</loc>
+    <loc>https://onium.top/tags/ieee-802-15-4/</loc>
+    <lastmod>2026-08-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://onium.top/tags/zcl/</loc>
+    <lastmod>2026-08-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://onium.top/tags/mesh/</loc>
     <lastmod>2026-08-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -843,21 +1037,7 @@
   </url>
   
   <url>
-    <loc>https://onium.top/tags/ieee-802-15-4/</loc>
-    <lastmod>2026-08-02</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://onium.top/tags/zcl/</loc>
-    <lastmod>2026-08-02</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://onium.top/tags/mesh/</loc>
+    <loc>https://onium.top/tags/zuth/</loc>
     <lastmod>2026-08-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -906,13 +1086,6 @@
   </url>
   
   <url>
-    <loc>https://onium.top/tags/touchlink/</loc>
-    <lastmod>2026-08-02</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
     <loc>https://onium.top/tags/javascript/</loc>
     <lastmod>2026-08-02</lastmod>
     <changefreq>weekly</changefreq>
@@ -926,14 +1099,14 @@
     <priority>0.2</priority>
   </url>
   
-
-  
   <url>
-    <loc>https://onium.top/categories/%E6%90%AD%E5%BB%BA%E6%95%99%E7%A8%8B/</loc>
+    <loc>https://onium.top/tags/touchlink/</loc>
     <lastmod>2026-08-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
+  
+
   
   <url>
     <loc>https://onium.top/categories/%E4%BC%98%E5%8C%96%E5%AE%9E%E8%B7%B5/</loc>
@@ -943,7 +1116,7 @@
   </url>
   
   <url>
-    <loc>https://onium.top/categories/%E6%97%A0%E7%BA%BF%E5%8D%8F%E8%AE%AE/</loc>
+    <loc>https://onium.top/categories/%E6%90%AD%E5%BB%BA%E6%95%99%E7%A8%8B/</loc>
     <lastmod>2026-08-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -964,7 +1137,7 @@
   </url>
   
   <url>
-    <loc>https://onium.top/categories/%E7%AB%99%E7%82%B9/</loc>
+    <loc>https://onium.top/categories/%E6%97%A0%E7%BA%BF%E5%8D%8F%E8%AE%AE/</loc>
     <lastmod>2026-08-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -972,6 +1145,13 @@
   
   <url>
     <loc>https://onium.top/categories/%E8%AE%A4%E8%AF%81%E5%AE%9E%E8%B7%B5/</loc>
+    <lastmod>2026-08-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://onium.top/categories/%E7%AB%99%E7%82%B9/</loc>
     <lastmod>2026-08-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>

@@ -1,0 +1,20 @@
+- id: EXP-001
+  title: 环境光单次采样与低功耗取舍
+  status: candidate
+  path: /posts/ambient-light-sensor-low-power-sampling/
+  type: public-article-candidate
+- id: EXP-002
+  title: 多镜像构建类型配对与最终字节校验
+  status: candidate
+  path: /posts/multi-image-firmware-variant-verification/
+  type: public-article-candidate
+- id: EXP-003
+  title: Thread 抓包中的协议阶段时间线
+  status: candidate
+  path: /posts/wireshark-thread-packet-capture/
+  type: public-article-candidate
+- id: EXP-004
+  title: Poll Interval 与设备可达性
+  status: design-record
+  path: /experiments/exp-004/
+  type: experiment

@@ -1,0 +1,46 @@
+- id: matter
+  title: Matter
+  status: learning
+  children:
+    - Node / Fabric / Endpoint
+    - Commissioning
+    - PASE / CASE
+    - Data Model / Interaction Model
+  related_posts:
+    - /posts/matter-foundations/
+    - /posts/matter-over-thread-zigbee-commissioning-comparison/
+- id: thread
+  title: Thread
+  status: learning
+  children:
+    - IPv6 Mesh
+    - MLE
+    - Attach
+    - SED / Border Router
+    - Polling / ICD
+  related_posts:
+    - /posts/thread-foundations/
+    - /posts/wireshark-thread-packet-capture/
+- id: zigbee
+  title: ZigBee
+  status: learning
+  children:
+    - NWK
+    - APS
+    - Security
+    - Touchlink
+    - Sleepy End Device
+  related_posts:
+    - /posts/zigbee-foundations/
+    - /posts/zigbee-network-joining-flow/
+- id: zephyr
+  title: Zephyr
+  status: learning
+  children:
+    - CMake / west
+    - Kconfig
+    - Device Driver
+    - Power Management
+  related_posts:
+    - /posts/telink-zephyr-matter-build-pipeline/
+    - /posts/zephyr-stale-build-cache/

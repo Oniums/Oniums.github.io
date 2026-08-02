@@ -1,14 +1,15 @@
 # Site
 title: Oniums
-subtitle: 个人博客
-description: Oniums 的个人博客，记录学习、工作与生活。
+subtitle: Oniums Lab · 嵌入式工程技术实验室
+description: Oniums Lab：持续记录 Matter、Thread、ZigBee、Zephyr 与嵌入式工程实践。
 keywords:
   - Oniums
-  - 个人博客
-  - 学习
-  - 工作
-  - 生活
-  - 技术
+  - Oniums Lab
+  - Matter
+  - Thread
+  - ZigBee
+  - Zephyr
+  - 嵌入式工程
 author: Oniums
 language: zh-CN
 timezone: Asia/Shanghai
@@ -19,7 +20,7 @@ root: /
 permalink: posts/:title/
 permalink_defaults:
 pretty_urls:
-  trailing_index: true
+  trailing_index: false
   trailing_html: true
 
 # Directory

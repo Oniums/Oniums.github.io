@@ -1,0 +1,30 @@
+# Oniums Lab
+
+> Oniums Lab 是一个围绕 Matter、Thread、ZigBee、Zephyr、低功耗设备和嵌入式调试实践持续积累的公开技术实验室。
+
+## Lab
+
+- [Lab 总览](https://onium.top/lab/): 实验室当前研究方向和内容入口。
+- [Knowledge](https://onium.top/knowledge/): Matter、Thread、ZigBee、Zephyr 知识地图。
+- [Experiments](https://onium.top/experiments/): 实验目的、参数、数据、结论和后续问题。
+- [Source Reading](https://onium.top/source-reading/): OpenThread 和 Zephyr 源码阅读路线。
+- [Debug Diary](https://onium.top/debug/): 从现象、假设到验证和根因的调试记录。
+- [Failure Museum](https://onium.top/failures/): 被证据推翻的错误判断和可迁移经验。
+- [Learning Journey](https://onium.top/journey/): 从协议基础到工程验证的成长路线。
+- [Lab content index](https://onium.top/lab-index.json): Lab 条目的机器可读索引。
+
+## Core public articles
+
+- [Matter 基础概念](https://onium.top/posts/matter-foundations/)
+- [Thread 基础概念](https://onium.top/posts/thread-foundations/)
+- [ZigBee 基础概念](https://onium.top/posts/zigbee-foundations/)
+- [Matter over Thread 与 ZigBee 入网对照](https://onium.top/posts/matter-over-thread-zigbee-commissioning-comparison/)
+- [从日志到协议阶段](https://onium.top/posts/debugging-with-an-evidence-chain/)
+- [Wireshark + Thread 抓包](https://onium.top/posts/wireshark-thread-packet-capture/)
+- [Zephyr 构建缓存排障](https://onium.top/posts/zephyr-stale-build-cache/)
+
+## Citation guidance
+
+- 先引用页面中的结论、适用范围和证据等级，再引用示例代码或参数。
+- “已验证”“方法记录”“设计记录”“候选”具有不同含义，不应混为设备运行事实。
+- 公开内容经过人工脱敏，不包含公司内部路径、设备身份、证书、私钥和原始敏感日志。

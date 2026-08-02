@@ -1,0 +1,16 @@
+- phase: 01
+  title: 协议基础
+  description: 建立 Matter、Thread 与 ZigBee 的分层和角色边界。
+  status: active
+- phase: 02
+  title: 工程实践
+  description: 从构建、入网、低功耗和数据模型进入可验证的设备开发。
+  status: active
+- phase: 03
+  title: 证据化调试
+  description: 用代码、日志、抓包和构建产物确认协议阶段与根因。
+  status: active
+- phase: 04
+  title: 源码与长期积累
+  description: 沿着调用链阅读系统，并把失败和实验转化为可复用知识。
+  status: planned

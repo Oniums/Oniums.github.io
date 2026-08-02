@@ -9,6 +9,14 @@ nav:
 
 menu:
   首页: / || fas fa-home
+  实验室:
+    总览: /lab/ || fas fa-flask
+    知识库: /knowledge/ || fas fa-diagram-project
+    实验记录: /experiments/ || fas fa-vial
+    源码阅读: /source-reading/ || fas fa-code
+    调试日志: /debug/ || fas fa-bug
+    失败博物馆: /failures/ || fas fa-triangle-exclamation
+    成长路线: /journey/ || fas fa-route
   文章:
     归档: /archives/ || fas fa-box-archive
     分类: /categories/ || fas fa-folder-open
@@ -26,6 +34,13 @@ code_blocks:
   language: true
   shrink: false
   fullpage: true
+
+structured_data:
+  enable: true
+  alternate_name:
+    - Oniums Lab
+    - 嵌入式工程技术实验室
+    - Matter Thread ZigBee Zephyr
 
 social:
   fab fa-github: https://github.com/Oniums || GitHub || '#24292f'

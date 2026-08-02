@@ -1,0 +1,33 @@
+- id: openthread-attach
+  title: OpenThread Attach
+  status: planned
+  steps:
+    - main / Instance
+    - MLE
+    - Attach
+    - Become Child
+  related_posts:
+    - /posts/thread-foundations/
+    - /posts/wireshark-thread-packet-capture/
+- id: zephyr-build
+  title: Zephyr Build Pipeline
+  status: active
+  steps:
+    - west
+    - CMake
+    - Kconfig
+    - build directory
+  related_posts:
+    - /posts/telink-zephyr-matter-build-pipeline/
+    - /posts/zephyr-stale-build-cache/
+- id: zigbee-nwk-aps-zcl
+  title: ZigBee NWK 到 ZCL
+  status: planned
+  steps:
+    - NWK
+    - APS
+    - AF / Simple Descriptor
+    - ZCL
+  related_posts:
+    - /posts/zigbee-foundations/
+    - /posts/zigbee-network-joining-flow/

@@ -5,8 +5,8 @@
   "description": "Oniums 的个人技术主页与公开技术笔记",
   "scripts": {
     "clean": "hexo clean",
-    "build": "hexo generate",
-    "check": "npm run clean && npm run build && node tools/check-site.mjs",
+    "build": "hexo generate && node tools/clean-empty-structured-data.mjs && node tools/generate-lab-index.mjs",
+    "check": "npm run clean && npm run build && node tools/check-lab.mjs && node tools/check-site.mjs",
     "prepare-pages": "npm run check && node tools/sync-pages-output.mjs",
     "server": "hexo server"
   },
