@@ -124,12 +124,12 @@ noticeOutdate:
 
 footer:
   owner:
-    enable: true
+    enable: false
     since: 2026
   copyright:
-    enable: true
+    enable: false
     version: false
-  custom_text: 保持好奇，持续记录。
+  custom_text: '&copy; 2026 Oniums · 保持好奇，持续记录。<br><a href="https://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener noreferrer">闽ICP备2021008449号-1</a>'
 
 aside:
   enable: true
