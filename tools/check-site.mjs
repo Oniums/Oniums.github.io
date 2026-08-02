@@ -3,6 +3,7 @@ import path from "node:path";
 
 const publicDir = path.resolve("public");
 const requiredFiles = [
+  "CNAME",
   "index.html",
   "404.html",
   "about/index.html",

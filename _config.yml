@@ -14,7 +14,7 @@ language: zh-CN
 timezone: Asia/Shanghai
 
 # URL
-url: https://oniums.github.io
+url: https://onium.top
 root: /
 permalink: posts/:title/
 permalink_defaults:
