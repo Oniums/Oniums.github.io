@@ -69,6 +69,7 @@ const requiredFiles = [
   "posts/matter-zigbee-concept-mapping/index.html",
   "posts/matter-over-thread-zigbee-commissioning-comparison/index.html",
   "posts/apple-home-dual-fabric-commissioning-log-analysis/index.html",
+  "posts/alexa-thread-network-key-prompt-analysis/index.html",
   "posts/ble-gatt-connection-basics/index.html",
   "posts/telink-zephyr-matter-build-pipeline/index.html",
   "posts/matter-certification-test-environment/index.html",
