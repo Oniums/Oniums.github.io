@@ -4,6 +4,39 @@
   
     
     <entry>
+      <title>Matter BLE 配网的 MAC 地址为什么每次重启都会变？</title>
+      <link href="/posts/matter-ble-random-static-address-per-boot/"/>
+      <url>/posts/matter-ble-random-static-address-per-boot/</url>
+      
+        <content type="html"><![CDATA[<p>调试 Matter over Thread 设备时，可能会遇到一个很容易被误判的现象：设备恢复出厂后可以被手机扫描到，但重启一次，扫描工具显示的 BLE MAC 地址就变了。</p><p>这是不是地址没有保存？会不会导致手机找不到原来的设备？量产时是不是应该给每台设备烧录一个固定 BLE MAC？</p><p>对于 Matter 配网广播，答案恰好相反：<strong>每次启动都使用新的随机 BLE 地址，通常才是符合规范的行为。</strong></p><span id="more"></span><p>不过，“随机地址”不等于“每次连接都换地址”，也不等于常见的 RPA 定时轮换地址。本文把规范要求、Bluetooth 地址类型、主流参考实现和产品测试方法放到同一条时间线上说明。</p><h2 id="一句话结论"><a href="#一句话结论" class="headerlink" title="一句话结论"></a>一句话结论</h2><p>对于使用 Bluetooth LE 进行发现和配网的 Matter 待配网设备：</p><ul><li>BLE 广播必须使用 <strong>LE Random Device Address</strong>；</li><li>具体使用 Bluetooth 定义的 <strong>Random Static Address</strong>；</li><li>地址必须至少在每次设备启动时更换；</li><li>同一次启动期间，配网重试、断开重连或重新开始广播，不要求再次换地址；</li><li>永久固定的 Public Address，或者跨重启保持不变的“伪随机地址”，都不满足这项 Matter 配网要求。</li></ul><p>因此，更准确的描述不是“每次配网随机一次”，而是：</p><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">每次启动生成一个新的 Random Static Address</span><br><span class="line">              ↓</span><br><span class="line">本次启动期间保持稳定</span><br><span class="line">              ↓</span><br><span class="line">下一次启动重新生成</span><br></pre></td></tr></table></figure><h2 id="Matter-规范到底要求了什么？"><a href="#Matter-规范到底要求了什么？" class="headerlink" title="Matter 规范到底要求了什么？"></a>Matter 规范到底要求了什么？</h2><p><a href="https://csa-iot.org/wp-content/uploads/2026/06/23-27349-011_Matter-1.6-Core-Specification.pdf">Matter 1.6 Core Specification</a> 第 5.4.2.5.5 节“Advertising Address”（PDF 第 319 页）给出了两个 <code>SHALL</code> 级要求：</p><ol><li>待配网设备的 BLE 广播使用 LE Random Device Address；</li><li>地址至少在每次启动时更换。</li></ol><p>这里的 <code>SHALL</code> 表示强制要求，不是优化建议。该条款还明确引用 Bluetooth Core Specification 中的 Static Device Address 定义，所以不能只看到“Random Device Address”，就把它理解成任意一种随机地址。</p><p>这项要求属于 Matter 使用 BLE 进行 Commissionable Node Discovery 和配网的场景。Matter over Thread 产品经常采用这条路径，但它并非 Thread 独有：只要 Matter 设备使用 BLE 作为配网通道，就要关注这项要求。</p><h2 id="为什么“Random-Static”既随机又静态？"><a href="#为什么“Random-Static”既随机又静态？" class="headerlink" title="为什么“Random Static”既随机又静态？"></a>为什么“Random Static”既随机又静态？</h2><p>这个名字第一次看很矛盾，其实两个词描述的是不同维度：</p><ul><li><strong>Random</strong>：地址不是永久分配的 Public Address，而是随机生成的 Random Device Address；</li><li><strong>Static</strong>：地址初始化后，在当前启动或电源周期中保持稳定，不进行定时轮换。</li></ul><p>按照 <a href="https://www.bluetooth.com/wp-content/uploads/Files/Specification/HTML/Core_v6.3/out/en/low-energy-controller/link-layer-specification.html">Bluetooth Core Specification 的 Device Address 定义</a>，Random Device Address 还可以细分为三类：</p><table><thead><tr><th>地址类型</th><th align="right">地址高两位 <code>[47:46]</code></th><th>生命周期特点</th><th>Matter 配网广播是否指定使用</th></tr></thead><tbody><tr><td>Random Static Address</td><td align="right"><code>11</code></td><td>初始化时随机生成，当前电源周期保持不变</td><td>是</td></tr><tr><td>Resolvable Private Address，RPA</td><td align="right"><code>01</code></td><td>由 IRK 和随机数生成，可周期轮换并被授权设备解析</td><td>否</td></tr><tr><td>Non-resolvable Private Address，NRPA</td><td align="right"><code>00</code></td><td>无法通过 IRK 解析，通常用于更短期的隐私场景</td><td>否</td></tr></tbody></table><p>Public Device Address 则是另一大类，通常来自固定的设备身份分配，不属于 Random Device Address。</p><p>因此，看到扫描工具显示 <code>Random</code> 还不够。要判断 Matter 要求是否真正满足，至少还要确认：</p><ol><li>地址类型确实是 Random Static；</li><li>地址位 <code>[47:46]</code> 为 <code>11</code>；</li><li>当前启动期间地址稳定；</li><li>下一次启动后地址发生变化。</li></ol><h2 id="“每次启动更换”不等于“每次连接更换”"><a href="#“每次启动更换”不等于“每次连接更换”" class="headerlink" title="“每次启动更换”不等于“每次连接更换”"></a>“每次启动更换”不等于“每次连接更换”</h2><p>把地址变更粒度搞错，可能造成两种相反的问题。</p><p>如果地址永远固定，附近观察者就更容易跨时间关联同一台待配网设备，违背 Matter 这里的隐私目标。</p><p>如果地址在同一次启动中频繁变化，手机刚扫描到地址 A，准备连接时设备却已经变成地址 B，也会增加发现、连接和故障恢复的复杂度。Random Static Address 的“Static”正是为了避免这种不稳定。</p><p>常见场景可以这样判断：</p><table><thead><tr><th>场景</th><th>地址是否应变化</th></tr></thead><tbody><tr><td>手机第一次扫描到设备</td><td>使用本次启动生成的地址</td></tr><tr><td>配网连接失败，手机重新扫描和连接</td><td>通常不变</td></tr><tr><td>设备停止后重新开始 Matter 广播，但没有重新启动</td><td>通常不变</td></tr><tr><td>设备重新启动，再次进入待配网状态</td><td>必须换成新的随机地址</td></tr><tr><td>恢复出厂并重新启动</td><td>必须换成新的随机地址</td></tr><tr><td>从 Flash 读取上次保存的 Random Static Address</td><td>跨启动不变，不符合该项要求</td></tr><tr><td>由芯片 UID 确定性计算地址</td><td>即使格式是 Random Static，跨启动不变仍不符合要求</td></tr></tbody></table><h2 id="为什么-Matter-不把-BLE-MAC-当作永久设备身份？"><a href="#为什么-Matter-不把-BLE-MAC-当作永久设备身份？" class="headerlink" title="为什么 Matter 不把 BLE MAC 当作永久设备身份？"></a>为什么 Matter 不把 BLE MAC 当作永久设备身份？</h2><p>BLE 在这里主要解决的是“附近发现并建立临时配网通道”。它不是 Matter 设备投入运行后的长期身份基础。</p><p>典型的 Matter over Thread 首次配网可以简化为：</p><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">二维码或手动码</span><br><span class="line">  ↓</span><br><span class="line">通过 Discriminator 缩小待配网设备范围</span><br><span class="line">  ↓</span><br><span class="line">BLE 广播、连接和 BTP 传输</span><br><span class="line">  ↓</span><br><span class="line">PASE 建立临时安全会话</span><br><span class="line">  ↓</span><br><span class="line">设备证明、NOC/Fabric 配置、Thread Dataset</span><br><span class="line">  ↓</span><br><span class="line">设备接入 Thread</span><br><span class="line">  ↓</span><br><span class="line">通过 IPv6 建立 CASE</span><br><span class="line">  ↓</span><br><span class="line">CommissioningComplete</span><br></pre></td></tr></table></figure><p>进入正常运行阶段后，Controller 通过 Matter Fabric、Node ID、证书和 CASE 识别并访问设备，通信承载变成 Thread 上的 IPv6。BLE 配网地址不需要承担永久设备索引的职责。</p><p>这也解释了为什么 Commissioner 或手机 App 不应把 BLE MAC 当作 Matter 设备的长期主键。设备重启后，App 应重新扫描待配网广播，并使用 Onboarding Payload、Discriminator 和 Matter Service Data 完成目标匹配。</p><p>还要分清下面几种地址和身份：</p><table><thead><tr><th>名称</th><th>所属层次</th><th>是否受本文这条要求约束</th></tr></thead><tbody><tr><td>待配网设备的 BLE Advertising Address</td><td>Bluetooth LE</td><td>是</td></tr><tr><td>手机或 Commissioner 自己的 BLE 地址</td><td>Bluetooth LE</td><td>不是这条设备侧要求的对象</td></tr><tr><td>Thread Extended Address &#x2F; EUI-64</td><td>IEEE 802.15.4 &#x2F; Thread</td><td>否</td></tr><tr><td>Matter Node ID、Fabric ID、NOC</td><td>Matter</td><td>否</td></tr><tr><td>厂商私有 Device ID</td><td>产品应用协议</td><td>否，但不能替代 Matter 身份</td></tr></tbody></table><h2 id="主流实现通常怎样做？"><a href="#主流实现通常怎样做？" class="headerlink" title="主流实现通常怎样做？"></a>主流实现通常怎样做？</h2><p>没有公开、可信的全市场统计可以证明“多少品牌随机、多少品牌固定”。比市场印象更可靠的证据，是 Matter 开源参考实现和芯片平台适配层。</p><p>在 Project CHIP 当前源码中，可以看到多种平台都围绕“启动时生成 Random Static Address”实现：</p><ul><li><a href="https://github.com/project-chip/connectedhomeip/blob/0f267927e02ce234ec75a7a4970104a73bcc06dc/src/platform/Zephyr/BLEManagerImpl.cpp">Zephyr 平台 BLEManagerImpl</a> 创建 Random Static Identity；</li><li><a href="https://github.com/project-chip/connectedhomeip/blob/0f267927e02ce234ec75a7a4970104a73bcc06dc/src/platform/ESP32/nimble/BLEManagerImpl.cpp">ESP32 NimBLE BLEManagerImpl</a> 生成并设置新的 Static Random Address；</li><li><a href="https://github.com/project-chip/connectedhomeip/blob/0f267927e02ce234ec75a7a4970104a73bcc06dc/src/platform/silabs/efr32/BLEManagerImpl.cpp">Silicon Labs EFR32 BLEManagerImpl</a> 特别处理了“同一次启动内重新初始化 BLE 不能误换地址”；</li><li><a href="https://github.com/project-chip/connectedhomeip/blob/0f267927e02ce234ec75a7a4970104a73bcc06dc/src/platform/bouffalolab/common/BLEManagerImpl.cpp">Bouffalo Lab BLEManagerImpl</a> 直接按 once per boot 生成 Random Static Address。</li></ul><p>这不能代替对每一款量产固件的检查，但足以说明：<strong>主流 Matter SDK 的设计方向是每次启动随机，而不是永久固定。</strong> 很多厂商直接继承芯片平台或 Matter SDK 的默认行为，因此最终产品通常也会表现为重启后 BLE 地址变化。</p><p>如果某台产品一直显示固定地址，可能存在多种原因：</p><ul><li>使用了旧版 SDK 或厂商自己的 BLE 平台层；</li><li>把 Public Address 直接用于 Matter 广播；</li><li>把 Random Static Address 持久化到了 Flash；</li><li>扫描工具显示的是系统解析后的身份，而不是当前空口地址；</li><li>当前看到的是厂商私有 BLE 服务，不是 Matter Commissionable Advertising。</li></ul><p>不能仅凭“地址固定”立即断言整台产品不合格，但它足以触发一次针对实际 Matter 广播的合规检查。</p><h2 id="厂商私有-BLE-OTA-为什么可能需要稳定地址？"><a href="#厂商私有-BLE-OTA-为什么可能需要稳定地址？" class="headerlink" title="厂商私有 BLE OTA 为什么可能需要稳定地址？"></a>厂商私有 BLE OTA 为什么可能需要稳定地址？</h2><p>有些设备除了 Matter 配网，还提供厂商私有 BLE OTA、产测或维护服务。手机 App 可能希望设备重启后仍能被识别，于是产品会设计一个稳定的 BLE Identity。</p><p>这和 Matter 配网地址的目标不同：</p><ul><li>Matter 配网强调临时发现与隐私，要求每次启动更换地址；</li><li>厂商私有服务可能强调重连和设备索引，希望身份稳定。</li></ul><p>工程上不能因为私有 OTA 需要稳定地址，就直接让 Matter 配网广播永久使用同一个 MAC。也不能为了满足 Matter 地址轮换，就让依赖固定 MAC 的私有 App 在升级后失去设备。</p><p>可选设计要结合控制器能力和隐私模型评估，例如：</p><ul><li>为 Matter 配网和私有服务使用不同的 BLE Identity 或 Advertising Set；</li><li>让私有 App 每次重新扫描、重新发现 GATT，而不是缓存旧地址和 Handle；</li><li>在受保护的应用协议中确认设备身份，不把可被长期跟踪的永久标识直接放进明文广播；</li><li>明确规定两种模式何时启用，避免同一个广播同时承担冲突的身份目标。</li></ul><p>这里没有一种适合所有芯片和手机系统的固定答案，但有一个边界很明确：<strong>厂商私有 BLE 需求不能取消 Matter Commissionable Advertising 的规范义务。</strong></p><h2 id="怎样在设备上验证？"><a href="#怎样在设备上验证？" class="headerlink" title="怎样在设备上验证？"></a>怎样在设备上验证？</h2><p>最小验证不需要先做完整 Matter 配网。使用能够显示 BLE 地址类型和原始广播数据的扫描工具，记录多次启动即可。</p><p>建议至少执行下面这组测试：</p><table><thead><tr><th>测试</th><th>操作</th><th>预期结果</th></tr></thead><tbody><tr><td>地址类型</td><td>检查 Matter <code>0xFFF6</code> Service Data 对应广播的地址类型</td><td>Random Static</td></tr><tr><td>位格式</td><td>检查地址位 <code>[47:46]</code></td><td><code>11</code></td></tr><tr><td>启动内稳定性</td><td>同一次启动中停止&#x2F;恢复广播、断开并重新扫描</td><td>地址不变</td></tr><tr><td>跨启动随机性</td><td>连续重启设备至少 5 次</td><td>每次地址都不同</td></tr><tr><td>配网匹配</td><td>每次重启后重新扫码和扫描</td><td>Commissioner 仍能选中正确设备</td></tr><tr><td>完整闭环</td><td>完成 PASE、Thread Attach、CASE 和 CommissioningComplete</td><td>地址变化不影响完整配网</td></tr></tbody></table><p>测试记录应同时保存：</p><ul><li>启动序号；</li><li>广播地址和地址类型；</li><li>Matter Service Data；</li><li>Discriminator；</li><li>是否成功建立 BLE 连接和 BTP；</li><li>最终是否到达 CommissioningComplete。</li></ul><p>只看到 MAC 变化，不能证明配网成功；只看到 BLE Connected，也不能证明 PASE、Thread 或 CASE 成功。地址合规和端到端配网是两条相关但独立的证据链。</p><h2 id="实现检查清单"><a href="#实现检查清单" class="headerlink" title="实现检查清单"></a>实现检查清单</h2><p>如果正在开发 Matter 设备，可以用下面的清单快速审查平台层：</p><ul><li><input disabled="" type="checkbox"> 使用密码学安全随机源生成 48-bit 地址的随机部分；</li><li><input disabled="" type="checkbox"> 设置 Random Static Address 规定的高两位；</li><li><input disabled="" type="checkbox"> 排除规范禁止的全 0 或全 1 随机部分；</li><li><input disabled="" type="checkbox"> 在 BLE 广播启动前完成地址初始化；</li><li><input disabled="" type="checkbox"> 同一次启动中不因配网重试或 BLE 子系统重复初始化而换地址；</li><li><input disabled="" type="checkbox"> 不从 Flash 恢复上一次启动的 Matter 配网地址；</li><li><input disabled="" type="checkbox"> 不使用芯片 UID、序列号或量产固定地址确定性生成跨启动地址；</li><li><input disabled="" type="checkbox"> App 不把 BLE MAC 或旧 GATT Handle 当作永久设备身份；</li><li><input disabled="" type="checkbox"> 把 Matter 配网 BLE、厂商私有 BLE 和 Thread 地址分别测试；</li><li><input disabled="" type="checkbox"> 用真实设备记录跨启动地址，而不是只检查配置项或源码。</li></ul><h2 id="最后再记住三个边界"><a href="#最后再记住三个边界" class="headerlink" title="最后再记住三个边界"></a>最后再记住三个边界</h2><ol><li><strong>随机地址是强制要求，不只是隐私建议。</strong></li><li><strong>随机粒度是每次启动，不是每次连接。</strong></li><li><strong>BLE 配网地址不是 Thread 地址，也不是 Matter 的长期设备身份。</strong></li></ol><p>如果调试时发现“设备重启后 BLE MAC 变了”，先不要把它当成数据丢失或 Flash 故障。对于 Matter 配网设备，这往往正是规范要求平台层主动实现的行为。</p><h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul><li>Connectivity Standards Alliance, <a href="https://csa-iot.org/wp-content/uploads/2026/06/23-27349-011_Matter-1.6-Core-Specification.pdf">Matter 1.6 Core Specification</a>, §5.4.2.5.5, Advertising Address.</li><li>Bluetooth SIG, <a href="https://www.bluetooth.com/wp-content/uploads/Files/Specification/HTML/Core_v6.3/out/en/low-energy-controller/link-layer-specification.html">Bluetooth Core Specification 6.3, Vol 6, Part B, §1.3.2</a>, Random Device Address.</li><li>Project CHIP, <a href="https://github.com/project-chip/connectedhomeip/tree/0f267927e02ce234ec75a7a4970104a73bcc06dc">connectedhomeip</a>, BLE platform implementations.</li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> 无线协议 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Matter </tag>
+            
+            <tag> Commissioning </tag>
+            
+            <tag> Bluetooth LE </tag>
+            
+            <tag> Privacy </tag>
+            
+            <tag> Random Static Address </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>同一台 Matter over Thread 设备，在 Echo Dot Max、HomePod mini、Google Nest Hub Max 2 和 SmartThings Hub V3 上怎样配网？</title>
       <link href="/posts/matter-thread-commissioning-controller-device-comparison/"/>
       <url>/posts/matter-thread-commissioning-controller-device-comparison/</url>
@@ -123,11 +156,11 @@
       
         <tags>
             
+            <tag> Matter </tag>
+            
             <tag> Telink </tag>
             
             <tag> Zephyr </tag>
-            
-            <tag> Matter </tag>
             
             <tag> 固件构建 </tag>
             
@@ -908,11 +941,11 @@
       
         <tags>
             
+            <tag> Matter </tag>
+            
             <tag> Telink </tag>
             
             <tag> Zephyr </tag>
-            
-            <tag> Matter </tag>
             
             <tag> west </tag>
             
@@ -1001,13 +1034,13 @@
       
         <tags>
             
+            <tag> Matter </tag>
+            
             <tag> AI </tag>
             
             <tag> Telink </tag>
             
             <tag> Zephyr </tag>
-            
-            <tag> Matter </tag>
             
             <tag> 串口调试 </tag>
             
@@ -1139,11 +1172,33 @@
     
     
     <entry>
+      <title>关于</title>
+      <link href="/about/index.html"/>
+      <url>/about/index.html</url>
+      
+        <content type="html"><![CDATA[<div class="profile-lead">  <p class="profile-eyebrow">EMBEDDED FIRMWARE ENGINEER</p>  <p>我是一名常驻深圳的嵌入式固件开发者，拥有 4 年智能家居与新能源设备开发经验，关注低功耗设备、无线连接协议和可靠工程交付。</p></div><div class="fact-grid">  <div class="fact-card"><span>所在地</span><strong>深圳</strong></div>  <div class="fact-card"><span>年龄 / 性别</span><strong>25 岁 / 男</strong></div>  <div class="fact-card"><span>学历</span><strong>本科 · 物联网工程</strong></div>  <div class="fact-card"><span>经验方向</span><strong>固件 · 无线连接</strong></div></div><h2 id="我如何工作"><a href="#我如何工作" class="headerlink" title="我如何工作"></a>我如何工作</h2><p>我喜欢把复杂问题拆开：先确认系统处于哪个阶段，再用代码、日志、抓包和构建结果建立证据链。比起快速给出一个听起来合理的答案，我更在意结论是否能够复现、验证和复用。</p><p>工作内容覆盖需求分析、驱动与应用开发、低功耗设计、无线协议接入、升级链路、软硬件联调、问题诊断、量产支持和工程文档。我也参与新人带教与团队技术协作。</p><h2 id="技术栈"><a href="#技术栈" class="headerlink" title="技术栈"></a>技术栈</h2><div class="skill-cloud">  <span>C</span><span>FreeRTOS</span><span>Zephyr</span><span>Linux</span>  <span>Matter</span><span>Thread</span><span>Zigbee</span><span>BLE</span>  <span>Wi-Fi</span><span>MQTT</span><span>LVGL</span><span>MCUboot</span>  <span>Git</span><span>CMake</span><span>Python</span><span>Qt</span></div><p>常用芯片平台包括 Telink TL3238x、TLSR8656、TLSR9218 &#x2F; TLSR9518、Realtek RTL8722W、Synwit SWM341、STM32、ESP32 &#x2F; ESP8266 和 Nuvoton MCU。</p><h2 id="教育经历"><a href="#教育经历" class="headerlink" title="教育经历"></a>教育经历</h2><p><strong>广州软件学院 · 物联网工程 · 本科</strong></p><p>2018 - 2022</p><h2 id="联系方式"><a href="#联系方式" class="headerlink" title="联系方式"></a>联系方式</h2><ul><li>邮箱：<a href="mailto:&#x32;&#x33;&#x37;&#55;&#x39;&#x31;&#x39;&#x34;&#x39;&#x40;&#x71;&#113;&#46;&#x63;&#x6f;&#109;">237791949@qq.com</a></li><li>GitHub：<a href="https://github.com/Oniums">github.com&#x2F;Oniums</a></li></ul><blockquote><p>这个站点只展示适合公开的经历与技术总结。涉及具体项目时，会移除公司身份、产品型号、内部流程、设备身份数据和安全材料。</p></blockquote>]]></content>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>分类</title>
       <link href="/categories/index.html"/>
       <url>/categories/index.html</url>
       
         <content type="html"><![CDATA[]]></content>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>工作经历</title>
+      <link href="/experience/index.html"/>
+      <url>/experience/index.html</url>
+      
+        <content type="html"><![CDATA[<p>我有 4 年嵌入式软件开发经验，经历覆盖智能家居、消费电子和新能源设备。以下内容隐藏公司名称和具体产品型号，只保留岗位、时间、职责与可迁移经验。</p><div class="career-summary">  <div><strong>4 年</strong><span>嵌入式开发经验</span></div>  <div><strong>3 个行业</strong><span>智能家居 / 消费电子 / 新能源</span></div>  <div><strong>全流程</strong><span>需求到量产交付</span></div></div><div class="timeline">  <section class="timeline-item">    <div class="timeline-date">2025.03 - 至今</div>    <div class="timeline-content">      <p class="timeline-company">智能家居企业</p>      <h2>嵌入式软件工程师 / 产品固件负责人</h2>      <ul>        <li>负责低功耗传感器与无线控制设备的需求分析、方案设计、驱动和应用开发。</li>        <li>围绕 Matter、Thread、Zigbee 与 BLE 完成入网、低功耗、OTA 和多生态兼容。</li>        <li>承担软硬件联调、性能优化、试产和量产问题定位，输出规格、方案与产测文档。</li>        <li>参与新人带教、技术答疑和工程流程建设，推动团队稳定交付。</li>      </ul>    </div>  </section>  <section class="timeline-item">    <div class="timeline-date">2023.09 - 2025.01</div>    <div class="timeline-content">      <p class="timeline-company">消费电子企业</p>      <h2>嵌入式软件工程师</h2>      <ul>        <li>负责无线与有线温控器的设备端功能开发、芯片平台适配和软件发布。</li>        <li>完成 I2C、SPI、UART、DMA、RTC 等外设集成，以及 LCD、LVGL 和人机交互开发。</li>        <li>参与多 MCU 协同、无线通信、模块间协议和软硬件联调。</li>        <li>与测试团队共同维护发布质量，跟进从开发验证到量产的完整周期。</li>      </ul>    </div>  </section>  <section class="timeline-item">    <div class="timeline-date">2022.07 - 2023.07</div>    <div class="timeline-content">      <p class="timeline-company">新能源设备企业</p>      <h2>嵌入式软件工程师</h2>      <ul>        <li>负责交流充电设备的应用开发、系统架构、通信、存储和升级能力。</li>        <li>基于 STM32 与 Nuvoton 平台完成外设、4G、Ethernet、CAN、RS485 和远程升级开发。</li>        <li>处理现场技术问题，与硬件和芯片供应商协作完成故障诊断。</li>        <li>使用 Qt、Python 和抓包工具开发诊断辅助能力，并编写设计、测试和使用文档。</li>      </ul>    </div>  </section></div><h2 id="能力沉淀"><a href="#能力沉淀" class="headerlink" title="能力沉淀"></a>能力沉淀</h2><p>跨行业经历让我更重视可迁移的工程能力：明确需求边界、理解软硬件接口、设计可诊断的状态机、建立升级与恢复机制，以及用文档和自动化降低交付的不确定性。</p>]]></content>
       
     </entry>
     
@@ -1161,33 +1216,11 @@
     
     
     <entry>
-      <title>关于</title>
-      <link href="/about/index.html"/>
-      <url>/about/index.html</url>
-      
-        <content type="html"><![CDATA[<div class="profile-lead">  <p class="profile-eyebrow">EMBEDDED FIRMWARE ENGINEER</p>  <p>我是一名常驻深圳的嵌入式固件开发者，拥有 4 年智能家居与新能源设备开发经验，关注低功耗设备、无线连接协议和可靠工程交付。</p></div><div class="fact-grid">  <div class="fact-card"><span>所在地</span><strong>深圳</strong></div>  <div class="fact-card"><span>年龄 / 性别</span><strong>25 岁 / 男</strong></div>  <div class="fact-card"><span>学历</span><strong>本科 · 物联网工程</strong></div>  <div class="fact-card"><span>经验方向</span><strong>固件 · 无线连接</strong></div></div><h2 id="我如何工作"><a href="#我如何工作" class="headerlink" title="我如何工作"></a>我如何工作</h2><p>我喜欢把复杂问题拆开：先确认系统处于哪个阶段，再用代码、日志、抓包和构建结果建立证据链。比起快速给出一个听起来合理的答案，我更在意结论是否能够复现、验证和复用。</p><p>工作内容覆盖需求分析、驱动与应用开发、低功耗设计、无线协议接入、升级链路、软硬件联调、问题诊断、量产支持和工程文档。我也参与新人带教与团队技术协作。</p><h2 id="技术栈"><a href="#技术栈" class="headerlink" title="技术栈"></a>技术栈</h2><div class="skill-cloud">  <span>C</span><span>FreeRTOS</span><span>Zephyr</span><span>Linux</span>  <span>Matter</span><span>Thread</span><span>Zigbee</span><span>BLE</span>  <span>Wi-Fi</span><span>MQTT</span><span>LVGL</span><span>MCUboot</span>  <span>Git</span><span>CMake</span><span>Python</span><span>Qt</span></div><p>常用芯片平台包括 Telink TL3238x、TLSR8656、TLSR9218 &#x2F; TLSR9518、Realtek RTL8722W、Synwit SWM341、STM32、ESP32 &#x2F; ESP8266 和 Nuvoton MCU。</p><h2 id="教育经历"><a href="#教育经历" class="headerlink" title="教育经历"></a>教育经历</h2><p><strong>广州软件学院 · 物联网工程 · 本科</strong></p><p>2018 - 2022</p><h2 id="联系方式"><a href="#联系方式" class="headerlink" title="联系方式"></a>联系方式</h2><ul><li>邮箱：<a href="mailto:&#50;&#x33;&#x37;&#x37;&#x39;&#x31;&#x39;&#52;&#x39;&#x40;&#x71;&#x71;&#x2e;&#x63;&#x6f;&#109;">237791949@qq.com</a></li><li>GitHub：<a href="https://github.com/Oniums">github.com&#x2F;Oniums</a></li></ul><blockquote><p>这个站点只展示适合公开的经历与技术总结。涉及具体项目时，会移除公司身份、产品型号、内部流程、设备身份数据和安全材料。</p></blockquote>]]></content>
-      
-    </entry>
-    
-    
-    
-    <entry>
       <title>Debug Diary</title>
       <link href="/debug/index.html"/>
       <url>/debug/index.html</url>
       
         <content type="html"><![CDATA[<div class="lab-page-lead"><p class="lab-eyebrow">DEBUG DIARY</p><h1>不要只记录“修好了”。</h1><p>调试记录的价值在于保留思考路径：什么现象支持了什么假设，又是什么证据让它被推翻。</p></div><div class="lab-record-grid">  <a class="lab-record-card" href="/debug/dbg-001/"><span class="lab-record-id">DBG-001 · 方法记录</span><h2>从日志到协议阶段</h2><p>建立现象、阶段、证据和结论之间的排障链路。</p><span class="lab-card-link">查看调试记录 →</span></a>  <a class="lab-record-card" href="/debug/dbg-002/"><span class="lab-record-id">DBG-002 · 已验证方法</span><h2>Zephyr 构建仍引用旧 SDK</h2><p>从第一条真实错误定位到构建缓存和 CMake 配置快照。</p><span class="lab-card-link">查看调试记录 →</span></a>  <a class="lab-record-card" href="/debug/dbg-003/"><span class="lab-record-id">DBG-003 · 方法记录</span><h2>GPIO 快速跳变与 ISR 延后处理</h2><p>区分中断响应、去抖和后续业务处理的职责边界。</p><span class="lab-card-link">查看调试记录 →</span></a>  <a class="lab-record-card" href="/debug/dbg-004/"><span class="lab-record-id">DBG-004 · 已验证经验</span><h2>Parent Loss、Leave 与 Rejoin</h2><p>区分休眠终端父节点丢失、远程 Leave 和恢复出厂。</p><span class="lab-card-link">查看调试记录 →</span></a>  <a class="lab-record-card" href="/debug/dbg-005/"><span class="lab-record-id">DBG-005 · 已验证方法</span><h2>有 MAC ACK 但没有 ZCL Response</h2><p>从链路层确认推进到 APS Endpoint 和 ZCL 分发。</p><span class="lab-card-link">查看调试记录 →</span></a></div>]]></content>
-      
-    </entry>
-    
-    
-    
-    <entry>
-      <title>工作经历</title>
-      <link href="/experience/index.html"/>
-      <url>/experience/index.html</url>
-      
-        <content type="html"><![CDATA[<p>我有 4 年嵌入式软件开发经验，经历覆盖智能家居、消费电子和新能源设备。以下内容隐藏公司名称和具体产品型号，只保留岗位、时间、职责与可迁移经验。</p><div class="career-summary">  <div><strong>4 年</strong><span>嵌入式开发经验</span></div>  <div><strong>3 个行业</strong><span>智能家居 / 消费电子 / 新能源</span></div>  <div><strong>全流程</strong><span>需求到量产交付</span></div></div><div class="timeline">  <section class="timeline-item">    <div class="timeline-date">2025.03 - 至今</div>    <div class="timeline-content">      <p class="timeline-company">智能家居企业</p>      <h2>嵌入式软件工程师 / 产品固件负责人</h2>      <ul>        <li>负责低功耗传感器与无线控制设备的需求分析、方案设计、驱动和应用开发。</li>        <li>围绕 Matter、Thread、Zigbee 与 BLE 完成入网、低功耗、OTA 和多生态兼容。</li>        <li>承担软硬件联调、性能优化、试产和量产问题定位，输出规格、方案与产测文档。</li>        <li>参与新人带教、技术答疑和工程流程建设，推动团队稳定交付。</li>      </ul>    </div>  </section>  <section class="timeline-item">    <div class="timeline-date">2023.09 - 2025.01</div>    <div class="timeline-content">      <p class="timeline-company">消费电子企业</p>      <h2>嵌入式软件工程师</h2>      <ul>        <li>负责无线与有线温控器的设备端功能开发、芯片平台适配和软件发布。</li>        <li>完成 I2C、SPI、UART、DMA、RTC 等外设集成，以及 LCD、LVGL 和人机交互开发。</li>        <li>参与多 MCU 协同、无线通信、模块间协议和软硬件联调。</li>        <li>与测试团队共同维护发布质量，跟进从开发验证到量产的完整周期。</li>      </ul>    </div>  </section>  <section class="timeline-item">    <div class="timeline-date">2022.07 - 2023.07</div>    <div class="timeline-content">      <p class="timeline-company">新能源设备企业</p>      <h2>嵌入式软件工程师</h2>      <ul>        <li>负责交流充电设备的应用开发、系统架构、通信、存储和升级能力。</li>        <li>基于 STM32 与 Nuvoton 平台完成外设、4G、Ethernet、CAN、RS485 和远程升级开发。</li>        <li>处理现场技术问题，与硬件和芯片供应商协作完成故障诊断。</li>        <li>使用 Qt、Python 和抓包工具开发诊断辅助能力，并编写设计、测试和使用文档。</li>      </ul>    </div>  </section></div><h2 id="能力沉淀"><a href="#能力沉淀" class="headerlink" title="能力沉淀"></a>能力沉淀</h2><p>跨行业经历让我更重视可迁移的工程能力：明确需求边界、理解软硬件接口、设计可诊断的状态机、建立升级与恢复机制，以及用文档和自动化降低交付的不确定性。</p>]]></content>
       
     </entry>
     
@@ -1227,22 +1260,22 @@
     
     
     <entry>
-      <title>Knowledge</title>
-      <link href="/knowledge/index.html"/>
-      <url>/knowledge/index.html</url>
+      <title>Oniums Lab</title>
+      <link href="/lab/index.html"/>
+      <url>/lab/index.html</url>
       
-        <content type="html"><![CDATA[<div class="lab-page-lead"><p class="lab-eyebrow">KNOWLEDGE MAP</p><h1>知识不是分类，而是关系。</h1><p>每个节点都应该有前置知识、关联文章、实验和验证状态。下面是第一版知识树入口。</p></div><div class="knowledge-tree">  <section><div class="knowledge-root">无线通信与设备工程</div><div class="knowledge-branches">    <article><h2>Matter</h2><ul><li>Node / Fabric / Endpoint</li><li>Commissioning</li><li>PASE / CASE</li><li>Data Model / Interaction Model</li></ul><a href="/posts/matter-foundations/">阅读 Matter 基础 →</a></article>    <article><h2>Thread</h2><ul><li>IPv6 Mesh</li><li>MLE</li><li>Attach</li><li>SED / Border Router</li><li>Polling / ICD</li></ul><a href="/posts/thread-foundations/">阅读 Thread 基础 →</a></article>    <article><h2>ZigBee</h2><ul><li>NWK</li><li>APS</li><li>Security</li><li>Touchlink</li><li>Sleepy End Device</li></ul><a href="/posts/zigbee-foundations/">阅读 ZigBee 基础 →</a></article>    <article><h2>Zephyr</h2><ul><li>CMake / west</li><li>Kconfig</li><li>Device Driver</li><li>Power Management</li></ul><a href="/posts/telink-zephyr-matter-build-pipeline/">阅读构建链路 →</a></article>  </div></section></div><h2 id="节点状态"><a href="#节点状态" class="headerlink" title="节点状态"></a>节点状态</h2><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">planned     尚未系统学习</span><br><span class="line">learning    正在建立概念模型</span><br><span class="line">understood  能够解释主要关系</span><br><span class="line">verified    有代码、实验或抓包证据</span><br><span class="line">maintained  已形成可复用长期笔记</span><br></pre></td></tr></table></figure><p>知识树会继续扩展，但不会把节点简单等同于文章分类。</p>]]></content>
+        <content type="html"><![CDATA[<section class="lab-hero">  <p class="lab-eyebrow">ONIUMS LAB · ENGINEERING KNOWLEDGE SYSTEM</p>  <h1>持续实验，持续验证，持续积累。</h1>  <p>这里不只是文章归档，而是一个围绕 Matter、Thread、ZigBee、Zephyr 和嵌入式工程实践持续成长的个人技术实验室。</p></section><div class="lab-status-grid">  <div><span>当前研究</span><strong>协议分层 · 低功耗 · 证据化调试</strong></div>  <div><span>记录方式</span><strong>知识 · 实验 · 源码 · 失败</strong></div>  <div><span>公开原则</span><strong>脱敏、可验证、可迁移</strong></div></div><div class="lab-module-grid">  <a class="lab-module-card" href="/knowledge/"><span class="lab-module-icon">01</span><h2>Knowledge</h2><p>把协议、系统和工程概念组织成可扩展的知识地图。</p><span class="lab-card-link">进入知识库 →</span></a>  <a class="lab-module-card" href="/experiments/"><span class="lab-module-icon">02</span><h2>Experiments</h2><p>记录实验目的、参数、数据、结论和后续问题。</p><span class="lab-card-link">查看实验记录 →</span></a>  <a class="lab-module-card" href="/source-reading/"><span class="lab-module-icon">03</span><h2>Source Reading</h2><p>沿着调用链阅读 OpenThread、Zephyr 和 Matter 相关模块。</p><span class="lab-card-link">查看阅读路线 →</span></a>  <a class="lab-module-card" href="/debug/"><span class="lab-module-icon">04</span><h2>Debug Diary</h2><p>保留现象、假设、验证、根因和修复过程。</p><span class="lab-card-link">查看调试日志 →</span></a>  <a class="lab-module-card" href="/failures/"><span class="lab-module-icon">05</span><h2>Failure Museum</h2><p>记录错误判断如何被证据推翻，并提炼可迁移经验。</p><span class="lab-card-link">进入失败博物馆 →</span></a>  <a class="lab-module-card" href="/journey/"><span class="lab-module-icon">06</span><h2>Learning Journey</h2><p>记录从概念学习、工程实践到源码阅读的成长路径。</p><span class="lab-card-link">查看成长路线 →</span></a></div><h2 id="近期公开入口"><a href="#近期公开入口" class="headerlink" title="近期公开入口"></a>近期公开入口</h2><div class="lab-link-list">  <a href="/posts/matter-over-thread-zigbee-commissioning-comparison/"><strong>Matter over Thread 与 ZigBee 入网对照</strong><span>从协议分层和成功锚点开始理解差异。</span></a>  <a href="/posts/wireshark-thread-packet-capture/"><strong>Wireshark + Thread 抓包</strong><span>把信道活动推进到协议阶段分析。</span></a>  <a href="/posts/debugging-with-an-evidence-chain/"><strong>从日志到协议阶段</strong><span>建立嵌入式排障的证据链。</span></a></div><blockquote><p>Lab 页面会持续增加内容，但所有私人资料都必须经过人工分类、脱敏和公开审查后才会进入本站。</p></blockquote>]]></content>
       
     </entry>
     
     
     
     <entry>
-      <title>Oniums Lab</title>
-      <link href="/lab/index.html"/>
-      <url>/lab/index.html</url>
+      <title>Knowledge</title>
+      <link href="/knowledge/index.html"/>
+      <url>/knowledge/index.html</url>
       
-        <content type="html"><![CDATA[<section class="lab-hero">  <p class="lab-eyebrow">ONIUMS LAB · ENGINEERING KNOWLEDGE SYSTEM</p>  <h1>持续实验，持续验证，持续积累。</h1>  <p>这里不只是文章归档，而是一个围绕 Matter、Thread、ZigBee、Zephyr 和嵌入式工程实践持续成长的个人技术实验室。</p></section><div class="lab-status-grid">  <div><span>当前研究</span><strong>协议分层 · 低功耗 · 证据化调试</strong></div>  <div><span>记录方式</span><strong>知识 · 实验 · 源码 · 失败</strong></div>  <div><span>公开原则</span><strong>脱敏、可验证、可迁移</strong></div></div><div class="lab-module-grid">  <a class="lab-module-card" href="/knowledge/"><span class="lab-module-icon">01</span><h2>Knowledge</h2><p>把协议、系统和工程概念组织成可扩展的知识地图。</p><span class="lab-card-link">进入知识库 →</span></a>  <a class="lab-module-card" href="/experiments/"><span class="lab-module-icon">02</span><h2>Experiments</h2><p>记录实验目的、参数、数据、结论和后续问题。</p><span class="lab-card-link">查看实验记录 →</span></a>  <a class="lab-module-card" href="/source-reading/"><span class="lab-module-icon">03</span><h2>Source Reading</h2><p>沿着调用链阅读 OpenThread、Zephyr 和 Matter 相关模块。</p><span class="lab-card-link">查看阅读路线 →</span></a>  <a class="lab-module-card" href="/debug/"><span class="lab-module-icon">04</span><h2>Debug Diary</h2><p>保留现象、假设、验证、根因和修复过程。</p><span class="lab-card-link">查看调试日志 →</span></a>  <a class="lab-module-card" href="/failures/"><span class="lab-module-icon">05</span><h2>Failure Museum</h2><p>记录错误判断如何被证据推翻，并提炼可迁移经验。</p><span class="lab-card-link">进入失败博物馆 →</span></a>  <a class="lab-module-card" href="/journey/"><span class="lab-module-icon">06</span><h2>Learning Journey</h2><p>记录从概念学习、工程实践到源码阅读的成长路径。</p><span class="lab-card-link">查看成长路线 →</span></a></div><h2 id="近期公开入口"><a href="#近期公开入口" class="headerlink" title="近期公开入口"></a>近期公开入口</h2><div class="lab-link-list">  <a href="/posts/matter-over-thread-zigbee-commissioning-comparison/"><strong>Matter over Thread 与 ZigBee 入网对照</strong><span>从协议分层和成功锚点开始理解差异。</span></a>  <a href="/posts/wireshark-thread-packet-capture/"><strong>Wireshark + Thread 抓包</strong><span>把信道活动推进到协议阶段分析。</span></a>  <a href="/posts/debugging-with-an-evidence-chain/"><strong>从日志到协议阶段</strong><span>建立嵌入式排障的证据链。</span></a></div><blockquote><p>Lab 页面会持续增加内容，但所有私人资料都必须经过人工分类、脱敏和公开审查后才会进入本站。</p></blockquote>]]></content>
+        <content type="html"><![CDATA[<div class="lab-page-lead"><p class="lab-eyebrow">KNOWLEDGE MAP</p><h1>知识不是分类，而是关系。</h1><p>每个节点都应该有前置知识、关联文章、实验和验证状态。下面是第一版知识树入口。</p></div><div class="knowledge-tree">  <section><div class="knowledge-root">无线通信与设备工程</div><div class="knowledge-branches">    <article><h2>Matter</h2><ul><li>Node / Fabric / Endpoint</li><li>Commissioning</li><li>PASE / CASE</li><li>Data Model / Interaction Model</li></ul><a href="/posts/matter-foundations/">阅读 Matter 基础 →</a></article>    <article><h2>Thread</h2><ul><li>IPv6 Mesh</li><li>MLE</li><li>Attach</li><li>SED / Border Router</li><li>Polling / ICD</li></ul><a href="/posts/thread-foundations/">阅读 Thread 基础 →</a></article>    <article><h2>ZigBee</h2><ul><li>NWK</li><li>APS</li><li>Security</li><li>Touchlink</li><li>Sleepy End Device</li></ul><a href="/posts/zigbee-foundations/">阅读 ZigBee 基础 →</a></article>    <article><h2>Zephyr</h2><ul><li>CMake / west</li><li>Kconfig</li><li>Device Driver</li><li>Power Management</li></ul><a href="/posts/telink-zephyr-matter-build-pipeline/">阅读构建链路 →</a></article>  </div></section></div><h2 id="节点状态"><a href="#节点状态" class="headerlink" title="节点状态"></a>节点状态</h2><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">planned     尚未系统学习</span><br><span class="line">learning    正在建立概念模型</span><br><span class="line">understood  能够解释主要关系</span><br><span class="line">verified    有代码、实验或抓包证据</span><br><span class="line">maintained  已形成可复用长期笔记</span><br></pre></td></tr></table></figure><p>知识树会继续扩展，但不会把节点简单等同于文章分类。</p>]]></content>
       
     </entry>
     
@@ -1326,33 +1359,11 @@
     
     
     <entry>
-      <title>EXP-001 环境光传感器采样策略</title>
-      <link href="/experiments/exp-001/index.html"/>
-      <url>/experiments/exp-001/index.html</url>
-      
-        <content type="html"><![CDATA[<div class="lab-record-header"><span class="lab-record-id">EXP-001 · DESIGN RECORD</span><h1>环境光传感器：IRQ 一定更省电吗？</h1><p>本条目把一篇低功耗设计文章转换成实验记录格式。当前是设计记录和验证计划，不代表已经完成具体硬件实测。</p></div><h2 id="实验目的"><a href="#实验目的" class="headerlink" title="实验目的"></a>实验目的</h2><p>判断以下三种方案在不同业务目标下的适用边界：</p><ol><li>Single-shot &#x2F; Forced Mode；</li><li>MCU 定时按需采样；</li><li>连续测量加阈值 IRQ。</li></ol><h2 id="假设"><a href="#假设" class="headerlink" title="假设"></a>假设</h2><p>对于只需周期性获得 lux 值的电池设备，传感器按需 Active 后回到 Standby，通常比长期连续 Active 更适合作为低功耗基线。需要快速响应明暗变化时，连续 IRQ 可能是合理的产品取舍，但不能直接称为低功耗方案。</p><h2 id="示例参数"><a href="#示例参数" class="headerlink" title="示例参数"></a>示例参数</h2><p>以下参数来自公开文章中的占空比估算，仅用于说明测量方法，不是某台设备的实测结果：</p><table><thead><tr><th>参数</th><th align="right">示例值</th></tr></thead><tbody><tr><td>Active 电流</td><td align="right">266 µA</td></tr><tr><td>Standby 电流</td><td align="right">5 µA</td></tr><tr><td>采样周期</td><td align="right">5 s</td></tr><tr><td>单次 Active 时间</td><td align="right">25 ms &#x2F; 55 ms</td></tr></tbody></table><h2 id="应记录的数据"><a href="#应记录的数据" class="headerlink" title="应记录的数据"></a>应记录的数据</h2><ul><li>传感器电源轨平均电流；</li><li>MCU 输入端平均电流；</li><li>采样完成延迟；</li><li>事件触发响应时间；</li><li>I2C 错误、超时和回 Standby 成功率；</li><li>光照稳定、阈值附近和快速变化三种场景。</li></ul><h2 id="当前结论"><a href="#当前结论" class="headerlink" title="当前结论"></a>当前结论</h2><p>公开设计推导支持“先比较占空比和传感器工作模式”的方向，但还不能证明某个具体器件或整机的最终功耗。下一步应使用相同硬件比较固定周期、事件优先和连续 IRQ 三组 profile。</p><h2 id="关联内容"><a href="#关联内容" class="headerlink" title="关联内容"></a>关联内容</h2><ul><li><a href="/posts/ambient-light-sensor-low-power-sampling/">环境光传感器：IRQ、单次采样与低功耗取舍</a></li><li><a href="/experiments/">Oniums Lab 实验记录</a></li></ul><script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"EXP-001 环境光传感器采样策略","description":"比较单次采样、连续阈值监测和 MCU 定时采样在功耗与响应速度上的取舍。","url":"https://onium.top/experiments/exp-001/","mainEntityOfPage":{"@type":"WebPage","@id":"https://onium.top/experiments/exp-001/"},"author":{"@type":"Person","name":"Oniums","url":"https://onium.top/about/"},"isPartOf":{"@type":"CollectionPage","name":"Experiment","url":"https://onium.top/experiments/"},"additionalProperty":[{"@type":"PropertyValue","name":"contentType","value":"experiment"},{"@type":"PropertyValue","name":"status","value":"design-record"},{"@type":"PropertyValue","name":"evidence","value":"public-design-note"},{"@type":"PropertyValue","name":"privacy","value":"public"}]}</script>]]></content>
-      
-    </entry>
-    
-    
-    
-    <entry>
       <title>DBG-005 有 MAC ACK 但没有 ZCL Response</title>
       <link href="/debug/dbg-005/index.html"/>
       <url>/debug/dbg-005/index.html</url>
       
         <content type="html"><![CDATA[<div class="lab-record-header"><span class="lab-record-id">DBG-005 · VERIFIED METHOD</span><h1>MAC ACK 成功，为什么还是没有 ZCL Response？</h1><p>MAC ACK 只说明相邻节点确认了链路层帧，不代表 AF/ZCL 已经把请求分发给正确的 Cluster。</p></div><h2 id="排查顺序"><a href="#排查顺序" class="headerlink" title="排查顺序"></a>排查顺序</h2><ol><li>按 PAN、短地址、Profile 和 Cluster 过滤抓包；</li><li>检查 APS Destination Endpoint；</li><li>从固件核对 Simple Descriptor 和 Cluster 注册 Endpoint；</li><li>区分 Data Request、MAC ACK、APS ACK 与 ZCL Response；</li><li>修正 Endpoint 后重新验证可读、只读写入和错误响应。</li></ol><h2 id="证据边界"><a href="#证据边界" class="headerlink" title="证据边界"></a>证据边界</h2><p>如果设备持续发送 Data Request 并对请求返回 MAC ACK，说明无线链路和取帧路径可能正常；如果目标 Endpoint 没有对应的 Cluster 注册，应用层仍可能没有 ZCL 响应。</p><h2 id="当前收获"><a href="#当前收获" class="headerlink" title="当前收获"></a>当前收获</h2><p>排查不能从“有 MAC ACK”直接跳到“设备已经处理请求”，也不能把 Sleepy End Device 的轮询问题和 Endpoint 分发问题混成一个原因。</p><h2 id="关联内容"><a href="#关联内容" class="headerlink" title="关联内容"></a>关联内容</h2><ul><li><a href="/posts/zigbee-foundations/">ZigBee 基础概念</a></li><li><a href="/posts/zigbee-third-party-platform-compatibility/">ZigBee 第三方平台适配</a></li><li><a href="/debug/">Debug Diary</a></li></ul><script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"DBG-005 有 MAC ACK 但没有 ZCL Response","description":"在 ZigBee 休眠终端测试中区分链路层成功与应用层 Endpoint 分发失败。","url":"https://onium.top/debug/dbg-005/","mainEntityOfPage":{"@type":"WebPage","@id":"https://onium.top/debug/dbg-005/"},"author":{"@type":"Person","name":"Oniums","url":"https://onium.top/about/"},"isPartOf":{"@type":"CollectionPage","name":"Debug Diary","url":"https://onium.top/debug/"},"additionalProperty":[{"@type":"PropertyValue","name":"contentType","value":"debug"},{"@type":"PropertyValue","name":"status","value":"verified-method"},{"@type":"PropertyValue","name":"evidence","value":"deidentified-technical-note"},{"@type":"PropertyValue","name":"privacy","value":"public"}]}</script>]]></content>
-      
-    </entry>
-    
-    
-    
-    <entry>
-      <title>EXP-002 多镜像固件版本配对</title>
-      <link href="/experiments/exp-002/index.html"/>
-      <url>/experiments/exp-002/index.html</url>
-      
-        <content type="html"><![CDATA[<div class="lab-record-header"><span class="lab-record-id">EXP-002 · METHOD RECORD</span><h1>多镜像固件：文件生成不等于配对正确</h1><p>本条目记录一套可验证的构建方法，当前不是某次私有 CI 构建的结果报告。</p></div><h2 id="实验目的"><a href="#实验目的" class="headerlink" title="实验目的"></a>实验目的</h2><p>验证多镜像交付是否能够证明：</p><ul><li>Debug 和 Release 使用了独立配置；</li><li>子镜像构建失败时不会继续发布半套资产；</li><li>最终合并镜像中的字节与预期输入一致。</li></ul><h2 id="验证步骤"><a href="#验证步骤" class="headerlink" title="验证步骤"></a>验证步骤</h2><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">显式 variant 参数</span><br><span class="line">  -&gt; 独立构建目录</span><br><span class="line">  -&gt; 编译并检查退出码</span><br><span class="line">  -&gt; 校验输入文件和哈希</span><br><span class="line">  -&gt; 合并</span><br><span class="line">  -&gt; 按 offset 提取</span><br><span class="line">  -&gt; 与输入镜像逐字节比较</span><br></pre></td></tr></table></figure><h2 id="成功标准"><a href="#成功标准" class="headerlink" title="成功标准"></a>成功标准</h2><table><thead><tr><th>检查项</th><th>成功锚点</th></tr></thead><tbody><tr><td>变体选择</td><td>未知 variant 直接失败</td></tr><tr><td>构建隔离</td><td>Debug &#x2F; Release 不共用缓存</td></tr><tr><td>资产完整性</td><td>缺失或空文件硬失败</td></tr><tr><td>最终嵌入</td><td>提取结果与输入文件完全相同</td></tr><tr><td>可追溯性</td><td>记录 variant、大小和 SHA-256</td></tr></tbody></table><h2 id="当前结论"><a href="#当前结论" class="headerlink" title="当前结论"></a>当前结论</h2><p>仅检查文件存在、文件名或流水线顺序不足以证明交付正确。最终字节提取比较是这条链路中最接近交付物本身的决定性检查点。真实项目仍需将该方法接入对应构建流水线并保存构建证据。</p><h2 id="关联内容"><a href="#关联内容" class="headerlink" title="关联内容"></a>关联内容</h2><ul><li><a href="/posts/multi-image-firmware-variant-verification/">多镜像固件优化：版本配对与最终字节校验</a></li><li><a href="/experiments/">Oniums Lab 实验记录</a></li></ul><script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"EXP-002 多镜像固件版本配对","description":"验证多镜像构建中变体隔离、失败语义和最终字节校验的方法。","url":"https://onium.top/experiments/exp-002/","mainEntityOfPage":{"@type":"WebPage","@id":"https://onium.top/experiments/exp-002/"},"author":{"@type":"Person","name":"Oniums","url":"https://onium.top/about/"},"isPartOf":{"@type":"CollectionPage","name":"Experiment","url":"https://onium.top/experiments/"},"additionalProperty":[{"@type":"PropertyValue","name":"contentType","value":"experiment"},{"@type":"PropertyValue","name":"status","value":"method-record"},{"@type":"PropertyValue","name":"evidence","value":"public-build-method"},{"@type":"PropertyValue","name":"privacy","value":"public"}]}</script>]]></content>
       
     </entry>
     
@@ -1392,6 +1403,17 @@
     
     
     <entry>
+      <title>EXP-002 多镜像固件版本配对</title>
+      <link href="/experiments/exp-002/index.html"/>
+      <url>/experiments/exp-002/index.html</url>
+      
+        <content type="html"><![CDATA[<div class="lab-record-header"><span class="lab-record-id">EXP-002 · METHOD RECORD</span><h1>多镜像固件：文件生成不等于配对正确</h1><p>本条目记录一套可验证的构建方法，当前不是某次私有 CI 构建的结果报告。</p></div><h2 id="实验目的"><a href="#实验目的" class="headerlink" title="实验目的"></a>实验目的</h2><p>验证多镜像交付是否能够证明：</p><ul><li>Debug 和 Release 使用了独立配置；</li><li>子镜像构建失败时不会继续发布半套资产；</li><li>最终合并镜像中的字节与预期输入一致。</li></ul><h2 id="验证步骤"><a href="#验证步骤" class="headerlink" title="验证步骤"></a>验证步骤</h2><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">显式 variant 参数</span><br><span class="line">  -&gt; 独立构建目录</span><br><span class="line">  -&gt; 编译并检查退出码</span><br><span class="line">  -&gt; 校验输入文件和哈希</span><br><span class="line">  -&gt; 合并</span><br><span class="line">  -&gt; 按 offset 提取</span><br><span class="line">  -&gt; 与输入镜像逐字节比较</span><br></pre></td></tr></table></figure><h2 id="成功标准"><a href="#成功标准" class="headerlink" title="成功标准"></a>成功标准</h2><table><thead><tr><th>检查项</th><th>成功锚点</th></tr></thead><tbody><tr><td>变体选择</td><td>未知 variant 直接失败</td></tr><tr><td>构建隔离</td><td>Debug &#x2F; Release 不共用缓存</td></tr><tr><td>资产完整性</td><td>缺失或空文件硬失败</td></tr><tr><td>最终嵌入</td><td>提取结果与输入文件完全相同</td></tr><tr><td>可追溯性</td><td>记录 variant、大小和 SHA-256</td></tr></tbody></table><h2 id="当前结论"><a href="#当前结论" class="headerlink" title="当前结论"></a>当前结论</h2><p>仅检查文件存在、文件名或流水线顺序不足以证明交付正确。最终字节提取比较是这条链路中最接近交付物本身的决定性检查点。真实项目仍需将该方法接入对应构建流水线并保存构建证据。</p><h2 id="关联内容"><a href="#关联内容" class="headerlink" title="关联内容"></a>关联内容</h2><ul><li><a href="/posts/multi-image-firmware-variant-verification/">多镜像固件优化：版本配对与最终字节校验</a></li><li><a href="/experiments/">Oniums Lab 实验记录</a></li></ul><script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"EXP-002 多镜像固件版本配对","description":"验证多镜像构建中变体隔离、失败语义和最终字节校验的方法。","url":"https://onium.top/experiments/exp-002/","mainEntityOfPage":{"@type":"WebPage","@id":"https://onium.top/experiments/exp-002/"},"author":{"@type":"Person","name":"Oniums","url":"https://onium.top/about/"},"isPartOf":{"@type":"CollectionPage","name":"Experiment","url":"https://onium.top/experiments/"},"additionalProperty":[{"@type":"PropertyValue","name":"contentType","value":"experiment"},{"@type":"PropertyValue","name":"status","value":"method-record"},{"@type":"PropertyValue","name":"evidence","value":"public-build-method"},{"@type":"PropertyValue","name":"privacy","value":"public"}]}</script>]]></content>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>Failure-003 把协议层成功当成应用闭环</title>
       <link href="/failures/failure-003/index.html"/>
       <url>/failures/failure-003/index.html</url>
@@ -1419,6 +1441,17 @@
       <url>/source-reading/zigbee-nwk-aps-zcl/index.html</url>
       
         <content type="html"><![CDATA[<div class="lab-record-header"><span class="lab-record-id">SOURCE ROUTE · ZIGBEE NWK → ZCL</span><h1>一条 ZCL 请求是怎样到达 Cluster 的？</h1><p>这条路线用于解释“空口收到了请求，但应用没有响应”时，中间到底经过了哪些层。</p></div><h2 id="阅读顺序"><a href="#阅读顺序" class="headerlink" title="阅读顺序"></a>阅读顺序</h2><div class="source-route source-route-detail"><ol><li><strong>NWK</strong><span>地址、路由和网络安全边界。</span></li><li><strong>APS</strong><span>Endpoint、Profile、Cluster 和传输确认。</span></li><li><strong>AF / Simple Descriptor</strong><span>设备是否在目标 Endpoint 注册对应 Cluster。</span></li><li><strong>ZCL</strong><span>命令、属性访问、方向和响应生成。</span></li></ol></div><h2 id="每一篇阅读记录"><a href="#每一篇阅读记录" class="headerlink" title="每一篇阅读记录"></a>每一篇阅读记录</h2><ul><li>当前消息处在哪一层？</li><li>谁确认了它？MAC ACK、APS ACK 还是 ZCL Response？</li><li>Destination Endpoint 是否被正确解析？</li><li>Simple Descriptor 和 Cluster 注册从哪里建立？</li><li>失败时下一层是否仍然会看到事件？</li></ul><h2 id="当前状态"><a href="#当前状态" class="headerlink" title="当前状态"></a>当前状态</h2><p>路线已完成问题拆分，具体 SDK 版本和函数级源码笔记尚未公开。后续会先用通用协议代码和公开文档完成第一遍，再决定是否添加实现差异。</p><p>关联入口：<a href="/posts/zigbee-foundations/">ZigBee 基础概念</a> · <a href="/posts/zigbee-network-joining-flow/">ZigBee 入网流程</a> · <a href="/source-reading/">Source Reading</a></p><script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"ZigBee NWK 到 ZCL 源码阅读路线","description":"从 ZigBee 网络层、APS 层一路阅读到 Endpoint 和 ZCL 分发。","url":"https://onium.top/source-reading/zigbee-nwk-aps-zcl/","mainEntityOfPage":{"@type":"WebPage","@id":"https://onium.top/source-reading/zigbee-nwk-aps-zcl/"},"author":{"@type":"Person","name":"Oniums","url":"https://onium.top/about/"},"isPartOf":{"@type":"CollectionPage","name":"Source Reading","url":"https://onium.top/source-reading/"},"additionalProperty":[{"@type":"PropertyValue","name":"contentType","value":"source-reading"},{"@type":"PropertyValue","name":"status","value":"planned"},{"@type":"PropertyValue","name":"evidence","value":"deidentified-technical-note"},{"@type":"PropertyValue","name":"privacy","value":"public"}]}</script>]]></content>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>EXP-001 环境光传感器采样策略</title>
+      <link href="/experiments/exp-001/index.html"/>
+      <url>/experiments/exp-001/index.html</url>
+      
+        <content type="html"><![CDATA[<div class="lab-record-header"><span class="lab-record-id">EXP-001 · DESIGN RECORD</span><h1>环境光传感器：IRQ 一定更省电吗？</h1><p>本条目把一篇低功耗设计文章转换成实验记录格式。当前是设计记录和验证计划，不代表已经完成具体硬件实测。</p></div><h2 id="实验目的"><a href="#实验目的" class="headerlink" title="实验目的"></a>实验目的</h2><p>判断以下三种方案在不同业务目标下的适用边界：</p><ol><li>Single-shot &#x2F; Forced Mode；</li><li>MCU 定时按需采样；</li><li>连续测量加阈值 IRQ。</li></ol><h2 id="假设"><a href="#假设" class="headerlink" title="假设"></a>假设</h2><p>对于只需周期性获得 lux 值的电池设备，传感器按需 Active 后回到 Standby，通常比长期连续 Active 更适合作为低功耗基线。需要快速响应明暗变化时，连续 IRQ 可能是合理的产品取舍，但不能直接称为低功耗方案。</p><h2 id="示例参数"><a href="#示例参数" class="headerlink" title="示例参数"></a>示例参数</h2><p>以下参数来自公开文章中的占空比估算，仅用于说明测量方法，不是某台设备的实测结果：</p><table><thead><tr><th>参数</th><th align="right">示例值</th></tr></thead><tbody><tr><td>Active 电流</td><td align="right">266 µA</td></tr><tr><td>Standby 电流</td><td align="right">5 µA</td></tr><tr><td>采样周期</td><td align="right">5 s</td></tr><tr><td>单次 Active 时间</td><td align="right">25 ms &#x2F; 55 ms</td></tr></tbody></table><h2 id="应记录的数据"><a href="#应记录的数据" class="headerlink" title="应记录的数据"></a>应记录的数据</h2><ul><li>传感器电源轨平均电流；</li><li>MCU 输入端平均电流；</li><li>采样完成延迟；</li><li>事件触发响应时间；</li><li>I2C 错误、超时和回 Standby 成功率；</li><li>光照稳定、阈值附近和快速变化三种场景。</li></ul><h2 id="当前结论"><a href="#当前结论" class="headerlink" title="当前结论"></a>当前结论</h2><p>公开设计推导支持“先比较占空比和传感器工作模式”的方向，但还不能证明某个具体器件或整机的最终功耗。下一步应使用相同硬件比较固定周期、事件优先和连续 IRQ 三组 profile。</p><h2 id="关联内容"><a href="#关联内容" class="headerlink" title="关联内容"></a>关联内容</h2><ul><li><a href="/posts/ambient-light-sensor-low-power-sampling/">环境光传感器：IRQ、单次采样与低功耗取舍</a></li><li><a href="/experiments/">Oniums Lab 实验记录</a></li></ul><script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"EXP-001 环境光传感器采样策略","description":"比较单次采样、连续阈值监测和 MCU 定时采样在功耗与响应速度上的取舍。","url":"https://onium.top/experiments/exp-001/","mainEntityOfPage":{"@type":"WebPage","@id":"https://onium.top/experiments/exp-001/"},"author":{"@type":"Person","name":"Oniums","url":"https://onium.top/about/"},"isPartOf":{"@type":"CollectionPage","name":"Experiment","url":"https://onium.top/experiments/"},"additionalProperty":[{"@type":"PropertyValue","name":"contentType","value":"experiment"},{"@type":"PropertyValue","name":"status","value":"design-record"},{"@type":"PropertyValue","name":"evidence","value":"public-design-note"},{"@type":"PropertyValue","name":"privacy","value":"public"}]}</script>]]></content>
       
     </entry>
     

@@ -1,0 +1,849 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Matter BLE 配网的 MAC 地址为什么每次重启都会变？ | Oniums</title><meta name="author" content="Oniums"><meta name="copyright" content="Oniums"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#f3f6f8"><meta name="description" content="调试 Matter over Thread 设备时，可能会遇到一个很容易被误判的现象：设备恢复出厂后可以被手机扫描到，但重启一次，扫描工具显示的 BLE MAC 地址就变了。 这是不是地址没有保存？会不会导致手机找不到原来的设备？量产时是不是应该给每台设备烧录一个固定 BLE MAC？ 对于 Matter 配网广播，答案恰好相反：每次启动都使用新的随机 BLE 地址，通常才是符合规范的行为。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Matter BLE 配网的 MAC 地址为什么每次重启都会变？">
+<meta property="og:url" content="https://onium.top/posts/matter-ble-random-static-address-per-boot/">
+<meta property="og:site_name" content="Oniums">
+<meta property="og:description" content="调试 Matter over Thread 设备时，可能会遇到一个很容易被误判的现象：设备恢复出厂后可以被手机扫描到，但重启一次，扫描工具显示的 BLE MAC 地址就变了。 这是不是地址没有保存？会不会导致手机找不到原来的设备？量产时是不是应该给每台设备烧录一个固定 BLE MAC？ 对于 Matter 配网广播，答案恰好相反：每次启动都使用新的随机 BLE 地址，通常才是符合规范的行为。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://onium.top/img/github-avatar.jpg">
+<meta property="article:published_time" content="2026-08-17T06:35:00.000Z">
+<meta property="article:modified_time" content="2026-08-17T06:35:50.963Z">
+<meta property="article:author" content="Oniums">
+<meta property="article:tag" content="Bluetooth LE">
+<meta property="article:tag" content="Commissioning">
+<meta property="article:tag" content="Matter">
+<meta property="article:tag" content="Privacy">
+<meta property="article:tag" content="Random Static Address">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://onium.top/img/github-avatar.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Matter BLE 配网的 MAC 地址为什么每次重启都会变？",
+  "url": "https://onium.top/posts/matter-ble-random-static-address-per-boot/",
+  "image": "https://onium.top/img/github-avatar.jpg",
+  "datePublished": "2026-08-17T06:35:00.000Z",
+  "dateModified": "2026-08-17T06:35:50.963Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Oniums",
+      "url": "https://github.com/Oniums"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/avatar.png"><link rel="canonical" href="https://onium.top/posts/matter-ble-random-static-address-per-boot/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.6.1"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        const data = { value }
+
+        if (ttl != null) {
+          data.expiry = Date.now() + ttl * 86400000
+        }
+
+        localStorage.setItem(key, JSON.stringify(data))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return
+
+        try {
+          const data = JSON.parse(itemStr)
+
+          if (data.expiry && Date.now() > data.expiry) {
+            localStorage.removeItem(key)
+            return
+          }
+
+          return data.value
+        } catch {
+          localStorage.removeItem(key)
+        }
+      }
+    }
+
+    const scriptCache = new Map()
+    const cssCache = new Map()
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => {
+        if (scriptCache.has(url)) {
+          return scriptCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+
+          script.src = url
+          script.async = true
+
+          for (const key in attr) {
+            script.setAttribute(key, attr[key])
+          }
+
+          script.onload = resolve
+          script.onerror = reject
+
+          document.head.appendChild(script)
+        })
+
+        scriptCache.set(url, promise)
+
+        return promise
+      },
+      getCSS: (url, id) => {
+        if (cssCache.has(url)) {
+          return cssCache.get(url)
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+
+          link.rel = 'stylesheet'
+          link.href = url
+
+          if (id) {
+            link.id = id
+          }
+
+          link.onload = resolve
+          link.onerror = reject
+
+          document.head.appendChild(link)
+        })
+
+        cssCache.set(url, promise)
+
+        return promise
+      },
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+      const activateDarkMode = () => {
+        document.documentElement.dataset.theme = 'dark'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#0b1220')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.dataset.theme = 'light'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#f3f6f8')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const start = 6
+              const end = 18
+              const isNight =
+                start < end
+                    ? hour < start || hour >= end
+                    : hour >= start || hour < end
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', e => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/local-search.xml","preload":false,"top_n_per_article":2,"unescape":false,"pagination":{"enable":true,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":true,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'medium_zoom',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Matter BLE 配网的 MAC 地址为什么每次重启都会变？',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/css/custom.css"><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Oniums" type="application/atom+xml">
+</head><body><div class="bg-animation" id="web_bg" style="background-color: #f3f6f8;"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/github-avatar.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">37</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">91</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">9</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><span class="site-page group"><span> 实验室</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/lab/"><i class="fa-fw fas fa-flask"></i><span> 总览</span></a></li><li><a class="site-page child" href="/knowledge/"><i class="fa-fw fas fa-diagram-project"></i><span> 知识库</span></a></li><li><a class="site-page child" href="/experiments/"><i class="fa-fw fas fa-vial"></i><span> 实验记录</span></a></li><li><a class="site-page child" href="/source-reading/"><i class="fa-fw fas fa-code"></i><span> 源码阅读</span></a></li><li><a class="site-page child" href="/debug/"><i class="fa-fw fas fa-bug"></i><span> 调试日志</span></a></li><li><a class="site-page child" href="/failures/"><i class="fa-fw fas fa-triangle-exclamation"></i><span> 失败博物馆</span></a></li><li><a class="site-page child" href="/journey/"><i class="fa-fw fas fa-route"></i><span> 成长路线</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><span> 文章</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-box-archive"></i><span> 归档</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/projects/"><i class="fa-fw fas fa-microchip"></i><span> 项目</span></a></div><div class="menus_item"><a class="site-page" href="/experience/"><i class="fa-fw fas fa-route"></i><span> 经历</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="not-top-img fixed" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Oniums</span></a><a class="nav-page-title" href="/"><span class="site-name">Matter BLE 配网的 MAC 地址为什么每次重启都会变？</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><span class="site-page group"><span> 实验室</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/lab/"><i class="fa-fw fas fa-flask"></i><span> 总览</span></a></li><li><a class="site-page child" href="/knowledge/"><i class="fa-fw fas fa-diagram-project"></i><span> 知识库</span></a></li><li><a class="site-page child" href="/experiments/"><i class="fa-fw fas fa-vial"></i><span> 实验记录</span></a></li><li><a class="site-page child" href="/source-reading/"><i class="fa-fw fas fa-code"></i><span> 源码阅读</span></a></li><li><a class="site-page child" href="/debug/"><i class="fa-fw fas fa-bug"></i><span> 调试日志</span></a></li><li><a class="site-page child" href="/failures/"><i class="fa-fw fas fa-triangle-exclamation"></i><span> 失败博物馆</span></a></li><li><a class="site-page child" href="/journey/"><i class="fa-fw fas fa-route"></i><span> 成长路线</span></a></li></ul></div><div class="menus_item"><span class="site-page group"><span> 文章</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/archives/"><i class="fa-fw fas fa-box-archive"></i><span> 归档</span></a></li><li><a class="site-page child" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></li><li><a class="site-page child" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/projects/"><i class="fa-fw fas fa-microchip"></i><span> 项目</span></a></div><div class="menus_item"><a class="site-page" href="/experience/"><i class="fa-fw fas fa-route"></i><span> 经历</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav></header><main class="layout" id="content-inner"><div id="post"><div id="post-info"><h1 class="post-title">Matter BLE 配网的 MAC 地址为什么每次重启都会变？</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="fa-fw post-meta-icon far fa-calendar-alt"></i><span class="post-meta-label">发表于</span><time datetime="2026-08-17T06:35:00.000Z" title="发表于 2026-08-17 14:35:00">2026-08-17</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%97%A0%E7%BA%BF%E5%8D%8F%E8%AE%AE/">无线协议</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div><article class="container post-content" id="article-container"><div id="post-outdate-notice" data="{&quot;limitDay&quot;:540,&quot;messagePrev&quot;:&quot;本文发布距今已超过&quot;,&quot;messageNext&quot;:&quot;天，工具版本与生态行为可能已经变化。&quot;,&quot;postUpdate&quot;:&quot;2026-08-17 14:35:50&quot;}" hidden></div><p>调试 Matter over Thread 设备时，可能会遇到一个很容易被误判的现象：设备恢复出厂后可以被手机扫描到，但重启一次，扫描工具显示的 BLE MAC 地址就变了。</p>
+<p>这是不是地址没有保存？会不会导致手机找不到原来的设备？量产时是不是应该给每台设备烧录一个固定 BLE MAC？</p>
+<p>对于 Matter 配网广播，答案恰好相反：<strong>每次启动都使用新的随机 BLE 地址，通常才是符合规范的行为。</strong></p>
+<span id="more"></span>
+
+<p>不过，“随机地址”不等于“每次连接都换地址”，也不等于常见的 RPA 定时轮换地址。本文把规范要求、Bluetooth 地址类型、主流参考实现和产品测试方法放到同一条时间线上说明。</p>
+<h2 id="一句话结论"><a href="#一句话结论" class="headerlink" title="一句话结论"></a>一句话结论</h2><p>对于使用 Bluetooth LE 进行发现和配网的 Matter 待配网设备：</p>
+<ul>
+<li>BLE 广播必须使用 <strong>LE Random Device Address</strong>；</li>
+<li>具体使用 Bluetooth 定义的 <strong>Random Static Address</strong>；</li>
+<li>地址必须至少在每次设备启动时更换；</li>
+<li>同一次启动期间，配网重试、断开重连或重新开始广播，不要求再次换地址；</li>
+<li>永久固定的 Public Address，或者跨重启保持不变的“伪随机地址”，都不满足这项 Matter 配网要求。</li>
+</ul>
+<p>因此，更准确的描述不是“每次配网随机一次”，而是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">每次启动生成一个新的 Random Static Address</span><br><span class="line">              ↓</span><br><span class="line">本次启动期间保持稳定</span><br><span class="line">              ↓</span><br><span class="line">下一次启动重新生成</span><br></pre></td></tr></table></figure>
+
+<h2 id="Matter-规范到底要求了什么？"><a href="#Matter-规范到底要求了什么？" class="headerlink" title="Matter 规范到底要求了什么？"></a>Matter 规范到底要求了什么？</h2><p><a target="_blank" rel="noopener" href="https://csa-iot.org/wp-content/uploads/2026/06/23-27349-011_Matter-1.6-Core-Specification.pdf">Matter 1.6 Core Specification</a> 第 5.4.2.5.5 节“Advertising Address”（PDF 第 319 页）给出了两个 <code>SHALL</code> 级要求：</p>
+<ol>
+<li>待配网设备的 BLE 广播使用 LE Random Device Address；</li>
+<li>地址至少在每次启动时更换。</li>
+</ol>
+<p>这里的 <code>SHALL</code> 表示强制要求，不是优化建议。该条款还明确引用 Bluetooth Core Specification 中的 Static Device Address 定义，所以不能只看到“Random Device Address”，就把它理解成任意一种随机地址。</p>
+<p>这项要求属于 Matter 使用 BLE 进行 Commissionable Node Discovery 和配网的场景。Matter over Thread 产品经常采用这条路径，但它并非 Thread 独有：只要 Matter 设备使用 BLE 作为配网通道，就要关注这项要求。</p>
+<h2 id="为什么“Random-Static”既随机又静态？"><a href="#为什么“Random-Static”既随机又静态？" class="headerlink" title="为什么“Random Static”既随机又静态？"></a>为什么“Random Static”既随机又静态？</h2><p>这个名字第一次看很矛盾，其实两个词描述的是不同维度：</p>
+<ul>
+<li><strong>Random</strong>：地址不是永久分配的 Public Address，而是随机生成的 Random Device Address；</li>
+<li><strong>Static</strong>：地址初始化后，在当前启动或电源周期中保持稳定，不进行定时轮换。</li>
+</ul>
+<p>按照 <a target="_blank" rel="noopener" href="https://www.bluetooth.com/wp-content/uploads/Files/Specification/HTML/Core_v6.3/out/en/low-energy-controller/link-layer-specification.html">Bluetooth Core Specification 的 Device Address 定义</a>，Random Device Address 还可以细分为三类：</p>
+<table>
+<thead>
+<tr>
+<th>地址类型</th>
+<th align="right">地址高两位 <code>[47:46]</code></th>
+<th>生命周期特点</th>
+<th>Matter 配网广播是否指定使用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Random Static Address</td>
+<td align="right"><code>11</code></td>
+<td>初始化时随机生成，当前电源周期保持不变</td>
+<td>是</td>
+</tr>
+<tr>
+<td>Resolvable Private Address，RPA</td>
+<td align="right"><code>01</code></td>
+<td>由 IRK 和随机数生成，可周期轮换并被授权设备解析</td>
+<td>否</td>
+</tr>
+<tr>
+<td>Non-resolvable Private Address，NRPA</td>
+<td align="right"><code>00</code></td>
+<td>无法通过 IRK 解析，通常用于更短期的隐私场景</td>
+<td>否</td>
+</tr>
+</tbody></table>
+<p>Public Device Address 则是另一大类，通常来自固定的设备身份分配，不属于 Random Device Address。</p>
+<p>因此，看到扫描工具显示 <code>Random</code> 还不够。要判断 Matter 要求是否真正满足，至少还要确认：</p>
+<ol>
+<li>地址类型确实是 Random Static；</li>
+<li>地址位 <code>[47:46]</code> 为 <code>11</code>；</li>
+<li>当前启动期间地址稳定；</li>
+<li>下一次启动后地址发生变化。</li>
+</ol>
+<h2 id="“每次启动更换”不等于“每次连接更换”"><a href="#“每次启动更换”不等于“每次连接更换”" class="headerlink" title="“每次启动更换”不等于“每次连接更换”"></a>“每次启动更换”不等于“每次连接更换”</h2><p>把地址变更粒度搞错，可能造成两种相反的问题。</p>
+<p>如果地址永远固定，附近观察者就更容易跨时间关联同一台待配网设备，违背 Matter 这里的隐私目标。</p>
+<p>如果地址在同一次启动中频繁变化，手机刚扫描到地址 A，准备连接时设备却已经变成地址 B，也会增加发现、连接和故障恢复的复杂度。Random Static Address 的“Static”正是为了避免这种不稳定。</p>
+<p>常见场景可以这样判断：</p>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>地址是否应变化</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>手机第一次扫描到设备</td>
+<td>使用本次启动生成的地址</td>
+</tr>
+<tr>
+<td>配网连接失败，手机重新扫描和连接</td>
+<td>通常不变</td>
+</tr>
+<tr>
+<td>设备停止后重新开始 Matter 广播，但没有重新启动</td>
+<td>通常不变</td>
+</tr>
+<tr>
+<td>设备重新启动，再次进入待配网状态</td>
+<td>必须换成新的随机地址</td>
+</tr>
+<tr>
+<td>恢复出厂并重新启动</td>
+<td>必须换成新的随机地址</td>
+</tr>
+<tr>
+<td>从 Flash 读取上次保存的 Random Static Address</td>
+<td>跨启动不变，不符合该项要求</td>
+</tr>
+<tr>
+<td>由芯片 UID 确定性计算地址</td>
+<td>即使格式是 Random Static，跨启动不变仍不符合要求</td>
+</tr>
+</tbody></table>
+<h2 id="为什么-Matter-不把-BLE-MAC-当作永久设备身份？"><a href="#为什么-Matter-不把-BLE-MAC-当作永久设备身份？" class="headerlink" title="为什么 Matter 不把 BLE MAC 当作永久设备身份？"></a>为什么 Matter 不把 BLE MAC 当作永久设备身份？</h2><p>BLE 在这里主要解决的是“附近发现并建立临时配网通道”。它不是 Matter 设备投入运行后的长期身份基础。</p>
+<p>典型的 Matter over Thread 首次配网可以简化为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">二维码或手动码</span><br><span class="line">  ↓</span><br><span class="line">通过 Discriminator 缩小待配网设备范围</span><br><span class="line">  ↓</span><br><span class="line">BLE 广播、连接和 BTP 传输</span><br><span class="line">  ↓</span><br><span class="line">PASE 建立临时安全会话</span><br><span class="line">  ↓</span><br><span class="line">设备证明、NOC/Fabric 配置、Thread Dataset</span><br><span class="line">  ↓</span><br><span class="line">设备接入 Thread</span><br><span class="line">  ↓</span><br><span class="line">通过 IPv6 建立 CASE</span><br><span class="line">  ↓</span><br><span class="line">CommissioningComplete</span><br></pre></td></tr></table></figure>
+
+<p>进入正常运行阶段后，Controller 通过 Matter Fabric、Node ID、证书和 CASE 识别并访问设备，通信承载变成 Thread 上的 IPv6。BLE 配网地址不需要承担永久设备索引的职责。</p>
+<p>这也解释了为什么 Commissioner 或手机 App 不应把 BLE MAC 当作 Matter 设备的长期主键。设备重启后，App 应重新扫描待配网广播，并使用 Onboarding Payload、Discriminator 和 Matter Service Data 完成目标匹配。</p>
+<p>还要分清下面几种地址和身份：</p>
+<table>
+<thead>
+<tr>
+<th>名称</th>
+<th>所属层次</th>
+<th>是否受本文这条要求约束</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>待配网设备的 BLE Advertising Address</td>
+<td>Bluetooth LE</td>
+<td>是</td>
+</tr>
+<tr>
+<td>手机或 Commissioner 自己的 BLE 地址</td>
+<td>Bluetooth LE</td>
+<td>不是这条设备侧要求的对象</td>
+</tr>
+<tr>
+<td>Thread Extended Address &#x2F; EUI-64</td>
+<td>IEEE 802.15.4 &#x2F; Thread</td>
+<td>否</td>
+</tr>
+<tr>
+<td>Matter Node ID、Fabric ID、NOC</td>
+<td>Matter</td>
+<td>否</td>
+</tr>
+<tr>
+<td>厂商私有 Device ID</td>
+<td>产品应用协议</td>
+<td>否，但不能替代 Matter 身份</td>
+</tr>
+</tbody></table>
+<h2 id="主流实现通常怎样做？"><a href="#主流实现通常怎样做？" class="headerlink" title="主流实现通常怎样做？"></a>主流实现通常怎样做？</h2><p>没有公开、可信的全市场统计可以证明“多少品牌随机、多少品牌固定”。比市场印象更可靠的证据，是 Matter 开源参考实现和芯片平台适配层。</p>
+<p>在 Project CHIP 当前源码中，可以看到多种平台都围绕“启动时生成 Random Static Address”实现：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/project-chip/connectedhomeip/blob/0f267927e02ce234ec75a7a4970104a73bcc06dc/src/platform/Zephyr/BLEManagerImpl.cpp">Zephyr 平台 BLEManagerImpl</a> 创建 Random Static Identity；</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/project-chip/connectedhomeip/blob/0f267927e02ce234ec75a7a4970104a73bcc06dc/src/platform/ESP32/nimble/BLEManagerImpl.cpp">ESP32 NimBLE BLEManagerImpl</a> 生成并设置新的 Static Random Address；</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/project-chip/connectedhomeip/blob/0f267927e02ce234ec75a7a4970104a73bcc06dc/src/platform/silabs/efr32/BLEManagerImpl.cpp">Silicon Labs EFR32 BLEManagerImpl</a> 特别处理了“同一次启动内重新初始化 BLE 不能误换地址”；</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/project-chip/connectedhomeip/blob/0f267927e02ce234ec75a7a4970104a73bcc06dc/src/platform/bouffalolab/common/BLEManagerImpl.cpp">Bouffalo Lab BLEManagerImpl</a> 直接按 once per boot 生成 Random Static Address。</li>
+</ul>
+<p>这不能代替对每一款量产固件的检查，但足以说明：<strong>主流 Matter SDK 的设计方向是每次启动随机，而不是永久固定。</strong> 很多厂商直接继承芯片平台或 Matter SDK 的默认行为，因此最终产品通常也会表现为重启后 BLE 地址变化。</p>
+<p>如果某台产品一直显示固定地址，可能存在多种原因：</p>
+<ul>
+<li>使用了旧版 SDK 或厂商自己的 BLE 平台层；</li>
+<li>把 Public Address 直接用于 Matter 广播；</li>
+<li>把 Random Static Address 持久化到了 Flash；</li>
+<li>扫描工具显示的是系统解析后的身份，而不是当前空口地址；</li>
+<li>当前看到的是厂商私有 BLE 服务，不是 Matter Commissionable Advertising。</li>
+</ul>
+<p>不能仅凭“地址固定”立即断言整台产品不合格，但它足以触发一次针对实际 Matter 广播的合规检查。</p>
+<h2 id="厂商私有-BLE-OTA-为什么可能需要稳定地址？"><a href="#厂商私有-BLE-OTA-为什么可能需要稳定地址？" class="headerlink" title="厂商私有 BLE OTA 为什么可能需要稳定地址？"></a>厂商私有 BLE OTA 为什么可能需要稳定地址？</h2><p>有些设备除了 Matter 配网，还提供厂商私有 BLE OTA、产测或维护服务。手机 App 可能希望设备重启后仍能被识别，于是产品会设计一个稳定的 BLE Identity。</p>
+<p>这和 Matter 配网地址的目标不同：</p>
+<ul>
+<li>Matter 配网强调临时发现与隐私，要求每次启动更换地址；</li>
+<li>厂商私有服务可能强调重连和设备索引，希望身份稳定。</li>
+</ul>
+<p>工程上不能因为私有 OTA 需要稳定地址，就直接让 Matter 配网广播永久使用同一个 MAC。也不能为了满足 Matter 地址轮换，就让依赖固定 MAC 的私有 App 在升级后失去设备。</p>
+<p>可选设计要结合控制器能力和隐私模型评估，例如：</p>
+<ul>
+<li>为 Matter 配网和私有服务使用不同的 BLE Identity 或 Advertising Set；</li>
+<li>让私有 App 每次重新扫描、重新发现 GATT，而不是缓存旧地址和 Handle；</li>
+<li>在受保护的应用协议中确认设备身份，不把可被长期跟踪的永久标识直接放进明文广播；</li>
+<li>明确规定两种模式何时启用，避免同一个广播同时承担冲突的身份目标。</li>
+</ul>
+<p>这里没有一种适合所有芯片和手机系统的固定答案，但有一个边界很明确：<strong>厂商私有 BLE 需求不能取消 Matter Commissionable Advertising 的规范义务。</strong></p>
+<h2 id="怎样在设备上验证？"><a href="#怎样在设备上验证？" class="headerlink" title="怎样在设备上验证？"></a>怎样在设备上验证？</h2><p>最小验证不需要先做完整 Matter 配网。使用能够显示 BLE 地址类型和原始广播数据的扫描工具，记录多次启动即可。</p>
+<p>建议至少执行下面这组测试：</p>
+<table>
+<thead>
+<tr>
+<th>测试</th>
+<th>操作</th>
+<th>预期结果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>地址类型</td>
+<td>检查 Matter <code>0xFFF6</code> Service Data 对应广播的地址类型</td>
+<td>Random Static</td>
+</tr>
+<tr>
+<td>位格式</td>
+<td>检查地址位 <code>[47:46]</code></td>
+<td><code>11</code></td>
+</tr>
+<tr>
+<td>启动内稳定性</td>
+<td>同一次启动中停止&#x2F;恢复广播、断开并重新扫描</td>
+<td>地址不变</td>
+</tr>
+<tr>
+<td>跨启动随机性</td>
+<td>连续重启设备至少 5 次</td>
+<td>每次地址都不同</td>
+</tr>
+<tr>
+<td>配网匹配</td>
+<td>每次重启后重新扫码和扫描</td>
+<td>Commissioner 仍能选中正确设备</td>
+</tr>
+<tr>
+<td>完整闭环</td>
+<td>完成 PASE、Thread Attach、CASE 和 CommissioningComplete</td>
+<td>地址变化不影响完整配网</td>
+</tr>
+</tbody></table>
+<p>测试记录应同时保存：</p>
+<ul>
+<li>启动序号；</li>
+<li>广播地址和地址类型；</li>
+<li>Matter Service Data；</li>
+<li>Discriminator；</li>
+<li>是否成功建立 BLE 连接和 BTP；</li>
+<li>最终是否到达 CommissioningComplete。</li>
+</ul>
+<p>只看到 MAC 变化，不能证明配网成功；只看到 BLE Connected，也不能证明 PASE、Thread 或 CASE 成功。地址合规和端到端配网是两条相关但独立的证据链。</p>
+<h2 id="实现检查清单"><a href="#实现检查清单" class="headerlink" title="实现检查清单"></a>实现检查清单</h2><p>如果正在开发 Matter 设备，可以用下面的清单快速审查平台层：</p>
+<ul>
+<li><input disabled="" type="checkbox"> 使用密码学安全随机源生成 48-bit 地址的随机部分；</li>
+<li><input disabled="" type="checkbox"> 设置 Random Static Address 规定的高两位；</li>
+<li><input disabled="" type="checkbox"> 排除规范禁止的全 0 或全 1 随机部分；</li>
+<li><input disabled="" type="checkbox"> 在 BLE 广播启动前完成地址初始化；</li>
+<li><input disabled="" type="checkbox"> 同一次启动中不因配网重试或 BLE 子系统重复初始化而换地址；</li>
+<li><input disabled="" type="checkbox"> 不从 Flash 恢复上一次启动的 Matter 配网地址；</li>
+<li><input disabled="" type="checkbox"> 不使用芯片 UID、序列号或量产固定地址确定性生成跨启动地址；</li>
+<li><input disabled="" type="checkbox"> App 不把 BLE MAC 或旧 GATT Handle 当作永久设备身份；</li>
+<li><input disabled="" type="checkbox"> 把 Matter 配网 BLE、厂商私有 BLE 和 Thread 地址分别测试；</li>
+<li><input disabled="" type="checkbox"> 用真实设备记录跨启动地址，而不是只检查配置项或源码。</li>
+</ul>
+<h2 id="最后再记住三个边界"><a href="#最后再记住三个边界" class="headerlink" title="最后再记住三个边界"></a>最后再记住三个边界</h2><ol>
+<li><strong>随机地址是强制要求，不只是隐私建议。</strong></li>
+<li><strong>随机粒度是每次启动，不是每次连接。</strong></li>
+<li><strong>BLE 配网地址不是 Thread 地址，也不是 Matter 的长期设备身份。</strong></li>
+</ol>
+<p>如果调试时发现“设备重启后 BLE MAC 变了”，先不要把它当成数据丢失或 Flash 故障。对于 Matter 配网设备，这往往正是规范要求平台层主动实现的行为。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li>Connectivity Standards Alliance, <a target="_blank" rel="noopener" href="https://csa-iot.org/wp-content/uploads/2026/06/23-27349-011_Matter-1.6-Core-Specification.pdf">Matter 1.6 Core Specification</a>, §5.4.2.5.5, Advertising Address.</li>
+<li>Bluetooth SIG, <a target="_blank" rel="noopener" href="https://www.bluetooth.com/wp-content/uploads/Files/Specification/HTML/Core_v6.3/out/en/low-energy-controller/link-layer-specification.html">Bluetooth Core Specification 6.3, Vol 6, Part B, §1.3.2</a>, Random Device Address.</li>
+<li>Project CHIP, <a target="_blank" rel="noopener" href="https://github.com/project-chip/connectedhomeip/tree/0f267927e02ce234ec75a7a4970104a73bcc06dc">connectedhomeip</a>, BLE platform implementations.</li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a target="_blank" rel="noopener" href="https://github.com/Oniums">Oniums</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://onium.top/posts/matter-ble-random-static-address-per-boot/">https://onium.top/posts/matter-ble-random-static-address-per-boot/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://onium.top" target="_blank">Oniums</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/matter/">Matter</a><a class="post-meta__tags" href="/tags/commissioning/">Commissioning</a><a class="post-meta__tags" href="/tags/bluetooth-le/">Bluetooth LE</a><a class="post-meta__tags" href="/tags/privacy/">Privacy</a><a class="post-meta__tags" href="/tags/random-static-address/">Random Static Address</a></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/posts/matter-thread-commissioning-controller-device-comparison/" title="同一台 Matter over Thread 设备，在 Echo Dot Max、HomePod mini、Google Nest Hub Max 2 和 SmartThings Hub V3 上怎样配网？"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">同一台 Matter over Thread 设备，在 Echo Dot Max、HomePod mini、Google Nest Hub Max 2 和 SmartThings Hub V3 上怎样配网？</div></div><div class="info-2"><div class="info-item-1">同一台 Matter over Thread 设备，分别通过 Echo Dot Max、HomePod mini、Google Nest Hub Max 2 和 SmartThings Hub V3 配网时，设备日志为什么不完全一样？ 实测中，HomePod mini、Google Nest Hub Max 2 和 SmartThings Hub V3 在写入 Matter 运行凭据后，直接把 Thread Operational...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/posts/matter-thread-commissioning-controller-device-comparison/" title="同一台 Matter over Thread 设备，在 Echo Dot Max、HomePod mini、Google Nest Hub Max 2 和 SmartThings Hub V3 上怎样配网？"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-06</div><div class="info-item-2">同一台 Matter over Thread 设备，在 Echo Dot Max、HomePod mini、Google Nest Hub Max 2 和 SmartThings Hub V3 上怎样配网？</div></div><div class="info-2"><div class="info-item-1">同一台 Matter over Thread 设备，分别通过 Echo Dot Max、HomePod mini、Google Nest Hub Max 2 和 SmartThings Hub V3 配网时，设备日志为什么不完全一样？ 实测中，HomePod mini、Google Nest Hub Max 2 和 SmartThings Hub V3 在写入 Matter 运行凭据后，直接把 Thread Operational...</div></div></div></a><a class="pagination-related" href="/posts/alexa-thread-network-key-prompt-analysis/" title="Alexa 为什么会要求输入 Thread Network Key？一次 Matter over Thread 配网故障的分层分析"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-05</div><div class="info-item-2">Alexa 为什么会要求输入 Thread Network Key？一次 Matter over Thread 配网故障的分层分析</div></div><div class="info-2"><div class="info-item-1">使用 Alexa 给一台 Matter over Thread 设备配网时，我遇到了一个很奇怪的页面：Matter 二维码已经扫描完成，Alexa 也显示出了 Thread 网络名称，下一步却要求手工输入一个 32 位的 Thread Network Key。 问题是，Echo 机身、Alexa App 和 Matter 设备标签上都找不到这个 Key。Amazon Forum 上也有人问过完全相同的问题：到底应该去哪里找？   ...</div></div></div></a><a class="pagination-related" href="/posts/apple-home-dual-fabric-commissioning-log-analysis/" title="一次 Apple Home 配网为什么会出现两个 Matter Fabric？从完整日志还原真相"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-08-04</div><div class="info-item-2">一次 Apple Home 配网为什么会出现两个 Matter Fabric？从完整日志还原真相</div></div><div class="info-2"><div class="info-item-1">把一台 Matter over Thread 设备添加到 Apple Home 后，设备重启时打印出了两个 Fabric。与此同时，产品的“配网成功”灯效也连续出现了两次。 这是否意味着一台 HomePod 固定占用两个 Fabric？还是日志重复打印、配网重试，或者设备误入了另一个生态？   一份覆盖首次配网、两次凭据写入和重启恢复的完整设备日志给出了更精确的答案：  在这次实测中，Apple 配网流程确实创建了两个独立的 Ma...</div></div></div></a><a class="pagination-related" href="/posts/matter-over-thread-zigbee-commissioning-comparison/" title="Matter over Thread 入网为什么这么复杂？与 Zigbee 一步一步对照看懂"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-30</div><div class="info-item-2">Matter over Thread 入网为什么这么复杂？与 Zigbee 一步一步对照看懂</div></div><div class="info-2"><div class="info-item-1">Zigbee 设备打开允许加入、搜索网络、获得密钥，似乎就能完成入网。Matter over Thread 为什么还要扫码、连接 Bluetooth LE、建立临时安全通道、验证设备证书、写入长期身份、加入 Thread，再切换到 IP 网络重新连接？ 这些步骤是在把简单问题复杂化，还是在解决不同的问题？   本文跟随一台刚恢复出厂的门磁传感器，从拆箱一直走到 App 能稳定显示“门已打开”或“门已关闭”。每走一步，我们都回答五个...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E5%8F%A5%E8%AF%9D%E7%BB%93%E8%AE%BA"><span class="toc-text">一句话结论</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Matter-%E8%A7%84%E8%8C%83%E5%88%B0%E5%BA%95%E8%A6%81%E6%B1%82%E4%BA%86%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="toc-text">Matter 规范到底要求了什么？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E2%80%9CRandom-Static%E2%80%9D%E6%97%A2%E9%9A%8F%E6%9C%BA%E5%8F%88%E9%9D%99%E6%80%81%EF%BC%9F"><span class="toc-text">为什么“Random Static”既随机又静态？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%80%9C%E6%AF%8F%E6%AC%A1%E5%90%AF%E5%8A%A8%E6%9B%B4%E6%8D%A2%E2%80%9D%E4%B8%8D%E7%AD%89%E4%BA%8E%E2%80%9C%E6%AF%8F%E6%AC%A1%E8%BF%9E%E6%8E%A5%E6%9B%B4%E6%8D%A2%E2%80%9D"><span class="toc-text">“每次启动更换”不等于“每次连接更换”</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88-Matter-%E4%B8%8D%E6%8A%8A-BLE-MAC-%E5%BD%93%E4%BD%9C%E6%B0%B8%E4%B9%85%E8%AE%BE%E5%A4%87%E8%BA%AB%E4%BB%BD%EF%BC%9F"><span class="toc-text">为什么 Matter 不把 BLE MAC 当作永久设备身份？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BB%E6%B5%81%E5%AE%9E%E7%8E%B0%E9%80%9A%E5%B8%B8%E6%80%8E%E6%A0%B7%E5%81%9A%EF%BC%9F"><span class="toc-text">主流实现通常怎样做？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8E%82%E5%95%86%E7%A7%81%E6%9C%89-BLE-OTA-%E4%B8%BA%E4%BB%80%E4%B9%88%E5%8F%AF%E8%83%BD%E9%9C%80%E8%A6%81%E7%A8%B3%E5%AE%9A%E5%9C%B0%E5%9D%80%EF%BC%9F"><span class="toc-text">厂商私有 BLE OTA 为什么可能需要稳定地址？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%8E%E6%A0%B7%E5%9C%A8%E8%AE%BE%E5%A4%87%E4%B8%8A%E9%AA%8C%E8%AF%81%EF%BC%9F"><span class="toc-text">怎样在设备上验证？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E7%8E%B0%E6%A3%80%E6%9F%A5%E6%B8%85%E5%8D%95"><span class="toc-text">实现检查清单</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%80%E5%90%8E%E5%86%8D%E8%AE%B0%E4%BD%8F%E4%B8%89%E4%B8%AA%E8%BE%B9%E7%95%8C"><span class="toc-text">最后再记住三个边界</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-text">参考资料</span></a></li></ol></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"></div><div class="footer_custom_text">&copy; 2026 Oniums · 保持好奇，持续记录。<br><a href="https://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener noreferrer">闽ICP备2021008449号-1</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.6.1"></script><script src="/js/main.js?v=5.6.1"></script><script src="https://cdn.jsdelivr.net/npm/medium-zoom@1.1.0/dist/medium-zoom.min.js"></script><div class="js-pjax"><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.innerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+
+    setTimeout(() => URL.revokeObjectURL(url), 5000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    // Clean up previous event listeners and pending frames
+    if (wrap.__mermaidAbortController) {
+      wrap.__mermaidAbortController.abort()
+      if (wrap.__mermaidRafId) cancelAnimationFrame(wrap.__mermaidRafId)
+    }
+    const ac = new AbortController()
+    wrap.__mermaidAbortController = ac
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+    // Disable default gestures to prevent scroll chaining and pinch-zoom penetration in Chrome
+    svg.style.touchAction = 'none'
+
+    // Cache BoundingClientRect, throttled on scroll to reduce reflow
+    let cachedRect = svg.getBoundingClientRect()
+    let rectDirty = false
+    const markRectDirty = () => { rectDirty = true }
+    window.addEventListener('resize', markRectDirty, { signal: ac.signal })
+    window.addEventListener('scroll', markRectDirty, { signal: ac.signal, capture: true })
+    const getRect = () => {
+      if (rectDirty) {
+        cachedRect = svg.getBoundingClientRect()
+        rectDirty = false
+      }
+      return cachedRect
+    }
+
+    // Precompute clamp bounds from initial viewBox
+    const minW = initVb[2] * 0.1
+    const maxW = initVb[2] * 10
+    const minH = initVb[3] * 0.1
+    const maxH = initVb[3] * 10
+    const clampVb = vb => {
+      const out = vb.slice()
+      out[2] = clamp(out[2], minW, maxW)
+      out[3] = clamp(out[3], minH, maxH)
+      return out
+    }
+
+    // Throttle DOM updates using requestAnimationFrame
+    let pendingVb = null
+    let rafId = null
+    const applyVb = () => {
+      if (pendingVb) {
+        wrap.__mermaidCurViewBox = pendingVb
+        setSvgViewBox(svg, pendingVb)
+        pendingVb = null
+      }
+      rafId = null
+      wrap.__mermaidRafId = null
+    }
+    const setCurVb = vb => {
+      pendingVb = clampVb(vb)
+      if (!rafId) {
+        rafId = requestAnimationFrame(applyVb)
+        wrap.__mermaidRafId = rafId
+      }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      lastPointerX: 0,
+      lastPointerY: 0
+    }
+
+    const onPointerDown = e => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      const curVb = wrap.__mermaidCurViewBox
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      if (state.pointers.size === 1) {
+        state.startVb = curVb.slice()
+        state.lastPointerX = e.clientX
+        state.lastPointerY = e.clientY
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = curVb.slice()
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = state.pointers.values().next().value
+        const dxClient = p.x - state.lastPointerX
+        const dyClient = p.y - state.lastPointerY
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+        const dx = dxClient * (curVb[2] / rect.width)
+        const dy = dyClient * (curVb[3] / rect.height)
+        setCurVb([curVb[0] - dx, curVb[1] - dy, curVb[2], curVb[3]])
+        return
+      }
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const px = curVb[0] + (cx - rect.left) * (curVb[2] / rect.width)
+        const py = curVb[1] + (cy - rect.top) * (curVb[3] / rect.height)
+        setCurVb(zoomAtPoint(state.startVb, factor, px, py))
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      // Release PointerCapture to avoid event capture anomalies
+      if (svg.hasPointerCapture && svg.hasPointerCapture(e.pointerId)) {
+        svg.releasePointerCapture(e.pointerId)
+      }
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+      } else if (state.pointers.size === 1) {
+        const p = state.pointers.values().next().value
+        state.lastPointerX = p.x
+        state.lastPointerY = p.y
+      }
+    }
+
+    const onWheel = e => {
+      // Prevent event bubbling from triggering external scroll
+      e.preventDefault()
+      e.stopPropagation()
+      // Normalize deltaY across deltaMode (Chrome uses pixels, Safari uses lines)
+      let delta = e.deltaY
+      if (e.deltaMode === 1) delta *= 16
+      else if (e.deltaMode === 2) delta *= 400
+
+      // Continuous zoom factor: smoother than fixed 1.1/0.9 steps
+      const zoomFactor = Math.pow(1.001, delta)
+
+      const curVb = wrap.__mermaidCurViewBox
+      const rect = getRect()
+      const px = curVb[0] + (e.clientX - rect.left) * (curVb[2] / rect.width)
+      const py = curVb[1] + (e.clientY - rect.top) * (curVb[3] / rect.height)
+      setCurVb(zoomAtPoint(curVb, zoomFactor, px, py))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (init) setCurVb(init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown, { signal: ac.signal })
+    svg.addEventListener('pointermove', onPointerMove, { signal: ac.signal })
+    svg.addEventListener('pointerup', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('pointercancel', onPointerUpOrCancel, { signal: ac.signal })
+    svg.addEventListener('wheel', onWheel, { passive: false, signal: ac.signal })
+    svg.addEventListener('dblclick', onDblClick, { signal: ac.signal })
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'neutral'
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      // Clean up event listeners before removing old SVG
+      if (item.__mermaidAbortController) {
+        item.__mermaidAbortController.abort()
+      }
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      let config = {}
+      try {
+        config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      } catch (e) {
+        console.warn('[mermaid] failed to parse dataset.config:', e)
+      }
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+      const handleError = err => {
+        console.error(`[mermaid] render failed for block #${index}:`, err)
+        const errorEl = document.createElement('div')
+        errorEl.className = 'mermaid-error'
+        errorEl.textContent = `Mermaid render error: ${err.message || err}`
+        mermaidSrc.insertAdjacentElement('afterend', errorEl)
+      }
+
+      try {
+        const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+        // mermaid v9 and v10 compatibility
+        if (typeof renderFn === 'string') {
+          renderMermaid(renderFn)
+        } else {
+          renderFn.then(({ svg }) => renderMermaid(svg)).catch(handleError)
+        }
+      } catch (err) {
+        handleError(err)
+      }
+    })
+  }
+
+  const codeToMermaid = $article => {
+    const codeMermaidEle = $article.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    const $article = document.getElementById('article-container')
+    if (!$article) return
+
+    if (true) codeToMermaid($article)
+    const $mermaid = $article.querySelectorAll('.mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.16.0/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索协议、固件与工程实践" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.6.1"></script></div></div></body></html>
