@@ -9,7 +9,7 @@
       "status": "method-record",
       "evidence": "public-method-note",
       "privacy": "public",
-      "url": "https://onium.top/debug/dbg-001/"
+      "url": "https://oniums.github.io/debug/dbg-001/"
     },
     {
       "id": "DBG-002",
@@ -18,7 +18,7 @@
       "status": "verified-method",
       "evidence": "public-diagnostic-note",
       "privacy": "public",
-      "url": "https://onium.top/debug/dbg-002/"
+      "url": "https://oniums.github.io/debug/dbg-002/"
     },
     {
       "id": "DBG-003",
@@ -27,7 +27,7 @@
       "status": "method-record",
       "evidence": "public-firmware-note",
       "privacy": "public",
-      "url": "https://onium.top/debug/dbg-003/"
+      "url": "https://oniums.github.io/debug/dbg-003/"
     },
     {
       "id": "DBG-004",
@@ -36,7 +36,7 @@
       "status": "verified-lesson",
       "evidence": "deidentified-technical-note",
       "privacy": "public",
-      "url": "https://onium.top/debug/dbg-004/"
+      "url": "https://oniums.github.io/debug/dbg-004/"
     },
     {
       "id": "DBG-005",
@@ -45,7 +45,7 @@
       "status": "verified-method",
       "evidence": "deidentified-technical-note",
       "privacy": "public",
-      "url": "https://onium.top/debug/dbg-005/"
+      "url": "https://oniums.github.io/debug/dbg-005/"
     },
     {
       "id": "EXP-001",
@@ -54,7 +54,7 @@
       "status": "design-record",
       "evidence": "public-design-note",
       "privacy": "public",
-      "url": "https://onium.top/experiments/exp-001/"
+      "url": "https://oniums.github.io/experiments/exp-001/"
     },
     {
       "id": "EXP-002",
@@ -63,7 +63,7 @@
       "status": "method-record",
       "evidence": "public-build-method",
       "privacy": "public",
-      "url": "https://onium.top/experiments/exp-002/"
+      "url": "https://oniums.github.io/experiments/exp-002/"
     },
     {
       "id": "EXP-004",
@@ -72,7 +72,7 @@
       "status": "design-record",
       "evidence": "deidentified-technical-note",
       "privacy": "public",
-      "url": "https://onium.top/experiments/exp-004/"
+      "url": "https://oniums.github.io/experiments/exp-004/"
     },
     {
       "id": "FAILURE-001",
@@ -81,7 +81,7 @@
       "status": "verified-lesson",
       "evidence": "public-protocol-note",
       "privacy": "public",
-      "url": "https://onium.top/failures/failure-001/"
+      "url": "https://oniums.github.io/failures/failure-001/"
     },
     {
       "id": "FAILURE-002",
@@ -90,7 +90,7 @@
       "status": "verified-lesson",
       "evidence": "public-diagnostic-note",
       "privacy": "public",
-      "url": "https://onium.top/failures/failure-002/"
+      "url": "https://oniums.github.io/failures/failure-002/"
     },
     {
       "id": "FAILURE-003",
@@ -99,7 +99,7 @@
       "status": "verified-lesson",
       "evidence": "deidentified-technical-note",
       "privacy": "public",
-      "url": "https://onium.top/failures/failure-003/"
+      "url": "https://oniums.github.io/failures/failure-003/"
     },
     {
       "id": "source-reading/openthread-attach",
@@ -108,7 +108,7 @@
       "status": "planned",
       "evidence": "public-protocol-map",
       "privacy": "public",
-      "url": "https://onium.top/source-reading/openthread-attach/"
+      "url": "https://oniums.github.io/source-reading/openthread-attach/"
     },
     {
       "id": "source-reading/zigbee-nwk-aps-zcl",
@@ -117,7 +117,7 @@
       "status": "planned",
       "evidence": "deidentified-technical-note",
       "privacy": "public",
-      "url": "https://onium.top/source-reading/zigbee-nwk-aps-zcl/"
+      "url": "https://oniums.github.io/source-reading/zigbee-nwk-aps-zcl/"
     }
   ]
 }

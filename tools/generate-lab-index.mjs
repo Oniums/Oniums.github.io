@@ -44,7 +44,7 @@ const entries = labRoots.flatMap((root) =>
         status: fields.status || "unspecified",
         evidence: fields.evidence || "unspecified",
         privacy: fields.privacy || "unspecified",
-        url: `https://onium.top/${route}/`
+        url: `https://oniums.github.io/${route}/`
       };
     })
 );

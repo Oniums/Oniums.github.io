@@ -3,7 +3,6 @@ import path from "node:path";
 
 const publicDir = path.resolve("public");
 const requiredFiles = [
-  "CNAME",
   "index.html",
   "404.html",
   "about/index.html",
@@ -82,6 +81,7 @@ const requiredFiles = [
   "posts/smartthings-edge-zigbee-driver-development/index.html",
   "posts/smartthings-edge-driver-channel-invitation-workflow/index.html"
 ];
+const forbiddenFiles = ["CNAME"];
 
 const requiredContent = [
   { file: "categories/index.html", marker: 'class="category-lists"' },
@@ -176,6 +176,9 @@ function resolveLocalReference(htmlFile, reference) {
 const missingRequired = requiredFiles.filter(
   (file) => !existsSync(path.join(publicDir, file))
 );
+const presentForbidden = forbiddenFiles.filter((file) =>
+  existsSync(path.join(publicDir, file))
+);
 const missingRequiredContent = requiredContent.filter(({ file, marker }) => {
   const target = path.join(publicDir, file);
   return !existsSync(target) || !readFileSync(target, "utf8").includes(marker);
@@ -221,6 +224,7 @@ for (const htmlFile of htmlFiles) {
 
 const failures = [
   ...missingRequired.map((file) => `缺少构建产物: ${file}`),
+  ...presentForbidden.map((file) => `发现不应发布的文件: ${file}`),
   ...missingRequiredContent.map(
     ({ file }) => `页面缺少预期内容: ${file}`
   ),

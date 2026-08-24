@@ -1,4 +1,4 @@
-const siteOrigin = "https://onium.top";
+const siteOrigin = "https://oniums.github.io";
 
 const typeLabels = {
   experiment: "Experiment",
