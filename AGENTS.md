@@ -9,10 +9,10 @@
 
 ## Intent And Completion
 
-- “写文章” or “整理成教程”: use the discussion and established site context to prepare the article here, de-identify it, add relevant links, and verify generated pages. No public push is implied.
+- Standing authorization (2026-09-10): “写博客”, “写文章” or “整理成教程” defaults to preparing the article here, de-identifying it, verifying generated pages, then committing, pushing `main`, and verifying Pages plus the live article. Do not repeatedly ask for publication approval.
 - “先看大纲” or an explicit request for review only: provide that reviewable result without expanding into a full article or publication.
 - “发布到博客” or “推送上线”: after content/privacy checks, commit only the authorized source and its generated output, push the blog branch, and verify Pages plus the live article. Preserve any explicit narrower instruction.
-- Before asking about publication, finish all draft preparation already authorized. If unrelated local commits or edits would be published, stop at that specific boundary and report it; do not publish them incidentally.
+- Explicit draft-only, outline-only, review-only or no-push requests override the standing publication authorization. If unrelated local commits or edits would be published, stop at that specific boundary and report it; do not publish them incidentally.
 - In the final response, distinguish local draft, checks passed, committed, pushed, and live verification. Do not label a local build as published.
 
 ## Content And Verification

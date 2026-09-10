@@ -29,3 +29,7 @@ maintained  已形成可复用长期笔记
 ```
 
 知识树会继续扩展，但不会把节点简单等同于文章分类。
+
+## 配网排障案例
+
+- [BLE 已连接，Matter 配网为什么还卡住？](/posts/matter-ble-connected-stale-discovery-pase-analysis/)：从双端日志区分 BLE 建链与通道选择，追踪旧 DNS-SD 记录、UDP PASE 和恢复出厂前服务撤销的边界。

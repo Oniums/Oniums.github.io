@@ -2,7 +2,7 @@
 
 Oniums 的个人博客，使用 Hexo 和 Butterfly 构建，通过 GitHub Pages 发布。
 
-AI 协作与交付规则见 [AGENTS.md](AGENTS.md)，配套入口为 [CLAUDE.md](CLAUDE.md)。写文章默认完成仓内稿件和页面检查；明确要求发布时，再提交、推送并验证线上结果。
+AI 协作与交付规则见 [AGENTS.md](AGENTS.md)，配套入口为 [CLAUDE.md](CLAUDE.md)。自 2026-09-10 起，写博客默认完成脱敏、页面检查、提交、推送和线上验证，不重复询问发布；明确要求仅草稿、仅大纲、先审阅或不推送时，遵守更窄范围。
 
 ## 本地使用
 
