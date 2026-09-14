@@ -31,6 +31,7 @@ Hexo 首先把生成结果写入 `public/`，站点检查通过后，再由受�
 - `source/about/`：个人介绍
 - `source/experience/`：匿名化工作经历
 - `source/projects/`：项目与实践方向
+- `source/playground/commissioning/`：配网过程播放器，独立静态页面；`scenarios.js` 定义教学场景，`player.js` 控制播放与状态回看，`player.css` 定义界面。通过 Lab 总览进入；`skip_render` 保留原始模块文件。
 - `_config.yml`：Hexo 配置
 - `_config.butterfly.yml`：当前 Butterfly 主题覆盖配置
 - `_config.fluid.yml`：旧 Fluid 主题配置，仅保留为回退参考

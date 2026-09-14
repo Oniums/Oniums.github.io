@@ -9,6 +9,10 @@ const requiredFiles = [
   "experience/index.html",
   "projects/index.html",
   "lab/index.html",
+  "playground/commissioning/index.html",
+  "playground/commissioning/player.css",
+  "playground/commissioning/player.js",
+  "playground/commissioning/scenarios.js",
   "knowledge/index.html",
   "experiments/index.html",
   "source-reading/index.html",
@@ -86,6 +90,7 @@ const requiredFiles = [
 const forbiddenFiles = ["CNAME"];
 
 const requiredContent = [
+  { file: "playground/commissioning/index.html", marker: 'id="commissioning-player"' },
   { file: "categories/index.html", marker: 'class="category-lists"' },
   { file: "tags/index.html", marker: 'class="tag-cloud-list' },
   { file: "experiments/exp-001/index.html", marker: 'application/ld+json' },
@@ -189,7 +194,7 @@ const missingRequiredContent = requiredContent.filter(({ file, marker }) => {
 const generatedFiles = walk(publicDir);
 const htmlFiles = generatedFiles.filter((file) => file.endsWith(".html"));
 const scannableFiles = generatedFiles.filter((file) =>
-  /\.(?:html|xml|json|txt)$/i.test(file)
+  /\.(?:html|xml|json|txt|js)$/i.test(file)
 );
 const brokenReferences = [];
 const forbiddenMatches = [];

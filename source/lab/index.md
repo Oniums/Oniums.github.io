@@ -31,6 +31,7 @@ description: Oniums Lab：嵌入式协议、低功耗设备与固件调试实验
 ## 近期公开入口
 
 <div class="lab-link-list">
+  <a href="/playground/commissioning/"><strong>交互实验 · 配网过程播放器</strong><span>播放 Matter over Thread 首次配网，切换故障，逐步查看状态与证据。</span></a>
   <a href="/posts/matter-over-thread-zigbee-commissioning-comparison/"><strong>Matter over Thread 与 ZigBee 入网对照</strong><span>从协议分层和成功锚点开始理解差异。</span></a>
   <a href="/posts/wireshark-thread-packet-capture/"><strong>Wireshark + Thread 抓包</strong><span>把信道活动推进到协议阶段分析。</span></a>
   <a href="/posts/debugging-with-an-evidence-chain/"><strong>从日志到协议阶段</strong><span>建立嵌入式排障的证据链。</span></a>

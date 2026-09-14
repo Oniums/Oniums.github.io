@@ -802,9 +802,9 @@
             
             <tag> Thread </tag>
             
-            <tag> IPv6 </tag>
-            
             <tag> OpenThread </tag>
+            
+            <tag> IPv6 </tag>
             
             <tag> Border Router </tag>
             
@@ -1081,9 +1081,9 @@
             
             <tag> Thread </tag>
             
-            <tag> OpenThread </tag>
-            
             <tag> Wireshark </tag>
+            
+            <tag> OpenThread </tag>
             
             <tag> 抓包 </tag>
             
@@ -1283,18 +1283,7 @@
       <link href="/about/index.html"/>
       <url>/about/index.html</url>
       
-        <content type="html"><![CDATA[<div class="profile-lead">  <p class="profile-eyebrow">EMBEDDED FIRMWARE ENGINEER</p>  <p>我是一名常驻深圳的嵌入式固件开发者，拥有 4 年智能家居与新能源设备开发经验，关注低功耗设备、无线连接协议和可靠工程交付。</p></div><div class="fact-grid">  <div class="fact-card"><span>所在地</span><strong>深圳</strong></div>  <div class="fact-card"><span>年龄 / 性别</span><strong>25 岁 / 男</strong></div>  <div class="fact-card"><span>学历</span><strong>本科 · 物联网工程</strong></div>  <div class="fact-card"><span>经验方向</span><strong>固件 · 无线连接</strong></div></div><h2 id="我如何工作"><a href="#我如何工作" class="headerlink" title="我如何工作"></a>我如何工作</h2><p>我喜欢把复杂问题拆开：先确认系统处于哪个阶段，再用代码、日志、抓包和构建结果建立证据链。比起快速给出一个听起来合理的答案，我更在意结论是否能够复现、验证和复用。</p><p>工作内容覆盖需求分析、驱动与应用开发、低功耗设计、无线协议接入、升级链路、软硬件联调、问题诊断、量产支持和工程文档。我也参与新人带教与团队技术协作。</p><h2 id="技术栈"><a href="#技术栈" class="headerlink" title="技术栈"></a>技术栈</h2><div class="skill-cloud">  <span>C</span><span>FreeRTOS</span><span>Zephyr</span><span>Linux</span>  <span>Matter</span><span>Thread</span><span>Zigbee</span><span>BLE</span>  <span>Wi-Fi</span><span>MQTT</span><span>LVGL</span><span>MCUboot</span>  <span>Git</span><span>CMake</span><span>Python</span><span>Qt</span></div><p>常用芯片平台包括 Telink TL3238x、TLSR8656、TLSR9218 &#x2F; TLSR9518、Realtek RTL8722W、Synwit SWM341、STM32、ESP32 &#x2F; ESP8266 和 Nuvoton MCU。</p><h2 id="教育经历"><a href="#教育经历" class="headerlink" title="教育经历"></a>教育经历</h2><p><strong>广州软件学院 · 物联网工程 · 本科</strong></p><p>2018 - 2022</p><h2 id="联系方式"><a href="#联系方式" class="headerlink" title="联系方式"></a>联系方式</h2><ul><li>邮箱：<a href="mailto:&#x32;&#51;&#55;&#x37;&#57;&#49;&#x39;&#x34;&#57;&#64;&#x71;&#113;&#x2e;&#99;&#x6f;&#x6d;">237791949@qq.com</a></li><li>GitHub：<a href="https://github.com/Oniums">github.com&#x2F;Oniums</a></li></ul><blockquote><p>这个站点只展示适合公开的经历与技术总结。涉及具体项目时，会移除公司身份、产品型号、内部流程、设备身份数据和安全材料。</p></blockquote>]]></content>
-      
-    </entry>
-    
-    
-    
-    <entry>
-      <title>Debug Diary</title>
-      <link href="/debug/index.html"/>
-      <url>/debug/index.html</url>
-      
-        <content type="html"><![CDATA[<div class="lab-page-lead"><p class="lab-eyebrow">DEBUG DIARY</p><h1>不要只记录“修好了”。</h1><p>调试记录的价值在于保留思考路径：什么现象支持了什么假设，又是什么证据让它被推翻。</p></div><div class="lab-record-grid">  <a class="lab-record-card" href="/debug/dbg-001/"><span class="lab-record-id">DBG-001 · 方法记录</span><h2>从日志到协议阶段</h2><p>建立现象、阶段、证据和结论之间的排障链路。</p><span class="lab-card-link">查看调试记录 →</span></a>  <a class="lab-record-card" href="/debug/dbg-002/"><span class="lab-record-id">DBG-002 · 已验证方法</span><h2>Zephyr 构建仍引用旧 SDK</h2><p>从第一条真实错误定位到构建缓存和 CMake 配置快照。</p><span class="lab-card-link">查看调试记录 →</span></a>  <a class="lab-record-card" href="/debug/dbg-003/"><span class="lab-record-id">DBG-003 · 方法记录</span><h2>GPIO 快速跳变与 ISR 延后处理</h2><p>区分中断响应、去抖和后续业务处理的职责边界。</p><span class="lab-card-link">查看调试记录 →</span></a>  <a class="lab-record-card" href="/debug/dbg-004/"><span class="lab-record-id">DBG-004 · 已验证经验</span><h2>Parent Loss、Leave 与 Rejoin</h2><p>区分休眠终端父节点丢失、远程 Leave 和恢复出厂。</p><span class="lab-card-link">查看调试记录 →</span></a>  <a class="lab-record-card" href="/debug/dbg-005/"><span class="lab-record-id">DBG-005 · 已验证方法</span><h2>有 MAC ACK 但没有 ZCL Response</h2><p>从链路层确认推进到 APS Endpoint 和 ZCL 分发。</p><span class="lab-card-link">查看调试记录 →</span></a></div>]]></content>
+        <content type="html"><![CDATA[<div class="profile-lead">  <p class="profile-eyebrow">EMBEDDED FIRMWARE ENGINEER</p>  <p>我是一名常驻深圳的嵌入式固件开发者，拥有 4 年智能家居与新能源设备开发经验，关注低功耗设备、无线连接协议和可靠工程交付。</p></div><div class="fact-grid">  <div class="fact-card"><span>所在地</span><strong>深圳</strong></div>  <div class="fact-card"><span>年龄 / 性别</span><strong>25 岁 / 男</strong></div>  <div class="fact-card"><span>学历</span><strong>本科 · 物联网工程</strong></div>  <div class="fact-card"><span>经验方向</span><strong>固件 · 无线连接</strong></div></div><h2 id="我如何工作"><a href="#我如何工作" class="headerlink" title="我如何工作"></a>我如何工作</h2><p>我喜欢把复杂问题拆开：先确认系统处于哪个阶段，再用代码、日志、抓包和构建结果建立证据链。比起快速给出一个听起来合理的答案，我更在意结论是否能够复现、验证和复用。</p><p>工作内容覆盖需求分析、驱动与应用开发、低功耗设计、无线协议接入、升级链路、软硬件联调、问题诊断、量产支持和工程文档。我也参与新人带教与团队技术协作。</p><h2 id="技术栈"><a href="#技术栈" class="headerlink" title="技术栈"></a>技术栈</h2><div class="skill-cloud">  <span>C</span><span>FreeRTOS</span><span>Zephyr</span><span>Linux</span>  <span>Matter</span><span>Thread</span><span>Zigbee</span><span>BLE</span>  <span>Wi-Fi</span><span>MQTT</span><span>LVGL</span><span>MCUboot</span>  <span>Git</span><span>CMake</span><span>Python</span><span>Qt</span></div><p>常用芯片平台包括 Telink TL3238x、TLSR8656、TLSR9218 &#x2F; TLSR9518、Realtek RTL8722W、Synwit SWM341、STM32、ESP32 &#x2F; ESP8266 和 Nuvoton MCU。</p><h2 id="教育经历"><a href="#教育经历" class="headerlink" title="教育经历"></a>教育经历</h2><p><strong>广州软件学院 · 物联网工程 · 本科</strong></p><p>2018 - 2022</p><h2 id="联系方式"><a href="#联系方式" class="headerlink" title="联系方式"></a>联系方式</h2><ul><li>邮箱：<a href="mailto:&#50;&#x33;&#55;&#55;&#57;&#x31;&#x39;&#52;&#57;&#x40;&#x71;&#113;&#x2e;&#x63;&#x6f;&#109;">237791949@qq.com</a></li><li>GitHub：<a href="https://github.com/Oniums">github.com&#x2F;Oniums</a></li></ul><blockquote><p>这个站点只展示适合公开的经历与技术总结。涉及具体项目时，会移除公司身份、产品型号、内部流程、设备身份数据和安全材料。</p></blockquote>]]></content>
       
     </entry>
     
@@ -1306,6 +1295,17 @@
       <url>/categories/index.html</url>
       
         <content type="html"><![CDATA[]]></content>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Debug Diary</title>
+      <link href="/debug/index.html"/>
+      <url>/debug/index.html</url>
+      
+        <content type="html"><![CDATA[<div class="lab-page-lead"><p class="lab-eyebrow">DEBUG DIARY</p><h1>不要只记录“修好了”。</h1><p>调试记录的价值在于保留思考路径：什么现象支持了什么假设，又是什么证据让它被推翻。</p></div><div class="lab-record-grid">  <a class="lab-record-card" href="/debug/dbg-001/"><span class="lab-record-id">DBG-001 · 方法记录</span><h2>从日志到协议阶段</h2><p>建立现象、阶段、证据和结论之间的排障链路。</p><span class="lab-card-link">查看调试记录 →</span></a>  <a class="lab-record-card" href="/debug/dbg-002/"><span class="lab-record-id">DBG-002 · 已验证方法</span><h2>Zephyr 构建仍引用旧 SDK</h2><p>从第一条真实错误定位到构建缓存和 CMake 配置快照。</p><span class="lab-card-link">查看调试记录 →</span></a>  <a class="lab-record-card" href="/debug/dbg-003/"><span class="lab-record-id">DBG-003 · 方法记录</span><h2>GPIO 快速跳变与 ISR 延后处理</h2><p>区分中断响应、去抖和后续业务处理的职责边界。</p><span class="lab-card-link">查看调试记录 →</span></a>  <a class="lab-record-card" href="/debug/dbg-004/"><span class="lab-record-id">DBG-004 · 已验证经验</span><h2>Parent Loss、Leave 与 Rejoin</h2><p>区分休眠终端父节点丢失、远程 Leave 和恢复出厂。</p><span class="lab-card-link">查看调试记录 →</span></a>  <a class="lab-record-card" href="/debug/dbg-005/"><span class="lab-record-id">DBG-005 · 已验证方法</span><h2>有 MAC ACK 但没有 ZCL Response</h2><p>从链路层确认推进到 APS Endpoint 和 ZCL 分发。</p><span class="lab-card-link">查看调试记录 →</span></a></div>]]></content>
       
     </entry>
     
@@ -1334,17 +1334,6 @@
     
     
     <entry>
-      <title>Experiments</title>
-      <link href="/experiments/index.html"/>
-      <url>/experiments/index.html</url>
-      
-        <content type="html"><![CDATA[<div class="lab-page-lead"><p class="lab-eyebrow">EXPERIMENT LOG</p><h1>让结论带着数据回来。</h1><p>实验记录不只写最终结果，还要保留目的、假设、环境、参数、数据和限制。</p></div><div class="lab-record-grid">  <a class="lab-record-card" href="/experiments/exp-001/"><span class="lab-record-id">EXP-001 · 设计记录</span><h2>环境光单次采样与低功耗取舍</h2><p>从 IRQ、单次采样和唤醒窗口观察传感器功能与功耗之间的取舍。</p><span class="lab-card-link">查看实验记录 →</span></a>  <a class="lab-record-card" href="/experiments/exp-002/"><span class="lab-record-id">EXP-002 · 方法记录</span><h2>多镜像构建类型配对</h2><p>验证 Debug / Release 变体配对以及最终合并字节的一致性。</p><span class="lab-card-link">查看实验记录 →</span></a>  <a class="lab-record-card" href="/experiments/exp-004/"><span class="lab-record-id">EXP-004 · 设计记录</span><h2>Poll Interval 与设备可达性</h2><p>把静态配置、运行时状态、电流波形和应用响应放进同一条证据链。</p><span class="lab-card-link">查看实验记录 →</span></a>  <a class="lab-record-card" href="/posts/wireshark-thread-packet-capture/"><span class="lab-record-id">EXP-003 · 候选</span><h2>Thread 抓包协议阶段时间线</h2><p>把无线信道上的帧推进到 MLE、Attach 和网络可达性的阶段判断。</p><span class="lab-card-link">查看基础记录 →</span></a></div><blockquote><p>这里的“候选”表示已有公开文章入口，后续会补充结构化实验参数和数据，不代表所有文章已经是完整实验报告。</p></blockquote>]]></content>
-      
-    </entry>
-    
-    
-    
-    <entry>
       <title>Failure Museum</title>
       <link href="/failures/index.html"/>
       <url>/failures/index.html</url>
@@ -1356,11 +1345,11 @@
     
     
     <entry>
-      <title>Learning Journey</title>
-      <link href="/journey/index.html"/>
-      <url>/journey/index.html</url>
+      <title>Experiments</title>
+      <link href="/experiments/index.html"/>
+      <url>/experiments/index.html</url>
       
-        <content type="html"><![CDATA[<div class="lab-page-lead"><p class="lab-eyebrow">LEARNING JOURNEY</p><h1>把成长变成可以回看的路线。</h1><p>这不是按天打卡，而是记录从概念模型到可验证工程能力的阶段变化。</p></div><div class="journey-timeline">  <article><span>01</span><div><h2>协议基础</h2><p>建立 Matter、Thread 与 ZigBee 的分层、角色和安全边界。</p><b>进行中</b></div></article>  <article><span>02</span><div><h2>工程实践</h2><p>把构建、入网、低功耗、数据模型和升级问题放进真实设备流程。</p><b>进行中</b></div></article>  <article><span>03</span><div><h2>证据化调试</h2><p>用代码、日志、抓包和构建产物确认协议阶段，而不是依赖直觉。</p><b>进行中</b></div></article>  <article><span>04</span><div><h2>源码与长期积累</h2><p>沿调用链阅读系统，并把实验、失败和修复过程变成可复用知识。</p><b>计划中</b></div></article></div>]]></content>
+        <content type="html"><![CDATA[<div class="lab-page-lead"><p class="lab-eyebrow">EXPERIMENT LOG</p><h1>让结论带着数据回来。</h1><p>实验记录不只写最终结果，还要保留目的、假设、环境、参数、数据和限制。</p></div><div class="lab-record-grid">  <a class="lab-record-card" href="/experiments/exp-001/"><span class="lab-record-id">EXP-001 · 设计记录</span><h2>环境光单次采样与低功耗取舍</h2><p>从 IRQ、单次采样和唤醒窗口观察传感器功能与功耗之间的取舍。</p><span class="lab-card-link">查看实验记录 →</span></a>  <a class="lab-record-card" href="/experiments/exp-002/"><span class="lab-record-id">EXP-002 · 方法记录</span><h2>多镜像构建类型配对</h2><p>验证 Debug / Release 变体配对以及最终合并字节的一致性。</p><span class="lab-card-link">查看实验记录 →</span></a>  <a class="lab-record-card" href="/experiments/exp-004/"><span class="lab-record-id">EXP-004 · 设计记录</span><h2>Poll Interval 与设备可达性</h2><p>把静态配置、运行时状态、电流波形和应用响应放进同一条证据链。</p><span class="lab-card-link">查看实验记录 →</span></a>  <a class="lab-record-card" href="/posts/wireshark-thread-packet-capture/"><span class="lab-record-id">EXP-003 · 候选</span><h2>Thread 抓包协议阶段时间线</h2><p>把无线信道上的帧推进到 MLE、Attach 和网络可达性的阶段判断。</p><span class="lab-card-link">查看基础记录 →</span></a></div><blockquote><p>这里的“候选”表示已有公开文章入口，后续会补充结构化实验参数和数据，不代表所有文章已经是完整实验报告。</p></blockquote>]]></content>
       
     </entry>
     
@@ -1378,11 +1367,11 @@
     
     
     <entry>
-      <title>项目与实践</title>
-      <link href="/projects/index.html"/>
-      <url>/projects/index.html</url>
+      <title>Learning Journey</title>
+      <link href="/journey/index.html"/>
+      <url>/journey/index.html</url>
       
-        <content type="html"><![CDATA[<p>这里展示我负责或深度参与过的代表性工作。为了保持公开边界，项目使用功能描述，不展示公司名称、产品型号、私有源码和内部实现。</p><div class="project-grid">  <article class="project-card project-card-featured">    <p class="project-kicker">SMART HOME · 2025 - 至今</p>    <h2>低功耗门磁与人体感知设备</h2>    <p>面向智能家居的低功耗传感设备，覆盖 Matter over Thread 与 Zigbee 两条产品路径。负责从需求、驱动和应用开发，到入网、低功耗、OTA、状态机、双镜像构建及量产问题定位。</p>    <div class="project-tags"><span>TL3238x</span><span>Zephyr</span><span>Matter</span><span>OpenThread</span><span>Zigbee</span><span>MCUboot</span></div>  </article>  <article class="project-card">    <p class="project-kicker">SMART HOME · 2025</p>    <h2>低功耗无线场景控制器</h2>    <p>负责多按键无线控制设备的固件开发与量产交付，完成低功耗设计、TouchLink 配对、多生态兼容和多通道升级能力，并参与产测方案与工程文档建设。</p>    <div class="project-tags"><span>TLSR8656</span><span>Zigbee</span><span>BLE</span><span>TouchLink</span><span>OTA</span></div>  </article>  <article class="project-card">    <p class="project-kicker">SMART HOME · 2025 - 2026</p>    <h2>24 GHz 人体存在检测设备</h2>    <p>开发路由型人体存在检测设备，完成雷达模块接入、空间学习、干扰过滤、分区检测、无线升级与智能家居联动，支持复杂环境下的稳定检测。</p>    <div class="project-tags"><span>TLSR8656</span><span>Zigbee Router</span><span>24 GHz Radar</span><span>BLE OTA</span></div>  </article>  <article class="project-card">    <p class="project-kicker">SMART HOME · EMBEDDED EXAMPLES</p>    <h2>安防、报警与环境感知设备</h2>    <p>围绕门磁、PIR、报警器等设备积累 Zigbee 终端开发经验，覆盖 ZCL 数据模型、IAS Zone、属性与命令、休眠终端、上报、入网和认证测试问题定位。</p>    <div class="project-tags"><span>TLSR8656</span><span>ZCL</span><span>IAS Zone</span><span>Sleepy End Device</span></div>  </article>  <article class="project-card">    <p class="project-kicker">HVAC · 2023 - 2025</p>    <h2>无线与有线温控器平台</h2>    <p>参与多 MCU 温控器的固件适配和发布，负责外设、LCD 与 LVGL 界面、无线通信、模块间串口协议和软硬件联调，覆盖从项目开发到量产的完整周期。</p>    <div class="project-tags"><span>RTL8722W</span><span>TLSR9218 / 9518</span><span>SWM341</span><span>LVGL</span><span>Wi-Fi</span><span>Zigbee</span></div>  </article>  <article class="project-card">    <p class="project-kicker">EV CHARGING · 2022 - 2023</p>    <h2>交流充电设备固件平台</h2>    <p>负责应用架构、通信链路、运行模式、非易失存储和远程升级能力，参与现场问题诊断、生产支持与技术文档输出，并开发桌面分析工具提升报文排查效率。</p>    <div class="project-tags"><span>STM32</span><span>Nuvoton</span><span>4G</span><span>Ethernet</span><span>CAN / RS485</span><span>IAP</span></div>  </article>  <article class="project-card">    <p class="project-kicker">ENGINEERING PRACTICE</p>    <h2>构建、诊断与交付工具</h2>    <p>把多镜像构建、制品校验、日志分析、协议抓包和持续集成整理成可重复执行的工作流；使用 Qt、Python 与 Wireshark 辅助定位设备和通信问题。</p>    <div class="project-tags"><span>CMake</span><span>Git</span><span>CI</span><span>Qt</span><span>Python</span><span>Wireshark</span></div>  </article></div><h2 id="早期项目"><a href="#早期项目" class="headerlink" title="早期项目"></a>早期项目</h2><ul><li>基于 STM32F103、微信小程序与 Spring Boot 的智能盆栽毕业设计；</li><li>基于 CC2530 的智能家居实验项目；</li><li>微信小程序、Java 与智能合约方向的课程和个人练习。</li></ul><p>部分早期代码保留在 <a href="https://github.com/Oniums">GitHub</a>，作为学习过程的历史记录。</p><h2 id="工作方法"><a href="#工作方法" class="headerlink" title="工作方法"></a>工作方法</h2><p>项目之外，我持续把一次性的排障过程整理成可以复用的判断方法。公开文章会保持产品中立，并明确区分事实、推断和待验证项。</p>]]></content>
+        <content type="html"><![CDATA[<div class="lab-page-lead"><p class="lab-eyebrow">LEARNING JOURNEY</p><h1>把成长变成可以回看的路线。</h1><p>这不是按天打卡，而是记录从概念模型到可验证工程能力的阶段变化。</p></div><div class="journey-timeline">  <article><span>01</span><div><h2>协议基础</h2><p>建立 Matter、Thread 与 ZigBee 的分层、角色和安全边界。</p><b>进行中</b></div></article>  <article><span>02</span><div><h2>工程实践</h2><p>把构建、入网、低功耗、数据模型和升级问题放进真实设备流程。</p><b>进行中</b></div></article>  <article><span>03</span><div><h2>证据化调试</h2><p>用代码、日志、抓包和构建产物确认协议阶段，而不是依赖直觉。</p><b>进行中</b></div></article>  <article><span>04</span><div><h2>源码与长期积累</h2><p>沿调用链阅读系统，并把实验、失败和修复过程变成可复用知识。</p><b>计划中</b></div></article></div>]]></content>
       
     </entry>
     
@@ -1393,7 +1382,18 @@
       <link href="/lab/index.html"/>
       <url>/lab/index.html</url>
       
-        <content type="html"><![CDATA[<section class="lab-hero">  <p class="lab-eyebrow">ONIUMS LAB · ENGINEERING KNOWLEDGE SYSTEM</p>  <h1>持续实验，持续验证，持续积累。</h1>  <p>这里不只是文章归档，而是一个围绕 Matter、Thread、ZigBee、Zephyr 和嵌入式工程实践持续成长的个人技术实验室。</p></section><div class="lab-status-grid">  <div><span>当前研究</span><strong>协议分层 · 低功耗 · 证据化调试</strong></div>  <div><span>记录方式</span><strong>知识 · 实验 · 源码 · 失败</strong></div>  <div><span>公开原则</span><strong>脱敏、可验证、可迁移</strong></div></div><div class="lab-module-grid">  <a class="lab-module-card" href="/knowledge/"><span class="lab-module-icon">01</span><h2>Knowledge</h2><p>把协议、系统和工程概念组织成可扩展的知识地图。</p><span class="lab-card-link">进入知识库 →</span></a>  <a class="lab-module-card" href="/experiments/"><span class="lab-module-icon">02</span><h2>Experiments</h2><p>记录实验目的、参数、数据、结论和后续问题。</p><span class="lab-card-link">查看实验记录 →</span></a>  <a class="lab-module-card" href="/source-reading/"><span class="lab-module-icon">03</span><h2>Source Reading</h2><p>沿着调用链阅读 OpenThread、Zephyr 和 Matter 相关模块。</p><span class="lab-card-link">查看阅读路线 →</span></a>  <a class="lab-module-card" href="/debug/"><span class="lab-module-icon">04</span><h2>Debug Diary</h2><p>保留现象、假设、验证、根因和修复过程。</p><span class="lab-card-link">查看调试日志 →</span></a>  <a class="lab-module-card" href="/failures/"><span class="lab-module-icon">05</span><h2>Failure Museum</h2><p>记录错误判断如何被证据推翻，并提炼可迁移经验。</p><span class="lab-card-link">进入失败博物馆 →</span></a>  <a class="lab-module-card" href="/journey/"><span class="lab-module-icon">06</span><h2>Learning Journey</h2><p>记录从概念学习、工程实践到源码阅读的成长路径。</p><span class="lab-card-link">查看成长路线 →</span></a></div><h2 id="近期公开入口"><a href="#近期公开入口" class="headerlink" title="近期公开入口"></a>近期公开入口</h2><div class="lab-link-list">  <a href="/posts/matter-over-thread-zigbee-commissioning-comparison/"><strong>Matter over Thread 与 ZigBee 入网对照</strong><span>从协议分层和成功锚点开始理解差异。</span></a>  <a href="/posts/wireshark-thread-packet-capture/"><strong>Wireshark + Thread 抓包</strong><span>把信道活动推进到协议阶段分析。</span></a>  <a href="/posts/debugging-with-an-evidence-chain/"><strong>从日志到协议阶段</strong><span>建立嵌入式排障的证据链。</span></a></div><blockquote><p>Lab 页面会持续增加内容，但所有私人资料都必须经过人工分类、脱敏和公开审查后才会进入本站。</p></blockquote>]]></content>
+        <content type="html"><![CDATA[<section class="lab-hero">  <p class="lab-eyebrow">ONIUMS LAB · ENGINEERING KNOWLEDGE SYSTEM</p>  <h1>持续实验，持续验证，持续积累。</h1>  <p>这里不只是文章归档，而是一个围绕 Matter、Thread、ZigBee、Zephyr 和嵌入式工程实践持续成长的个人技术实验室。</p></section><div class="lab-status-grid">  <div><span>当前研究</span><strong>协议分层 · 低功耗 · 证据化调试</strong></div>  <div><span>记录方式</span><strong>知识 · 实验 · 源码 · 失败</strong></div>  <div><span>公开原则</span><strong>脱敏、可验证、可迁移</strong></div></div><div class="lab-module-grid">  <a class="lab-module-card" href="/knowledge/"><span class="lab-module-icon">01</span><h2>Knowledge</h2><p>把协议、系统和工程概念组织成可扩展的知识地图。</p><span class="lab-card-link">进入知识库 →</span></a>  <a class="lab-module-card" href="/experiments/"><span class="lab-module-icon">02</span><h2>Experiments</h2><p>记录实验目的、参数、数据、结论和后续问题。</p><span class="lab-card-link">查看实验记录 →</span></a>  <a class="lab-module-card" href="/source-reading/"><span class="lab-module-icon">03</span><h2>Source Reading</h2><p>沿着调用链阅读 OpenThread、Zephyr 和 Matter 相关模块。</p><span class="lab-card-link">查看阅读路线 →</span></a>  <a class="lab-module-card" href="/debug/"><span class="lab-module-icon">04</span><h2>Debug Diary</h2><p>保留现象、假设、验证、根因和修复过程。</p><span class="lab-card-link">查看调试日志 →</span></a>  <a class="lab-module-card" href="/failures/"><span class="lab-module-icon">05</span><h2>Failure Museum</h2><p>记录错误判断如何被证据推翻，并提炼可迁移经验。</p><span class="lab-card-link">进入失败博物馆 →</span></a>  <a class="lab-module-card" href="/journey/"><span class="lab-module-icon">06</span><h2>Learning Journey</h2><p>记录从概念学习、工程实践到源码阅读的成长路径。</p><span class="lab-card-link">查看成长路线 →</span></a></div><h2 id="近期公开入口"><a href="#近期公开入口" class="headerlink" title="近期公开入口"></a>近期公开入口</h2><div class="lab-link-list">  <a href="/playground/commissioning/"><strong>交互实验 · 配网过程播放器</strong><span>播放 Matter over Thread 首次配网，切换故障，逐步查看状态与证据。</span></a>  <a href="/posts/matter-over-thread-zigbee-commissioning-comparison/"><strong>Matter over Thread 与 ZigBee 入网对照</strong><span>从协议分层和成功锚点开始理解差异。</span></a>  <a href="/posts/wireshark-thread-packet-capture/"><strong>Wireshark + Thread 抓包</strong><span>把信道活动推进到协议阶段分析。</span></a>  <a href="/posts/debugging-with-an-evidence-chain/"><strong>从日志到协议阶段</strong><span>建立嵌入式排障的证据链。</span></a></div><blockquote><p>Lab 页面会持续增加内容，但所有私人资料都必须经过人工分类、脱敏和公开审查后才会进入本站。</p></blockquote>]]></content>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>项目与实践</title>
+      <link href="/projects/index.html"/>
+      <url>/projects/index.html</url>
+      
+        <content type="html"><![CDATA[<p>这里展示我负责或深度参与过的代表性工作。为了保持公开边界，项目使用功能描述，不展示公司名称、产品型号、私有源码和内部实现。</p><div class="project-grid">  <article class="project-card project-card-featured">    <p class="project-kicker">SMART HOME · 2025 - 至今</p>    <h2>低功耗门磁与人体感知设备</h2>    <p>面向智能家居的低功耗传感设备，覆盖 Matter over Thread 与 Zigbee 两条产品路径。负责从需求、驱动和应用开发，到入网、低功耗、OTA、状态机、双镜像构建及量产问题定位。</p>    <div class="project-tags"><span>TL3238x</span><span>Zephyr</span><span>Matter</span><span>OpenThread</span><span>Zigbee</span><span>MCUboot</span></div>  </article>  <article class="project-card">    <p class="project-kicker">SMART HOME · 2025</p>    <h2>低功耗无线场景控制器</h2>    <p>负责多按键无线控制设备的固件开发与量产交付，完成低功耗设计、TouchLink 配对、多生态兼容和多通道升级能力，并参与产测方案与工程文档建设。</p>    <div class="project-tags"><span>TLSR8656</span><span>Zigbee</span><span>BLE</span><span>TouchLink</span><span>OTA</span></div>  </article>  <article class="project-card">    <p class="project-kicker">SMART HOME · 2025 - 2026</p>    <h2>24 GHz 人体存在检测设备</h2>    <p>开发路由型人体存在检测设备，完成雷达模块接入、空间学习、干扰过滤、分区检测、无线升级与智能家居联动，支持复杂环境下的稳定检测。</p>    <div class="project-tags"><span>TLSR8656</span><span>Zigbee Router</span><span>24 GHz Radar</span><span>BLE OTA</span></div>  </article>  <article class="project-card">    <p class="project-kicker">SMART HOME · EMBEDDED EXAMPLES</p>    <h2>安防、报警与环境感知设备</h2>    <p>围绕门磁、PIR、报警器等设备积累 Zigbee 终端开发经验，覆盖 ZCL 数据模型、IAS Zone、属性与命令、休眠终端、上报、入网和认证测试问题定位。</p>    <div class="project-tags"><span>TLSR8656</span><span>ZCL</span><span>IAS Zone</span><span>Sleepy End Device</span></div>  </article>  <article class="project-card">    <p class="project-kicker">HVAC · 2023 - 2025</p>    <h2>无线与有线温控器平台</h2>    <p>参与多 MCU 温控器的固件适配和发布，负责外设、LCD 与 LVGL 界面、无线通信、模块间串口协议和软硬件联调，覆盖从项目开发到量产的完整周期。</p>    <div class="project-tags"><span>RTL8722W</span><span>TLSR9218 / 9518</span><span>SWM341</span><span>LVGL</span><span>Wi-Fi</span><span>Zigbee</span></div>  </article>  <article class="project-card">    <p class="project-kicker">EV CHARGING · 2022 - 2023</p>    <h2>交流充电设备固件平台</h2>    <p>负责应用架构、通信链路、运行模式、非易失存储和远程升级能力，参与现场问题诊断、生产支持与技术文档输出，并开发桌面分析工具提升报文排查效率。</p>    <div class="project-tags"><span>STM32</span><span>Nuvoton</span><span>4G</span><span>Ethernet</span><span>CAN / RS485</span><span>IAP</span></div>  </article>  <article class="project-card">    <p class="project-kicker">ENGINEERING PRACTICE</p>    <h2>构建、诊断与交付工具</h2>    <p>把多镜像构建、制品校验、日志分析、协议抓包和持续集成整理成可重复执行的工作流；使用 Qt、Python 与 Wireshark 辅助定位设备和通信问题。</p>    <div class="project-tags"><span>CMake</span><span>Git</span><span>CI</span><span>Qt</span><span>Python</span><span>Wireshark</span></div>  </article></div><h2 id="早期项目"><a href="#早期项目" class="headerlink" title="早期项目"></a>早期项目</h2><ul><li>基于 STM32F103、微信小程序与 Spring Boot 的智能盆栽毕业设计；</li><li>基于 CC2530 的智能家居实验项目；</li><li>微信小程序、Java 与智能合约方向的课程和个人练习。</li></ul><p>部分早期代码保留在 <a href="https://github.com/Oniums">GitHub</a>，作为学习过程的历史记录。</p><h2 id="工作方法"><a href="#工作方法" class="headerlink" title="工作方法"></a>工作方法</h2><p>项目之外，我持续把一次性的排障过程整理成可以复用的判断方法。公开文章会保持产品中立，并明确区分事实、推断和待验证项。</p>]]></content>
       
     </entry>
     
@@ -1422,6 +1422,17 @@
     
     
     <entry>
+      <title>DBG-002 Zephyr 构建引用旧 SDK</title>
+      <link href="/debug/dbg-002/index.html"/>
+      <url>/debug/dbg-002/index.html</url>
+      
+        <content type="html"><![CDATA[<div class="lab-record-header"><span class="lab-record-id">DBG-002 · VERIFIED METHOD</span><h1>Zephyr 构建仍引用旧 SDK</h1><p>当构建日志指向已经失效的 SDK 路径时，第一检查对象应该是明确的构建目录和 CMake 缓存。</p></div><h2 id="现象"><a href="#现象" class="headerlink" title="现象"></a>现象</h2><p>切换 SDK、工作区或 worktree 后，构建仍引用旧路径，甚至在真正编译产品源码前就失败。</p><h2 id="排查顺序"><a href="#排查顺序" class="headerlink" title="排查顺序"></a>排查顺序</h2><ol><li>找到第一条真实错误；</li><li>判断失败发生在 pristine、CMake、Kconfig、编译、链接还是打包；</li><li>检查 <code>CMakeCache.txt</code> 中的 SDK、Board 和 Toolchain 路径；</li><li>确认现有产物不是旧构建留下的假成功；</li><li>只删除明确的项目生成目录后重新配置。</li></ol><h2 id="根因模式"><a href="#根因模式" class="headerlink" title="根因模式"></a>根因模式</h2><p>构建目录是一次 SDK、Board、Toolchain 和 Kconfig 组合的配置快照。只替换源码或环境变量，不会自动让旧 build tree 变成另一套配置。</p><h2 id="关联内容"><a href="#关联内容" class="headerlink" title="关联内容"></a>关联内容</h2><ul><li><a href="/posts/zephyr-stale-build-cache/">Zephyr 构建仍引用旧 SDK：缓存污染的定位与修复</a></li><li><a href="/failures/">Failure Museum</a></li></ul><script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"DBG-002 Zephyr 构建引用旧 SDK","description":"区分 Zephyr 源码问题与构建目录缓存污染。","url":"https://oniums.github.io/debug/dbg-002/","mainEntityOfPage":{"@type":"WebPage","@id":"https://oniums.github.io/debug/dbg-002/"},"author":{"@type":"Person","name":"Oniums","url":"https://oniums.github.io/about/"},"isPartOf":{"@type":"CollectionPage","name":"Debug Diary","url":"https://oniums.github.io/debug/"},"additionalProperty":[{"@type":"PropertyValue","name":"contentType","value":"debug"},{"@type":"PropertyValue","name":"status","value":"verified-method"},{"@type":"PropertyValue","name":"evidence","value":"public-diagnostic-note"},{"@type":"PropertyValue","name":"privacy","value":"public"}]}</script>]]></content>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>DBG-001 从日志到协议阶段</title>
       <link href="/debug/dbg-001/index.html"/>
       <url>/debug/dbg-001/index.html</url>
@@ -1433,11 +1444,11 @@
     
     
     <entry>
-      <title>DBG-002 Zephyr 构建引用旧 SDK</title>
-      <link href="/debug/dbg-002/index.html"/>
-      <url>/debug/dbg-002/index.html</url>
+      <title>DBG-003 GPIO 快速跳变与 ISR 延后处理</title>
+      <link href="/debug/dbg-003/index.html"/>
+      <url>/debug/dbg-003/index.html</url>
       
-        <content type="html"><![CDATA[<div class="lab-record-header"><span class="lab-record-id">DBG-002 · VERIFIED METHOD</span><h1>Zephyr 构建仍引用旧 SDK</h1><p>当构建日志指向已经失效的 SDK 路径时，第一检查对象应该是明确的构建目录和 CMake 缓存。</p></div><h2 id="现象"><a href="#现象" class="headerlink" title="现象"></a>现象</h2><p>切换 SDK、工作区或 worktree 后，构建仍引用旧路径，甚至在真正编译产品源码前就失败。</p><h2 id="排查顺序"><a href="#排查顺序" class="headerlink" title="排查顺序"></a>排查顺序</h2><ol><li>找到第一条真实错误；</li><li>判断失败发生在 pristine、CMake、Kconfig、编译、链接还是打包；</li><li>检查 <code>CMakeCache.txt</code> 中的 SDK、Board 和 Toolchain 路径；</li><li>确认现有产物不是旧构建留下的假成功；</li><li>只删除明确的项目生成目录后重新配置。</li></ol><h2 id="根因模式"><a href="#根因模式" class="headerlink" title="根因模式"></a>根因模式</h2><p>构建目录是一次 SDK、Board、Toolchain 和 Kconfig 组合的配置快照。只替换源码或环境变量，不会自动让旧 build tree 变成另一套配置。</p><h2 id="关联内容"><a href="#关联内容" class="headerlink" title="关联内容"></a>关联内容</h2><ul><li><a href="/posts/zephyr-stale-build-cache/">Zephyr 构建仍引用旧 SDK：缓存污染的定位与修复</a></li><li><a href="/failures/">Failure Museum</a></li></ul><script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"DBG-002 Zephyr 构建引用旧 SDK","description":"区分 Zephyr 源码问题与构建目录缓存污染。","url":"https://oniums.github.io/debug/dbg-002/","mainEntityOfPage":{"@type":"WebPage","@id":"https://oniums.github.io/debug/dbg-002/"},"author":{"@type":"Person","name":"Oniums","url":"https://oniums.github.io/about/"},"isPartOf":{"@type":"CollectionPage","name":"Debug Diary","url":"https://oniums.github.io/debug/"},"additionalProperty":[{"@type":"PropertyValue","name":"contentType","value":"debug"},{"@type":"PropertyValue","name":"status","value":"verified-method"},{"@type":"PropertyValue","name":"evidence","value":"public-diagnostic-note"},{"@type":"PropertyValue","name":"privacy","value":"public"}]}</script>]]></content>
+        <content type="html"><![CDATA[<div class="lab-record-header"><span class="lab-record-id">DBG-003 · METHOD RECORD</span><h1>GPIO 快速跳变与 ISR 延后处理</h1><p>快速 GPIO 事件的可靠处理重点不是把所有逻辑塞进 ISR，而是保留最小事件并在后续上下文完成判断。</p></div><h2 id="排查问题"><a href="#排查问题" class="headerlink" title="排查问题"></a>排查问题</h2><ul><li>ISR 是否只做必要的硬件读取和事件记录？</li><li>去抖是在中断上下文、工作队列还是状态机中完成？</li><li>快速连续事件是否会覆盖、丢失或重复消费？</li><li>低功耗唤醒和 GPIO 电平状态是否改变了事件语义？</li></ul><h2 id="当前收获"><a href="#当前收获" class="headerlink" title="当前收获"></a>当前收获</h2><p>要分别验证“中断到达”“事件入队”“去抖完成”和“业务状态变化”，不能只用最终上报结果推断中间阶段都成功。</p><h2 id="关联内容"><a href="#关联内容" class="headerlink" title="关联内容"></a>关联内容</h2><ul><li><a href="/posts/gpio-isr-deferred-processing/">GPIO 快速跳变优化：让 ISR 只做必须做的事</a></li><li><a href="/debug/">Debug Diary</a></li></ul><script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"DBG-003 GPIO 快速跳变与 ISR 延后处理","description":"把 GPIO 中断响应、去抖和后续业务处理拆成不同阶段。","url":"https://oniums.github.io/debug/dbg-003/","mainEntityOfPage":{"@type":"WebPage","@id":"https://oniums.github.io/debug/dbg-003/"},"author":{"@type":"Person","name":"Oniums","url":"https://oniums.github.io/about/"},"isPartOf":{"@type":"CollectionPage","name":"Debug Diary","url":"https://oniums.github.io/debug/"},"additionalProperty":[{"@type":"PropertyValue","name":"contentType","value":"debug"},{"@type":"PropertyValue","name":"status","value":"method-record"},{"@type":"PropertyValue","name":"evidence","value":"public-firmware-note"},{"@type":"PropertyValue","name":"privacy","value":"public"}]}</script>]]></content>
       
     </entry>
     
@@ -1455,11 +1466,22 @@
     
     
     <entry>
-      <title>DBG-003 GPIO 快速跳变与 ISR 延后处理</title>
-      <link href="/debug/dbg-003/index.html"/>
-      <url>/debug/dbg-003/index.html</url>
+      <title>EXP-001 环境光传感器采样策略</title>
+      <link href="/experiments/exp-001/index.html"/>
+      <url>/experiments/exp-001/index.html</url>
       
-        <content type="html"><![CDATA[<div class="lab-record-header"><span class="lab-record-id">DBG-003 · METHOD RECORD</span><h1>GPIO 快速跳变与 ISR 延后处理</h1><p>快速 GPIO 事件的可靠处理重点不是把所有逻辑塞进 ISR，而是保留最小事件并在后续上下文完成判断。</p></div><h2 id="排查问题"><a href="#排查问题" class="headerlink" title="排查问题"></a>排查问题</h2><ul><li>ISR 是否只做必要的硬件读取和事件记录？</li><li>去抖是在中断上下文、工作队列还是状态机中完成？</li><li>快速连续事件是否会覆盖、丢失或重复消费？</li><li>低功耗唤醒和 GPIO 电平状态是否改变了事件语义？</li></ul><h2 id="当前收获"><a href="#当前收获" class="headerlink" title="当前收获"></a>当前收获</h2><p>要分别验证“中断到达”“事件入队”“去抖完成”和“业务状态变化”，不能只用最终上报结果推断中间阶段都成功。</p><h2 id="关联内容"><a href="#关联内容" class="headerlink" title="关联内容"></a>关联内容</h2><ul><li><a href="/posts/gpio-isr-deferred-processing/">GPIO 快速跳变优化：让 ISR 只做必须做的事</a></li><li><a href="/debug/">Debug Diary</a></li></ul><script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"DBG-003 GPIO 快速跳变与 ISR 延后处理","description":"把 GPIO 中断响应、去抖和后续业务处理拆成不同阶段。","url":"https://oniums.github.io/debug/dbg-003/","mainEntityOfPage":{"@type":"WebPage","@id":"https://oniums.github.io/debug/dbg-003/"},"author":{"@type":"Person","name":"Oniums","url":"https://oniums.github.io/about/"},"isPartOf":{"@type":"CollectionPage","name":"Debug Diary","url":"https://oniums.github.io/debug/"},"additionalProperty":[{"@type":"PropertyValue","name":"contentType","value":"debug"},{"@type":"PropertyValue","name":"status","value":"method-record"},{"@type":"PropertyValue","name":"evidence","value":"public-firmware-note"},{"@type":"PropertyValue","name":"privacy","value":"public"}]}</script>]]></content>
+        <content type="html"><![CDATA[<div class="lab-record-header"><span class="lab-record-id">EXP-001 · DESIGN RECORD</span><h1>环境光传感器：IRQ 一定更省电吗？</h1><p>本条目把一篇低功耗设计文章转换成实验记录格式。当前是设计记录和验证计划，不代表已经完成具体硬件实测。</p></div><h2 id="实验目的"><a href="#实验目的" class="headerlink" title="实验目的"></a>实验目的</h2><p>判断以下三种方案在不同业务目标下的适用边界：</p><ol><li>Single-shot &#x2F; Forced Mode；</li><li>MCU 定时按需采样；</li><li>连续测量加阈值 IRQ。</li></ol><h2 id="假设"><a href="#假设" class="headerlink" title="假设"></a>假设</h2><p>对于只需周期性获得 lux 值的电池设备，传感器按需 Active 后回到 Standby，通常比长期连续 Active 更适合作为低功耗基线。需要快速响应明暗变化时，连续 IRQ 可能是合理的产品取舍，但不能直接称为低功耗方案。</p><h2 id="示例参数"><a href="#示例参数" class="headerlink" title="示例参数"></a>示例参数</h2><p>以下参数来自公开文章中的占空比估算，仅用于说明测量方法，不是某台设备的实测结果：</p><table><thead><tr><th>参数</th><th align="right">示例值</th></tr></thead><tbody><tr><td>Active 电流</td><td align="right">266 µA</td></tr><tr><td>Standby 电流</td><td align="right">5 µA</td></tr><tr><td>采样周期</td><td align="right">5 s</td></tr><tr><td>单次 Active 时间</td><td align="right">25 ms &#x2F; 55 ms</td></tr></tbody></table><h2 id="应记录的数据"><a href="#应记录的数据" class="headerlink" title="应记录的数据"></a>应记录的数据</h2><ul><li>传感器电源轨平均电流；</li><li>MCU 输入端平均电流；</li><li>采样完成延迟；</li><li>事件触发响应时间；</li><li>I2C 错误、超时和回 Standby 成功率；</li><li>光照稳定、阈值附近和快速变化三种场景。</li></ul><h2 id="当前结论"><a href="#当前结论" class="headerlink" title="当前结论"></a>当前结论</h2><p>公开设计推导支持“先比较占空比和传感器工作模式”的方向，但还不能证明某个具体器件或整机的最终功耗。下一步应使用相同硬件比较固定周期、事件优先和连续 IRQ 三组 profile。</p><h2 id="关联内容"><a href="#关联内容" class="headerlink" title="关联内容"></a>关联内容</h2><ul><li><a href="/posts/ambient-light-sensor-low-power-sampling/">环境光传感器：IRQ、单次采样与低功耗取舍</a></li><li><a href="/experiments/">Oniums Lab 实验记录</a></li></ul><script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"EXP-001 环境光传感器采样策略","description":"比较单次采样、连续阈值监测和 MCU 定时采样在功耗与响应速度上的取舍。","url":"https://oniums.github.io/experiments/exp-001/","mainEntityOfPage":{"@type":"WebPage","@id":"https://oniums.github.io/experiments/exp-001/"},"author":{"@type":"Person","name":"Oniums","url":"https://oniums.github.io/about/"},"isPartOf":{"@type":"CollectionPage","name":"Experiment","url":"https://oniums.github.io/experiments/"},"additionalProperty":[{"@type":"PropertyValue","name":"contentType","value":"experiment"},{"@type":"PropertyValue","name":"status","value":"design-record"},{"@type":"PropertyValue","name":"evidence","value":"public-design-note"},{"@type":"PropertyValue","name":"privacy","value":"public"}]}</script>]]></content>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>EXP-004 Poll Interval 与设备可达性</title>
+      <link href="/experiments/exp-004/index.html"/>
+      <url>/experiments/exp-004/index.html</url>
+      
+        <content type="html"><![CDATA[<div class="lab-record-header"><span class="lab-record-id">EXP-004 · DESIGN RECORD</span><h1>Poll Interval 变化是否真的改善可达性？</h1><p>低功耗设备可能在空闲时慢轮询、发生网络活动时快轮询。实验需要同时观察配置、运行时状态、电流和消息闭环。</p></div><h2 id="实验目的"><a href="#实验目的" class="headerlink" title="实验目的"></a>实验目的</h2><p>验证以下问题是否能够被独立证明：</p><ul><li>设备是否确实进入了低功耗终端模式；</li><li>空闲状态与活动状态是否使用不同 Poll Interval；</li><li>快速轮询是否缩短了消息到达延迟；</li><li>配置存在是否等于运行时状态机已经接管；</li><li>设备可达性是否最终闭环到应用响应。</li></ul><h2 id="测量矩阵"><a href="#测量矩阵" class="headerlink" title="测量矩阵"></a>测量矩阵</h2><table><thead><tr><th>阶段</th><th>必要观察</th></tr></thead><tbody><tr><td>构建</td><td>最终配置和相关符号</td></tr><tr><td>数据模型</td><td>设备是否暴露对应能力</td></tr><tr><td>运行时</td><td>Idle &#x2F; Active 状态切换</td></tr><tr><td>Thread</td><td>Poll Interval 实际变化</td></tr><tr><td>功耗</td><td>睡眠电流和唤醒波形</td></tr><tr><td>应用</td><td>请求、确认、响应和超时</td></tr></tbody></table><h2 id="当前结论"><a href="#当前结论" class="headerlink" title="当前结论"></a>当前结论</h2><p>静态配置只能证明“系统具备某项能力”，不能证明运行时已经动态切换。功耗尖峰也不能单独证明是哪一层设置了 Poll Interval。决定性实验应把设备日志、空口时间线和电流波形对齐。</p><h2 id="关联内容"><a href="#关联内容" class="headerlink" title="关联内容"></a>关联内容</h2><ul><li><a href="/posts/thread-foundations/">Thread 基础概念</a></li><li><a href="/posts/wireshark-thread-packet-capture/">Wireshark + Thread 抓包</a></li><li><a href="/experiments/">Oniums Lab 实验记录</a></li></ul><script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"EXP-004 Poll Interval 与设备可达性","description":"区分低功耗设备的静态 Poll 配置、运行时快慢状态和最终可达性证据。","url":"https://oniums.github.io/experiments/exp-004/","mainEntityOfPage":{"@type":"WebPage","@id":"https://oniums.github.io/experiments/exp-004/"},"author":{"@type":"Person","name":"Oniums","url":"https://oniums.github.io/about/"},"isPartOf":{"@type":"CollectionPage","name":"Experiment","url":"https://oniums.github.io/experiments/"},"additionalProperty":[{"@type":"PropertyValue","name":"contentType","value":"experiment"},{"@type":"PropertyValue","name":"status","value":"design-record"},{"@type":"PropertyValue","name":"evidence","value":"deidentified-technical-note"},{"@type":"PropertyValue","name":"privacy","value":"public"}]}</script>]]></content>
       
     </entry>
     
@@ -1488,17 +1510,6 @@
     
     
     <entry>
-      <title>EXP-004 Poll Interval 与设备可达性</title>
-      <link href="/experiments/exp-004/index.html"/>
-      <url>/experiments/exp-004/index.html</url>
-      
-        <content type="html"><![CDATA[<div class="lab-record-header"><span class="lab-record-id">EXP-004 · DESIGN RECORD</span><h1>Poll Interval 变化是否真的改善可达性？</h1><p>低功耗设备可能在空闲时慢轮询、发生网络活动时快轮询。实验需要同时观察配置、运行时状态、电流和消息闭环。</p></div><h2 id="实验目的"><a href="#实验目的" class="headerlink" title="实验目的"></a>实验目的</h2><p>验证以下问题是否能够被独立证明：</p><ul><li>设备是否确实进入了低功耗终端模式；</li><li>空闲状态与活动状态是否使用不同 Poll Interval；</li><li>快速轮询是否缩短了消息到达延迟；</li><li>配置存在是否等于运行时状态机已经接管；</li><li>设备可达性是否最终闭环到应用响应。</li></ul><h2 id="测量矩阵"><a href="#测量矩阵" class="headerlink" title="测量矩阵"></a>测量矩阵</h2><table><thead><tr><th>阶段</th><th>必要观察</th></tr></thead><tbody><tr><td>构建</td><td>最终配置和相关符号</td></tr><tr><td>数据模型</td><td>设备是否暴露对应能力</td></tr><tr><td>运行时</td><td>Idle &#x2F; Active 状态切换</td></tr><tr><td>Thread</td><td>Poll Interval 实际变化</td></tr><tr><td>功耗</td><td>睡眠电流和唤醒波形</td></tr><tr><td>应用</td><td>请求、确认、响应和超时</td></tr></tbody></table><h2 id="当前结论"><a href="#当前结论" class="headerlink" title="当前结论"></a>当前结论</h2><p>静态配置只能证明“系统具备某项能力”，不能证明运行时已经动态切换。功耗尖峰也不能单独证明是哪一层设置了 Poll Interval。决定性实验应把设备日志、空口时间线和电流波形对齐。</p><h2 id="关联内容"><a href="#关联内容" class="headerlink" title="关联内容"></a>关联内容</h2><ul><li><a href="/posts/thread-foundations/">Thread 基础概念</a></li><li><a href="/posts/wireshark-thread-packet-capture/">Wireshark + Thread 抓包</a></li><li><a href="/experiments/">Oniums Lab 实验记录</a></li></ul><script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"EXP-004 Poll Interval 与设备可达性","description":"区分低功耗设备的静态 Poll 配置、运行时快慢状态和最终可达性证据。","url":"https://oniums.github.io/experiments/exp-004/","mainEntityOfPage":{"@type":"WebPage","@id":"https://oniums.github.io/experiments/exp-004/"},"author":{"@type":"Person","name":"Oniums","url":"https://oniums.github.io/about/"},"isPartOf":{"@type":"CollectionPage","name":"Experiment","url":"https://oniums.github.io/experiments/"},"additionalProperty":[{"@type":"PropertyValue","name":"contentType","value":"experiment"},{"@type":"PropertyValue","name":"status","value":"design-record"},{"@type":"PropertyValue","name":"evidence","value":"deidentified-technical-note"},{"@type":"PropertyValue","name":"privacy","value":"public"}]}</script>]]></content>
-      
-    </entry>
-    
-    
-    
-    <entry>
       <title>Failure-001 相似名词不等于相同协议</title>
       <link href="/failures/failure-001/index.html"/>
       <url>/failures/failure-001/index.html</url>
@@ -1510,11 +1521,11 @@
     
     
     <entry>
-      <title>EXP-001 环境光传感器采样策略</title>
-      <link href="/experiments/exp-001/index.html"/>
-      <url>/experiments/exp-001/index.html</url>
+      <title>Failure-002 构建缓存问题不一定是源码问题</title>
+      <link href="/failures/failure-002/index.html"/>
+      <url>/failures/failure-002/index.html</url>
       
-        <content type="html"><![CDATA[<div class="lab-record-header"><span class="lab-record-id">EXP-001 · DESIGN RECORD</span><h1>环境光传感器：IRQ 一定更省电吗？</h1><p>本条目把一篇低功耗设计文章转换成实验记录格式。当前是设计记录和验证计划，不代表已经完成具体硬件实测。</p></div><h2 id="实验目的"><a href="#实验目的" class="headerlink" title="实验目的"></a>实验目的</h2><p>判断以下三种方案在不同业务目标下的适用边界：</p><ol><li>Single-shot &#x2F; Forced Mode；</li><li>MCU 定时按需采样；</li><li>连续测量加阈值 IRQ。</li></ol><h2 id="假设"><a href="#假设" class="headerlink" title="假设"></a>假设</h2><p>对于只需周期性获得 lux 值的电池设备，传感器按需 Active 后回到 Standby，通常比长期连续 Active 更适合作为低功耗基线。需要快速响应明暗变化时，连续 IRQ 可能是合理的产品取舍，但不能直接称为低功耗方案。</p><h2 id="示例参数"><a href="#示例参数" class="headerlink" title="示例参数"></a>示例参数</h2><p>以下参数来自公开文章中的占空比估算，仅用于说明测量方法，不是某台设备的实测结果：</p><table><thead><tr><th>参数</th><th align="right">示例值</th></tr></thead><tbody><tr><td>Active 电流</td><td align="right">266 µA</td></tr><tr><td>Standby 电流</td><td align="right">5 µA</td></tr><tr><td>采样周期</td><td align="right">5 s</td></tr><tr><td>单次 Active 时间</td><td align="right">25 ms &#x2F; 55 ms</td></tr></tbody></table><h2 id="应记录的数据"><a href="#应记录的数据" class="headerlink" title="应记录的数据"></a>应记录的数据</h2><ul><li>传感器电源轨平均电流；</li><li>MCU 输入端平均电流；</li><li>采样完成延迟；</li><li>事件触发响应时间；</li><li>I2C 错误、超时和回 Standby 成功率；</li><li>光照稳定、阈值附近和快速变化三种场景。</li></ul><h2 id="当前结论"><a href="#当前结论" class="headerlink" title="当前结论"></a>当前结论</h2><p>公开设计推导支持“先比较占空比和传感器工作模式”的方向，但还不能证明某个具体器件或整机的最终功耗。下一步应使用相同硬件比较固定周期、事件优先和连续 IRQ 三组 profile。</p><h2 id="关联内容"><a href="#关联内容" class="headerlink" title="关联内容"></a>关联内容</h2><ul><li><a href="/posts/ambient-light-sensor-low-power-sampling/">环境光传感器：IRQ、单次采样与低功耗取舍</a></li><li><a href="/experiments/">Oniums Lab 实验记录</a></li></ul><script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"EXP-001 环境光传感器采样策略","description":"比较单次采样、连续阈值监测和 MCU 定时采样在功耗与响应速度上的取舍。","url":"https://oniums.github.io/experiments/exp-001/","mainEntityOfPage":{"@type":"WebPage","@id":"https://oniums.github.io/experiments/exp-001/"},"author":{"@type":"Person","name":"Oniums","url":"https://oniums.github.io/about/"},"isPartOf":{"@type":"CollectionPage","name":"Experiment","url":"https://oniums.github.io/experiments/"},"additionalProperty":[{"@type":"PropertyValue","name":"contentType","value":"experiment"},{"@type":"PropertyValue","name":"status","value":"design-record"},{"@type":"PropertyValue","name":"evidence","value":"public-design-note"},{"@type":"PropertyValue","name":"privacy","value":"public"}]}</script>]]></content>
+        <content type="html"><![CDATA[<div class="lab-record-header"><span class="lab-record-id">FAILURE-002 · VERIFIED LESSON</span><h1>构建缓存问题不一定是源码问题</h1><p>看到旧路径、旧产物或配置异常时，先区分“本次构建失败”和“旧生成物仍然存在”。</p></div><h2 id="错误倾向"><a href="#错误倾向" class="headerlink" title="错误倾向"></a>错误倾向</h2><p>把构建日志中的旧 SDK 路径直接归因于源码、工具链或 SDK 本身损坏，并立即修改产品代码。</p><h2 id="决定性检查"><a href="#决定性检查" class="headerlink" title="决定性检查"></a>决定性检查</h2><p>查看构建阶段、退出码、产物修改时间和 <code>CMakeCache.txt</code>。如果错误发生在配置阶段，编译器可能还没有处理任何产品源码。</p><h2 id="可迁移经验"><a href="#可迁移经验" class="headerlink" title="可迁移经验"></a>可迁移经验</h2><p>构建目录应按 SDK、Board 和构建类型隔离；缓存身份变化时优先重新配置明确的生成目录，而不是盲目改代码。</p><h2 id="关联内容"><a href="#关联内容" class="headerlink" title="关联内容"></a>关联内容</h2><ul><li><a href="/debug/dbg-002/">Zephyr 构建仍引用旧 SDK</a></li><li><a href="/failures/">Failure Museum</a></li></ul><script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Failure-002 构建缓存问题不一定是源码问题","description":"记录如何把旧构建目录误认为源码或 SDK 故障。","url":"https://oniums.github.io/failures/failure-002/","mainEntityOfPage":{"@type":"WebPage","@id":"https://oniums.github.io/failures/failure-002/"},"author":{"@type":"Person","name":"Oniums","url":"https://oniums.github.io/about/"},"isPartOf":{"@type":"CollectionPage","name":"Failure Museum","url":"https://oniums.github.io/failures/"},"additionalProperty":[{"@type":"PropertyValue","name":"contentType","value":"failure"},{"@type":"PropertyValue","name":"status","value":"verified-lesson"},{"@type":"PropertyValue","name":"evidence","value":"public-diagnostic-note"},{"@type":"PropertyValue","name":"privacy","value":"public"}]}</script>]]></content>
       
     </entry>
     
@@ -1537,17 +1548,6 @@
       <url>/source-reading/zigbee-nwk-aps-zcl/index.html</url>
       
         <content type="html"><![CDATA[<div class="lab-record-header"><span class="lab-record-id">SOURCE ROUTE · ZIGBEE NWK → ZCL</span><h1>一条 ZCL 请求是怎样到达 Cluster 的？</h1><p>这条路线用于解释“空口收到了请求，但应用没有响应”时，中间到底经过了哪些层。</p></div><h2 id="阅读顺序"><a href="#阅读顺序" class="headerlink" title="阅读顺序"></a>阅读顺序</h2><div class="source-route source-route-detail"><ol><li><strong>NWK</strong><span>地址、路由和网络安全边界。</span></li><li><strong>APS</strong><span>Endpoint、Profile、Cluster 和传输确认。</span></li><li><strong>AF / Simple Descriptor</strong><span>设备是否在目标 Endpoint 注册对应 Cluster。</span></li><li><strong>ZCL</strong><span>命令、属性访问、方向和响应生成。</span></li></ol></div><h2 id="每一篇阅读记录"><a href="#每一篇阅读记录" class="headerlink" title="每一篇阅读记录"></a>每一篇阅读记录</h2><ul><li>当前消息处在哪一层？</li><li>谁确认了它？MAC ACK、APS ACK 还是 ZCL Response？</li><li>Destination Endpoint 是否被正确解析？</li><li>Simple Descriptor 和 Cluster 注册从哪里建立？</li><li>失败时下一层是否仍然会看到事件？</li></ul><h2 id="当前状态"><a href="#当前状态" class="headerlink" title="当前状态"></a>当前状态</h2><p>路线已完成问题拆分，具体 SDK 版本和函数级源码笔记尚未公开。后续会先用通用协议代码和公开文档完成第一遍，再决定是否添加实现差异。</p><p>关联入口：<a href="/posts/zigbee-foundations/">ZigBee 基础概念</a> · <a href="/posts/zigbee-network-joining-flow/">ZigBee 入网流程</a> · <a href="/source-reading/">Source Reading</a></p><script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"ZigBee NWK 到 ZCL 源码阅读路线","description":"从 ZigBee 网络层、APS 层一路阅读到 Endpoint 和 ZCL 分发。","url":"https://oniums.github.io/source-reading/zigbee-nwk-aps-zcl/","mainEntityOfPage":{"@type":"WebPage","@id":"https://oniums.github.io/source-reading/zigbee-nwk-aps-zcl/"},"author":{"@type":"Person","name":"Oniums","url":"https://oniums.github.io/about/"},"isPartOf":{"@type":"CollectionPage","name":"Source Reading","url":"https://oniums.github.io/source-reading/"},"additionalProperty":[{"@type":"PropertyValue","name":"contentType","value":"source-reading"},{"@type":"PropertyValue","name":"status","value":"planned"},{"@type":"PropertyValue","name":"evidence","value":"deidentified-technical-note"},{"@type":"PropertyValue","name":"privacy","value":"public"}]}</script>]]></content>
-      
-    </entry>
-    
-    
-    
-    <entry>
-      <title>Failure-002 构建缓存问题不一定是源码问题</title>
-      <link href="/failures/failure-002/index.html"/>
-      <url>/failures/failure-002/index.html</url>
-      
-        <content type="html"><![CDATA[<div class="lab-record-header"><span class="lab-record-id">FAILURE-002 · VERIFIED LESSON</span><h1>构建缓存问题不一定是源码问题</h1><p>看到旧路径、旧产物或配置异常时，先区分“本次构建失败”和“旧生成物仍然存在”。</p></div><h2 id="错误倾向"><a href="#错误倾向" class="headerlink" title="错误倾向"></a>错误倾向</h2><p>把构建日志中的旧 SDK 路径直接归因于源码、工具链或 SDK 本身损坏，并立即修改产品代码。</p><h2 id="决定性检查"><a href="#决定性检查" class="headerlink" title="决定性检查"></a>决定性检查</h2><p>查看构建阶段、退出码、产物修改时间和 <code>CMakeCache.txt</code>。如果错误发生在配置阶段，编译器可能还没有处理任何产品源码。</p><h2 id="可迁移经验"><a href="#可迁移经验" class="headerlink" title="可迁移经验"></a>可迁移经验</h2><p>构建目录应按 SDK、Board 和构建类型隔离；缓存身份变化时优先重新配置明确的生成目录，而不是盲目改代码。</p><h2 id="关联内容"><a href="#关联内容" class="headerlink" title="关联内容"></a>关联内容</h2><ul><li><a href="/debug/dbg-002/">Zephyr 构建仍引用旧 SDK</a></li><li><a href="/failures/">Failure Museum</a></li></ul><script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Failure-002 构建缓存问题不一定是源码问题","description":"记录如何把旧构建目录误认为源码或 SDK 故障。","url":"https://oniums.github.io/failures/failure-002/","mainEntityOfPage":{"@type":"WebPage","@id":"https://oniums.github.io/failures/failure-002/"},"author":{"@type":"Person","name":"Oniums","url":"https://oniums.github.io/about/"},"isPartOf":{"@type":"CollectionPage","name":"Failure Museum","url":"https://oniums.github.io/failures/"},"additionalProperty":[{"@type":"PropertyValue","name":"contentType","value":"failure"},{"@type":"PropertyValue","name":"status","value":"verified-lesson"},{"@type":"PropertyValue","name":"evidence","value":"public-diagnostic-note"},{"@type":"PropertyValue","name":"privacy","value":"public"}]}</script>]]></content>
       
     </entry>
     

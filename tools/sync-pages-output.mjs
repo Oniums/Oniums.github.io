@@ -30,6 +30,7 @@ const generatedTargets = [
   "local-search.xml",
   "open-source",
   "page",
+  "playground",
   "posts",
   "projects",
   "robots.txt",
