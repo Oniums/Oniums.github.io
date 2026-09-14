@@ -37,6 +37,12 @@ const generatedTargets = [
   "sitemap.xml",
   "source-reading",
   "tags",
+  // /tools/ 同时包含构建脚本，只清理明确的公开工具产物。
+  "tools/index.html",
+  "tools/assets",
+  "tools/matter-pairing",
+  "tools/bytes",
+  "tools/power",
   "xml"
 ];
 

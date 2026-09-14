@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer"><meta name="color-scheme" content="light">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'none'; base-uri 'none'; form-action 'none'">
+<title>低功耗预算计算器 · Oniums Lab</title><meta name="description" content="每次唤醒，都有一笔电量账。比较参数，看到设计取舍。">
+<link rel="canonical" href="https://oniums.github.io/tools/power/">
+<link rel="icon" href="/img/avatar.png"><link rel="stylesheet" href="/tools/assets/tools.css">
+
+<script type="module" src="/tools/assets/power.mjs"></script>
+</head><body>
+<a class="skip" href="#main">跳到工具内容</a><header><a class="brand" href="/lab/"><b>o.</b> Oniums <span>Lab</span></a><nav class="tool-nav" aria-label="工具导航"><a href="/tools/">工具箱</a><a href="/tools/matter-pairing/">配对码</a><a href="/tools/bytes/">字节与位域</a><a href="/tools/power/">低功耗预算</a></nav><a class="back" href="/lab/">← 实验室</a></header>
+<main id="main"><section class="intro"><p class="eyebrow">ENGINEER’S TOOLBOX / 03</p><h1>低功耗预算计算器</h1><p>每次唤醒，都有一笔电量账。比较参数，看到设计取舍。</p><span class="local-badge">● 本地计算 · 输入不上传</span></section>
+
+<div class="power-layout"><section class="panel power-input"><div class="panel-heading"><h2>电池与睡眠</h2><span>统一按电池侧电流建模</span></div><div class="controls-grid"><label>额定容量（mAh）<input id="capacity" type="number" min="0.001" step="any" value="1000"></label><label>有效容量（%）<input id="effective" type="number" min="0.001" max="100" step="any" value="80"></label><label>睡眠电流（µA）<input id="sleep" type="number" min="0" step="any" value="5"></label></div><div class="panel-heading activities-heading"><h2>活动预算</h2><button id="add-activity" type="button">＋ 添加活动</button></div><p class="hint">各活动互不重叠，电流填活动期间的总电流。持续时间用 ms，发生周期用 s。</p><div id="activities"></div><div class="actions"><button id="power-example" type="button">恢复示例</button><button id="save-a" class="primary" type="button">暂存当前为 A</button><button id="restore-a" type="button" disabled>恢复 A 参数</button></div><p class="hint">A 方案只保存在当前页面内存中，刷新即清除。可修改当前参数作为 B 方案比较。</p><p id="power-error" class="error" role="alert" hidden></p><p id="power-status" class="status" role="status"></p></section>
+<section class="panel result-panel power-result"><div class="panel-heading"><h2>当前预算</h2><span>模型估算</span></div><div id="power-output"><div class="hero-metric"><span>平均电流</span><output id="average" class="number"></output></div><div class="small-metrics"><div><span>理论续航</span><output id="life"></output></div><div><span>每天消耗</span><output id="daily"></output></div><div><span>活动时间占比</span><output id="duty"></output></div></div><h3>平均电流由谁贡献？</h3><div id="power-bars" class="power-bars"></div><div id="power-comparison" class="inset" hidden><h3>A / B 方案对比</h3><dl class="comparison-list"><dt>暂存的 A</dt><dd id="a-average"></dd><dt>当前的 B</dt><dd id="b-average"></dd><dt>平均电流变化</dt><dd id="power-delta"></dd><dt>A 理论续航</dt><dd id="a-life"></dd><dt>B 理论续航</dt><dd id="b-life"></dd></dl></div></div><p id="power-empty" class="empty" hidden>请先修正参数，再查看预算。</p></section></div>
+<details class="scope" open><summary>模型与适用范围</summary><p>活动占比 d = 持续时间（ms）÷ 1000 ÷ 周期（s）。平均电流 = 睡眠电流 × (1 − Σd) + Σ(活动总电流 × d)。理论续航（小时）= 有效容量（mAh）× 1000 ÷ 平均电流（µA）。</p><p>各活动必须互不重叠，总占比不能超过 100%。若采样与无线同时进行，应把组合状态作为独立活动。电流需折算到电池侧；此模型未自动计算稳压效率、自放电、温度、脉冲负载或截止电压影响，不代替真实电流测量和电池验证。</p></details><div class="related"><a href="/posts/ambient-light-sensor-low-power-sampling/">单次采样与低功耗取舍 ↗</a><a href="/experiments/exp-004/">轮询间隔与可达性 ↗</a></div>
+<noscript><p class="error">此工具需要启用 JavaScript。输入数据只在你的浏览器中处理。</p></noscript>
+</main><footer><a href="/tools/">Oniums 工具箱</a><span>保持好奇，亲手验证。</span><a href="/playground/commissioning/">试试配网过程播放器 ↗</a></footer>
+</body></html>

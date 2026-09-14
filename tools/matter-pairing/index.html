@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer"><meta name="color-scheme" content="light">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Matter 配对码助手 · Oniums Lab</title><meta name="description" content="粘贴 QR 原始内容或手动配对码，查看它携带了什么。">
+<link rel="canonical" href="https://oniums.github.io/tools/matter-pairing/">
+<link rel="icon" href="/img/avatar.png"><link rel="stylesheet" href="/tools/assets/tools.css">
+<script src="/tools/assets/vendor/qrcode.js" defer></script>
+<script type="module" src="/tools/assets/pairing.mjs"></script>
+</head><body>
+<a class="skip" href="#main">跳到工具内容</a><header><a class="brand" href="/lab/"><b>o.</b> Oniums <span>Lab</span></a><nav class="tool-nav" aria-label="工具导航"><a href="/tools/">工具箱</a><a href="/tools/matter-pairing/">配对码</a><a href="/tools/bytes/">字节与位域</a><a href="/tools/power/">低功耗预算</a></nav><a class="back" href="/lab/">← 实验室</a></header>
+<main id="main"><section class="intro"><p class="eyebrow">ENGINEER’S TOOLBOX / 01</p><h1>Matter 配对码助手</h1><p>粘贴 QR 原始内容或手动配对码，查看它携带了什么。</p><span class="local-badge">● 本地计算 · 输入不上传</span></section>
+
+<div class="two-panel"><section class="panel"><div class="panel-heading"><h2>输入配网信息</h2><span>MT: / 11 位 / 21 位</span></div><label for="pair-input">QR 原始内容或手动配对码</label><textarea id="pair-input" rows="5" maxlength="2048" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder="MT:… 或 11 / 21 位数字"></textarea><div class="actions"><button id="pair-parse" class="primary" type="button">解析内容 →</button><button id="pair-example" type="button">载入公开示例</button><button id="pair-clear" type="button">清空</button></div><p class="hint">示例来自公开开发文档，不代表你的设备。输入不写入 URL、浏览器存储或控制台。</p><p id="pair-error" class="error" role="alert" hidden></p><p id="pair-status" class="status" role="status"></p>
+<div class="inset"><h3>先分清两个名字</h3><p><b>Setup Passcode</b> 是参与安全会话建立的口令。<b>手动配对码</b> 还编码了短 Discriminator、校验位等信息；二者不是同一串数字。</p></div></section>
+<section class="panel result-panel"><div class="panel-heading"><h2>解析结果</h2><span id="pair-validation">等待输入</span></div><div id="pair-empty" class="empty"><span class="big-symbol">MT:</span><p>信息会在这里展开。<br>先试试左边的公开示例。</p></div><div id="pair-result" hidden><div class="manual-result"><span>手动配对码</span><output id="manual-code"></output><button id="copy-manual" type="button">复制数字</button></div><p id="pair-warning" class="notice"></p><dl id="pair-fields" class="field-list"></dl><div id="qr-result" class="qr-result" hidden><canvas id="qr-canvas" width="256" height="256" role="img" aria-label="输入载荷对应的 Matter 二维码"></canvas><div><h3>保存这个二维码</h3><p>编码原始 MT: 内容，保留安静区。图片只在本地生成。</p><button id="download-qr" type="button">下载 PNG ↓</button></div></div><p id="qr-error" class="error" role="alert" hidden></p></div></section></div>
+<details class="scope"><summary>支持范围、校验规则与参考</summary><p>支持单设备 QR Payload Version 0 的基础字段及 11 / 21 位手动码。可选 TLV 只显示字节数，尚不解析或验证其结构；未知发现标志保留数值并提示。基础格式有效不等于设备存在、通过认证或一定能够配网。</p><p>手动码没有完整的 12 位 Discriminator、发现能力等信息，因此本工具不会凭手动码猜造原始 MT: 二维码。长手动码也无法区分原始 QR 中的 User-intent 与 Custom flow。</p><p>字段规则参考 <a href="https://github.com/project-chip/connectedhomeip/tree/master/src/setup_payload" target="_blank" rel="noopener noreferrer">Matter SDK Setup Payload</a>；二维码使用 <a href="https://github.com/kazuhikoarase/qrcode-generator" target="_blank" rel="noopener noreferrer">qrcode-generator</a>（本地静态副本）。</p></details><div class="related"><a href="/posts/matter-foundations/">了解 Matter 安全会话 ↗</a><a href="/playground/commissioning/">配对码之后发生了什么？↗</a></div>
+<noscript><p class="error">此工具需要启用 JavaScript。输入数据只在你的浏览器中处理。</p></noscript>
+</main><footer><a href="/tools/">Oniums 工具箱</a><span>保持好奇，亲手验证。</span><a href="/playground/commissioning/">试试配网过程播放器 ↗</a></footer>
+</body></html>

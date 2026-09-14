@@ -9,6 +9,18 @@ const requiredFiles = [
   "experience/index.html",
   "projects/index.html",
   "lab/index.html",
+  "tools/index.html",
+  "tools/matter-pairing/index.html",
+  "tools/bytes/index.html",
+  "tools/power/index.html",
+  "tools/assets/tools.css",
+  "tools/assets/calculations.mjs",
+  "tools/assets/common.mjs",
+  "tools/assets/pairing.mjs",
+  "tools/assets/bytes.mjs",
+  "tools/assets/power.mjs",
+  "tools/assets/vendor/qrcode.js",
+  "tools/assets/vendor/LICENSE.txt",
   "playground/commissioning/index.html",
   "playground/commissioning/player.css",
   "playground/commissioning/player.js",
@@ -194,7 +206,7 @@ const missingRequiredContent = requiredContent.filter(({ file, marker }) => {
 const generatedFiles = walk(publicDir);
 const htmlFiles = generatedFiles.filter((file) => file.endsWith(".html"));
 const scannableFiles = generatedFiles.filter((file) =>
-  /\.(?:html|xml|json|txt|js)$/i.test(file)
+  /\.(?:html|xml|json|txt|m?js)$/i.test(file)
 );
 const brokenReferences = [];
 const forbiddenMatches = [];
