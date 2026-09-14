@@ -3,19 +3,22 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="referrer" content="no-referrer"><meta name="color-scheme" content="light">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'none'; base-uri 'none'; form-action 'none'">
-<title>把问题，拆成可计算的部分。 · Oniums Lab</title><meta name="description" content="三个小工具，服务配网、字节解析与低功耗设计。打开一个例子，就能开始。">
+<title>把问题，拆成可计算的部分。 · Oniums Lab</title><meta name="description" content="六个小工具，服务配网、字节解析、固件对比、日志分析与低功耗设计。打开一个例子，就能开始。">
 <link rel="canonical" href="https://oniums.github.io/tools/">
 <link rel="icon" href="/img/avatar.png"><link rel="stylesheet" href="/tools/assets/tools.css">
 
 
 </head><body>
-<a class="skip" href="#main">跳到工具内容</a><header><a class="brand" href="/lab/"><b>o.</b> Oniums <span>Lab</span></a><nav class="tool-nav" aria-label="工具导航"><a href="/tools/" aria-current="page">工具箱</a><a href="/tools/matter-pairing/">配对码</a><a href="/tools/bytes/">字节与位域</a><a href="/tools/power/">低功耗预算</a></nav><a class="back" href="/lab/">← 实验室</a></header>
-<main id="main"><section class="intro"><p class="eyebrow">ENGINEER’S TOOLBOX / INDEX</p><h1>把问题，拆成可计算的部分。</h1><p>三个小工具，服务配网、字节解析与低功耗设计。打开一个例子，就能开始。</p><span class="local-badge">● 本地计算 · 输入不上传</span></section>
+<a class="skip" href="#main">跳到工具内容</a><header><a class="brand" href="/lab/"><b>o.</b> Oniums <span>Lab</span></a><nav class="tool-nav" aria-label="工具导航"><a href="/tools/">工具箱</a><a href="/tools/matter-pairing/">配对码</a><a href="/tools/bytes/">字节与位域</a><a href="/tools/power/">低功耗预算</a><a href="/tools/firmware-diff/">固件对比</a><a href="/tools/log-timeline/">日志时间线</a><a href="/tools/thread-dataset/">Dataset</a></nav><a class="back" href="/lab/">← 实验室</a></header>
+<main id="main"><section class="intro"><p class="eyebrow">ENGINEER’S TOOLBOX / INDEX</p><h1>把问题，拆成可计算的部分。</h1><p>六个小工具，服务配网、字节解析、固件对比、日志分析与低功耗设计。打开一个例子，就能开始。</p><span class="local-badge">● 本地计算 · 输入不上传</span></section>
 
 <section class="tool-cards" aria-label="可用工具">
 <a class="tool-card" href="/tools/matter-pairing/"><span class="eyebrow">01 / MATTER</span><div class="card-demo qr-demo" aria-hidden="true"><b>MT:</b><span>QR → 字段 → 手动码</span></div><h2>Matter 配对码助手</h2><p>解析配网信息、检查校验位，生成可下载的二维码。把容易混淆的字段看清楚。</p><span class="card-tags">Base38 · Verhoeff · QR</span><strong>打开工具 ↗</strong></a>
 <a class="tool-card" href="/tools/bytes/"><span class="eyebrow">02 / BINARY</span><div class="card-demo byte-demo" aria-hidden="true"><b>01 <em>02</em></b><span>小端 513 ⇄ 大端 258</span></div><h2>字节与位域工作台</h2><p>切换大小端、翻转某一位、提取字段。让同一串字节的不同解释同步呈现。</p><span class="card-tags">HEX · INT / FLOAT · BIT</span><strong>打开工具 ↗</strong></a>
 <a class="tool-card" href="/tools/power/"><span class="eyebrow">03 / LOW POWER</span><div class="card-demo power-demo" aria-hidden="true"><div class="spark"><i></i><i></i><i></i><i></i><i></i><i></i></div><span>每次唤醒，都有一笔电量账。</span></div><h2>低功耗预算计算器</h2><p>给睡眠、采样和无线活动分配时间，观察耗电占比，比较 A / B 两种设计。</p><span class="card-tags">平均电流 · 续航估算 · A/B</span><strong>打开工具 ↗</strong></a>
+<a class="tool-card" href="/tools/firmware-diff/"><span class="eyebrow">04 / FIRMWARE</span><div class="card-demo" aria-hidden="true"><b>A ⇄ B</b><span>从 SHA-256 到每一个字节</span></div><h2>固件文件对比器</h2><p>拖入两份 BIN，比较文件指纹，定位首个差异与连续差异区间。</p><span class="card-tags">SHA-256 · 偏移 · 字节对照</span><strong>打开工具 ↗</strong></a>
+<a class="tool-card" href="/tools/log-timeline/"><span class="eyebrow">05 / TIMELINE</span><div class="card-demo" aria-hidden="true"><b>Δ 15 s</b><span>等待藏在两条日志之间</span></div><h2>日志时间线整理器</h2><p>粘贴带时间戳的日志，标记关键事件、定位最长间隔，再跳到配网教学步骤。</p><span class="card-tags">时间差 · 事件标记 · CSV</span><strong>打开工具 ↗</strong></a>
+<a class="tool-card" href="/tools/thread-dataset/"><span class="eyebrow">06 / THREAD</span><div class="card-demo" aria-hidden="true"><b>T L V</b><span>把网络配置逐项展开</span></div><h2>Thread Dataset 查看器</h2><p>拆分 Dataset 字段，检查长度与结构；网络凭据和标识默认隐藏。</p><span class="card-tags">HEX · TLV · 字段检查</span><strong>打开工具 ↗</strong></a>
 </section><section class="bottom-note"><h2>有计算，也有来龙去脉。</h2><p>每个工具都提供公开或构造的示例、清晰的输入单位和相关技术文章。所有输入在当前页面处理；配网凭据不会自动保存。计算结果的适用范围会在工具内说明。</p><a href="/playground/commissioning/">从工具回到过程：播放一次 Matter 配网 →</a></section>
 
 </main><footer><a href="/tools/">Oniums 工具箱</a><span>保持好奇，亲手验证。</span><a href="/playground/commissioning/">试试配网过程播放器 ↗</a></footer>

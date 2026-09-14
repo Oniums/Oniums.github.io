@@ -31,7 +31,8 @@ Hexo 首先把生成结果写入 `public/`，站点检查通过后，再由受�
 - `source/about/`：个人介绍
 - `source/experience/`：匿名化工作经历
 - `source/projects/`：项目与实践方向
-- `source/tools/`：公开工具箱与三个工具，静态页面；`assets/calculations.mjs` 为纯计算核心。用户输入仅在浏览器内处理，配网内容不持久化。二维码依赖为本地固定版本副本，来源与许可见 `source/tools/assets/vendor/README.md`。
+- `source/tools/`：公开工具箱与六个工具，静态页面；`assets/calculations.mjs` 为纯计算核心。用户输入仅在浏览器内处理，配网内容不持久化。二维码依赖为本地固定版本副本，来源与许可见 `source/tools/assets/vendor/README.md`。
+- 第二批工具：`firmware-diff/` 对比本地 BIN（最多 64 MiB / 文件，模块 Worker 计算 SHA-256 和差异）；`log-timeline/` 整理时间戳、事件与 CSV，通过公开步骤 ID 跳转配网播放器；`thread-dataset/` 查看 TLV、隐藏凭据和网络标识。核心逻辑分别在 `assets/binary-core.mjs`、`timeline-core.mjs`、`dataset-core.mjs`，边界测试在 `tools/test-analysis-tools.mjs`。
 - `tools/test-toolbox.mjs`：公开测试向量、数值边界和发布同步保护测试，运行 `npm run test:tools`，也包含在完整检查中。`/tools/` 的生成页面与仓库构建脚本共用目录，同步脚本只清理列明的页面和资源子目录，禁止整体删除 `tools/`。
 - `source/playground/commissioning/`：配网过程播放器，独立静态页面；`scenarios.js` 定义教学场景，`player.js` 控制播放与状态回看，`player.css` 定义界面。`skip_render` 保留原始模块文件。
 - 工具箱与配网播放器均可通过顶部一级导航、首页首屏快捷卡片或 Lab 总览进入。`scripts/home-shortcuts.js` 在构建时插入首页卡片，样式位于 `source/css/custom.css`；手机菜单沿用同一份主题导航配置。

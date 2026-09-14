@@ -190,9 +190,9 @@
       <name>Oniums</name>
     </author>
     <category term="搭建教程" scheme="https://oniums.github.io/categories/%E6%90%AD%E5%BB%BA%E6%95%99%E7%A8%8B/"/>
-    <category term="Matter" scheme="https://oniums.github.io/tags/matter/"/>
     <category term="Telink" scheme="https://oniums.github.io/tags/telink/"/>
     <category term="Zephyr" scheme="https://oniums.github.io/tags/zephyr/"/>
+    <category term="Matter" scheme="https://oniums.github.io/tags/matter/"/>
     <category term="固件构建" scheme="https://oniums.github.io/tags/%E5%9B%BA%E4%BB%B6%E6%9E%84%E5%BB%BA/"/>
     <category term="CMake" scheme="https://oniums.github.io/tags/cmake/"/>
     <category term="west" scheme="https://oniums.github.io/tags/west/"/>

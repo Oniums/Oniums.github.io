@@ -101,7 +101,7 @@
   </url>
   
   <url>
-    <loc>https://oniums.github.io/source-reading/openthread-attach/</loc>
+    <loc>https://oniums.github.io/source-reading/zigbee-nwk-aps-zcl/</loc>
     
     <lastmod>2026-08-02</lastmod>
     
@@ -110,7 +110,7 @@
   </url>
   
   <url>
-    <loc>https://oniums.github.io/source-reading/zigbee-nwk-aps-zcl/</loc>
+    <loc>https://oniums.github.io/source-reading/openthread-attach/</loc>
     
     <lastmod>2026-08-02</lastmod>
     
@@ -164,15 +164,6 @@
   </url>
   
   <url>
-    <loc>https://oniums.github.io/failures/failure-001/</loc>
-    
-    <lastmod>2026-08-02</lastmod>
-    
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <url>
     <loc>https://oniums.github.io/experiments/exp-002/</loc>
     
     <lastmod>2026-08-02</lastmod>
@@ -200,6 +191,15 @@
   </url>
   
   <url>
+    <loc>https://oniums.github.io/failures/failure-001/</loc>
+    
+    <lastmod>2026-08-02</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
     <loc>https://oniums.github.io/failures/failure-003/</loc>
     
     <lastmod>2026-08-02</lastmod>
@@ -209,7 +209,7 @@
   </url>
   
   <url>
-    <loc>https://oniums.github.io/debug/dbg-003/</loc>
+    <loc>https://oniums.github.io/debug/dbg-002/</loc>
     
     <lastmod>2026-08-02</lastmod>
     
@@ -227,7 +227,7 @@
   </url>
   
   <url>
-    <loc>https://oniums.github.io/debug/dbg-002/</loc>
+    <loc>https://oniums.github.io/debug/dbg-003/</loc>
     
     <lastmod>2026-08-02</lastmod>
     
@@ -596,7 +596,42 @@
 
   
   <url>
+    <loc>https://oniums.github.io/tags/ai/</loc>
+    <lastmod>2026-09-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://oniums.github.io/tags/telink/</loc>
+    <lastmod>2026-09-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://oniums.github.io/tags/zephyr/</loc>
+    <lastmod>2026-09-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
     <loc>https://oniums.github.io/tags/matter/</loc>
+    <lastmod>2026-09-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://oniums.github.io/tags/%E4%B8%B2%E5%8F%A3%E8%B0%83%E8%AF%95/</loc>
+    <lastmod>2026-09-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://oniums.github.io/tags/%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95/</loc>
     <lastmod>2026-09-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -631,35 +666,14 @@
   </url>
   
   <url>
-    <loc>https://oniums.github.io/tags/ai/</loc>
+    <loc>https://oniums.github.io/tags/apple-home/</loc>
     <lastmod>2026-09-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://oniums.github.io/tags/telink/</loc>
-    <lastmod>2026-09-14</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://oniums.github.io/tags/zephyr/</loc>
-    <lastmod>2026-09-14</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://oniums.github.io/tags/%E4%B8%B2%E5%8F%A3%E8%B0%83%E8%AF%95/</loc>
-    <lastmod>2026-09-14</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://oniums.github.io/tags/%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95/</loc>
+    <loc>https://oniums.github.io/tags/fabric/</loc>
     <lastmod>2026-09-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -688,20 +702,6 @@
   
   <url>
     <loc>https://oniums.github.io/tags/%E7%8A%B6%E6%80%81%E6%9C%BA/</loc>
-    <lastmod>2026-09-14</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://oniums.github.io/tags/apple-home/</loc>
-    <lastmod>2026-09-14</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://oniums.github.io/tags/fabric/</loc>
     <lastmod>2026-09-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -1270,14 +1270,14 @@
 
   
   <url>
-    <loc>https://oniums.github.io/categories/%E6%97%A0%E7%BA%BF%E5%8D%8F%E8%AE%AE/</loc>
+    <loc>https://oniums.github.io/categories/%E6%90%AD%E5%BB%BA%E6%95%99%E7%A8%8B/</loc>
     <lastmod>2026-09-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://oniums.github.io/categories/%E6%90%AD%E5%BB%BA%E6%95%99%E7%A8%8B/</loc>
+    <loc>https://oniums.github.io/categories/%E6%97%A0%E7%BA%BF%E5%8D%8F%E8%AE%AE/</loc>
     <lastmod>2026-09-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>

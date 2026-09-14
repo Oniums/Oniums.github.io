@@ -43,6 +43,9 @@ const generatedTargets = [
   "tools/matter-pairing",
   "tools/bytes",
   "tools/power",
+  "tools/firmware-diff",
+  "tools/log-timeline",
+  "tools/thread-dataset",
   "xml"
 ];
 

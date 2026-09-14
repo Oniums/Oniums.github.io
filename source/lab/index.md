@@ -31,7 +31,7 @@ description: Oniums Lab：嵌入式协议、低功耗设备与固件调试实验
 ## 近期公开入口
 
 <div class="lab-link-list">
-  <a href="/tools/"><strong>Oniums 工具箱 · 浏览器本地计算</strong><span>Matter 配对码、字节与位域、低功耗预算：打开示例就能开始。</span></a>
+  <a href="/tools/"><strong>Oniums 工具箱 · 浏览器本地计算</strong><span>六个本地工具：配对码、字节位域、低功耗预算、固件对比、日志时间线与 Thread Dataset。</span></a>
   <a href="/playground/commissioning/"><strong>交互实验 · 配网过程播放器</strong><span>播放 Matter over Thread 首次配网，切换故障，逐步查看状态与证据。</span></a>
   <a href="/posts/matter-over-thread-zigbee-commissioning-comparison/"><strong>Matter over Thread 与 ZigBee 入网对照</strong><span>从协议分层和成功锚点开始理解差异。</span></a>
   <a href="/posts/wireshark-thread-packet-capture/"><strong>Wireshark + Thread 抓包</strong><span>把信道活动推进到协议阶段分析。</span></a>

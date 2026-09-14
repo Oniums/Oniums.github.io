@@ -201,4 +201,11 @@ byId("show-normal").addEventListener("click", () => {
 });
 document.addEventListener("visibilitychange", () => { if (document.hidden) pause(); });
 window.addEventListener("pagehide", pause);
-selectScenario("normal");
+// Deep links carry only a known teaching-step ID, never imported log text.
+function openLinkedStep() {
+  const id = new URLSearchParams(location.hash.slice(1)).get("step");
+  const destination = normalSteps.findIndex(step => step.id === id);
+  selectScenario("normal", destination < 0 ? 0 : destination);
+}
+window.addEventListener("hashchange", openLinkedStep);
+openLinkedStep();

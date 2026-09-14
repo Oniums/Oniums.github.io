@@ -6,7 +6,7 @@
   "scripts": {
     "clean": "hexo clean",
     "build": "hexo generate && node tools/clean-empty-structured-data.mjs && node tools/generate-lab-index.mjs",
-    "test:tools": "node --test tools/test-toolbox.mjs",
+    "test:tools": "node --test tools/test-toolbox.mjs tools/test-analysis-tools.mjs",
     "check": "npm run clean && npm run test:tools && npm run build && node tools/check-lab.mjs && node tools/check-site.mjs",
     "prepare-pages": "npm run check && node tools/sync-pages-output.mjs",
     "server": "hexo server"
