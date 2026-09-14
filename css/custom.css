@@ -68,6 +68,8 @@ body::before {
 }
 
 #page-header.full_page {
+  height: auto;
+  min-height: 420px;
   background-position: center 58%;
 }
 
@@ -81,8 +83,73 @@ body::before {
 }
 
 #page-header.full_page #site-info {
+  position: relative;
+  top: auto;
   width: min(92%, 1120px);
+  margin: 0 auto;
+  padding: 92px 0 64px;
   text-align: left;
+}
+
+.home-shortcuts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  max-width: 720px;
+  margin: 20px auto 0;
+}
+
+.home-shortcut {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 15px 20px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 14px;
+  color: #fff;
+  background: rgba(15, 23, 42, 0.78);
+  transition: background 180ms ease, border-color 180ms ease;
+}
+
+.home-shortcut:hover,
+.home-shortcut:focus-visible {
+  color: #fff;
+  border-color: #7dd3fc;
+  background: #164e63;
+}
+
+.home-shortcut:focus-visible {
+  outline: 3px solid #7dd3fc;
+  outline-offset: 3px;
+}
+
+.home-shortcut-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.home-shortcut-title > span {
+  color: #7dd3fc;
+}
+
+.home-shortcut-description {
+  color: #e2e8f0;
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+@media (max-width: 600px) {
+  .home-shortcuts {
+    grid-template-columns: 1fr;
+    max-width: 380px;
+  }
+
+  .home-shortcut {
+    padding: 12px 16px;
+  }
 }
 
 #site-title {

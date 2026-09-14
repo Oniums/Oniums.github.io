@@ -164,6 +164,15 @@
   </url>
   
   <url>
+    <loc>https://oniums.github.io/failures/failure-001/</loc>
+    
+    <lastmod>2026-08-02</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
     <loc>https://oniums.github.io/experiments/exp-002/</loc>
     
     <lastmod>2026-08-02</lastmod>
@@ -182,7 +191,7 @@
   </url>
   
   <url>
-    <loc>https://oniums.github.io/failures/failure-001/</loc>
+    <loc>https://oniums.github.io/failures/failure-002/</loc>
     
     <lastmod>2026-08-02</lastmod>
     
@@ -200,7 +209,7 @@
   </url>
   
   <url>
-    <loc>https://oniums.github.io/failures/failure-002/</loc>
+    <loc>https://oniums.github.io/debug/dbg-003/</loc>
     
     <lastmod>2026-08-02</lastmod>
     
@@ -219,15 +228,6 @@
   
   <url>
     <loc>https://oniums.github.io/debug/dbg-002/</loc>
-    
-    <lastmod>2026-08-02</lastmod>
-    
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <url>
-    <loc>https://oniums.github.io/debug/dbg-003/</loc>
     
     <lastmod>2026-08-02</lastmod>
     
@@ -551,7 +551,7 @@
   </url>
   
   <url>
-    <loc>https://oniums.github.io/posts/from-private-notes-to-public-writing/</loc>
+    <loc>https://oniums.github.io/posts/debugging-with-an-evidence-chain/</loc>
     
     <lastmod>2026-07-28</lastmod>
     
@@ -560,7 +560,7 @@
   </url>
   
   <url>
-    <loc>https://oniums.github.io/posts/debugging-with-an-evidence-chain/</loc>
+    <loc>https://oniums.github.io/posts/from-private-notes-to-public-writing/</loc>
     
     <lastmod>2026-07-28</lastmod>
     
@@ -596,42 +596,7 @@
 
   
   <url>
-    <loc>https://oniums.github.io/tags/ai/</loc>
-    <lastmod>2026-09-14</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://oniums.github.io/tags/telink/</loc>
-    <lastmod>2026-09-14</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://oniums.github.io/tags/zephyr/</loc>
-    <lastmod>2026-09-14</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
     <loc>https://oniums.github.io/tags/matter/</loc>
-    <lastmod>2026-09-14</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://oniums.github.io/tags/%E4%B8%B2%E5%8F%A3%E8%B0%83%E8%AF%95/</loc>
-    <lastmod>2026-09-14</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://oniums.github.io/tags/%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95/</loc>
     <lastmod>2026-09-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -660,6 +625,41 @@
   
   <url>
     <loc>https://oniums.github.io/tags/commissioning/</loc>
+    <lastmod>2026-09-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://oniums.github.io/tags/ai/</loc>
+    <lastmod>2026-09-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://oniums.github.io/tags/telink/</loc>
+    <lastmod>2026-09-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://oniums.github.io/tags/zephyr/</loc>
+    <lastmod>2026-09-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://oniums.github.io/tags/%E4%B8%B2%E5%8F%A3%E8%B0%83%E8%AF%95/</loc>
+    <lastmod>2026-09-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://oniums.github.io/tags/%E8%87%AA%E5%8A%A8%E5%8C%96%E6%B5%8B%E8%AF%95/</loc>
     <lastmod>2026-09-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -743,27 +743,6 @@
   </url>
   
   <url>
-    <loc>https://oniums.github.io/tags/markdown/</loc>
-    <lastmod>2026-09-14</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://oniums.github.io/tags/git/</loc>
-    <lastmod>2026-09-14</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://oniums.github.io/tags/%E6%8A%80%E6%9C%AF%E5%86%99%E4%BD%9C/</loc>
-    <lastmod>2026-09-14</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
     <loc>https://oniums.github.io/tags/%E8%B0%83%E8%AF%95/</loc>
     <lastmod>2026-09-14</lastmod>
     <changefreq>weekly</changefreq>
@@ -779,6 +758,27 @@
   
   <url>
     <loc>https://oniums.github.io/tags/%E8%AF%81%E6%8D%AE%E9%93%BE/</loc>
+    <lastmod>2026-09-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://oniums.github.io/tags/markdown/</loc>
+    <lastmod>2026-09-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://oniums.github.io/tags/git/</loc>
+    <lastmod>2026-09-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://oniums.github.io/tags/%E6%8A%80%E6%9C%AF%E5%86%99%E4%BD%9C/</loc>
     <lastmod>2026-09-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -1270,14 +1270,14 @@
 
   
   <url>
-    <loc>https://oniums.github.io/categories/%E6%90%AD%E5%BB%BA%E6%95%99%E7%A8%8B/</loc>
+    <loc>https://oniums.github.io/categories/%E6%97%A0%E7%BA%BF%E5%8D%8F%E8%AE%AE/</loc>
     <lastmod>2026-09-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://oniums.github.io/categories/%E6%97%A0%E7%BA%BF%E5%8D%8F%E8%AE%AE/</loc>
+    <loc>https://oniums.github.io/categories/%E6%90%AD%E5%BB%BA%E6%95%99%E7%A8%8B/</loc>
     <lastmod>2026-09-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -1291,14 +1291,14 @@
   </url>
   
   <url>
-    <loc>https://oniums.github.io/categories/%E7%9F%A5%E8%AF%86%E7%AE%A1%E7%90%86/</loc>
+    <loc>https://oniums.github.io/categories/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/</loc>
     <lastmod>2026-09-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://oniums.github.io/categories/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/</loc>
+    <loc>https://oniums.github.io/categories/%E7%9F%A5%E8%AF%86%E7%AE%A1%E7%90%86/</loc>
     <lastmod>2026-09-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>

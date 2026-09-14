@@ -102,6 +102,9 @@ const requiredFiles = [
 const forbiddenFiles = ["CNAME"];
 
 const requiredContent = [
+  { file: "index.html", marker: 'class="home-shortcuts"' },
+  { file: "index.html", marker: 'href="/tools/"' },
+  { file: "index.html", marker: 'href="/playground/commissioning/"' },
   { file: "playground/commissioning/index.html", marker: 'id="commissioning-player"' },
   { file: "categories/index.html", marker: 'class="category-lists"' },
   { file: "tags/index.html", marker: 'class="tag-cloud-list' },
