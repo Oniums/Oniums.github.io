@@ -11,6 +11,7 @@ menu:
   首页: / || fas fa-home
   工具箱: /tools/ || fas fa-toolbox
   配网演示: /playground/commissioning/ || fas fa-circle-play
+  雷达课堂: /playground/radar/ || fas fa-satellite-dish
   实验室:
     总览: /lab/ || fas fa-flask
     知识库: /knowledge/ || fas fa-diagram-project

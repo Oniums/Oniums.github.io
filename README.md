@@ -36,6 +36,8 @@ Hexo 首先把生成结果写入 `public/`，站点检查通过后，再由受�
 - `tools/test-toolbox.mjs`：公开测试向量、数值边界和发布同步保护测试，运行 `npm run test:tools`，也包含在完整检查中。`/tools/` 的生成页面与仓库构建脚本共用目录，同步脚本只清理列明的页面和资源子目录，禁止整体删除 `tools/`。
 - `source/playground/commissioning/`：配网过程播放器，独立静态页面；`scenarios.js` 定义教学场景，`player.js` 控制播放与状态回看，`player.css` 定义界面。`skip_render` 保留原始模块文件。
 - 工具箱与配网播放器均可通过顶部一级导航、首页首屏快捷卡片或 Lab 总览进入。`scripts/home-shortcuts.js` 在构建时插入首页卡片，样式位于 `source/css/custom.css`；手机菜单沿用同一份主题导航配置。
+- `source/playground/radar/`：雷达交互课堂基础篇，4 章 16 小节。`course.mjs` 管理逐节讲解、预测题和实验任务；`physics.mjs` 实现理想静止 FMCW、采样、量化与实际 FFT；`plots.mjs` 绘制曲线，`app.mjs` 管理场景拖动和章节导航。输入与进度仅在页面内存中保留，公开参考与模型边界列在课程页。首页首屏、一级导航、工具箱和 Lab 总览均有入口。
+- `tools/test-radar.mjs`：模型数值、FFT 与直接 DFT 对照、混叠、窗函数、补零和课程完整性测试，运行 `npm run test:radar`，已纳入完整构建检查。
 - `_config.yml`：Hexo 配置
 - `_config.butterfly.yml`：当前 Butterfly 主题覆盖配置
 - `_config.fluid.yml`：旧 Fluid 主题配置，仅保留为回退参考

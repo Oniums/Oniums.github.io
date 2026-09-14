@@ -31,6 +31,12 @@ const requiredFiles = [
   "tools/assets/power.mjs",
   "tools/assets/vendor/qrcode.js",
   "tools/assets/vendor/LICENSE.txt",
+  "playground/radar/index.html",
+  "playground/radar/radar.css",
+  "playground/radar/physics.mjs",
+  "playground/radar/course.mjs",
+  "playground/radar/plots.mjs",
+  "playground/radar/app.mjs",
   "playground/commissioning/index.html",
   "playground/commissioning/player.css",
   "playground/commissioning/player.js",
@@ -112,6 +118,9 @@ const requiredFiles = [
 const forbiddenFiles = ["CNAME"];
 
 const requiredContent = [
+  { file: "playground/radar/index.html", marker: 'id="chapter-nav"' },
+  { file: "index.html", marker: 'href="/playground/radar/"' },
+  { file: "tools/index.html", marker: 'href="/playground/radar/"' },
   { file: "index.html", marker: 'class="home-shortcuts"' },
   { file: "index.html", marker: 'href="/tools/"' },
   { file: "index.html", marker: 'href="/playground/commissioning/"' },
