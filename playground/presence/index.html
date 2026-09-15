@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light"><meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>人存实验室：从点云到有人 / 无人 · Oniums Lab</title>
+  <meta name="description" content="拖动人物与风扇，观察模拟点云如何经过区间屏蔽、时间确认、状态保持与无人延时。亲手试验背景学习的限制，理解雷达与主控的软件分工。">
+  <link rel="canonical" href="https://oniums.github.io/playground/presence/">
+  <link rel="icon" href="/img/avatar.png"><link rel="stylesheet" href="./presence.css"><script type="module" src="./app.mjs"></script>
+</head>
+<body>
+<a class="skip" href="#experiment">跳到交互实验</a>
+<header class="site-header"><a class="brand" href="/">o<span>niums</span><small>LAB</small></a><nav aria-label="站点导航"><a href="/lab/">实验室总览</a><a href="/playground/radar/">雷达基础课</a><a href="/tools/">工具箱</a></nav></header>
+<main>
+  <section class="hero"><div><p class="eyebrow">PRESENCE / LEARN FROM THE OUTPUT</p><h1>从几个点，<br>到有人 / 无人。</h1><p class="intro">先不用理解射频。移动一个人、关闭一个区间，<br class="desktop-break">看数据怎样一步步变成产品状态。</p></div><div class="hero-note"><span class="tag">交互方案 · 教学模拟</span><p>点云是构造输入，人物与风扇的位置是场景真值。判断逻辑只看点的位置、类型、信噪比与时间，不读取“这是人”的标签。</p><p>这里没有真实模块、射频仿真或人体识别算法。模拟结果不代表任何产品性能。</p></div></section>
+  <nav class="lesson-tabs" aria-label="实验学习环节">
+    <button type="button" data-lesson="input" aria-pressed="true">01 看懂输入</button><button type="button" data-lesson="filter" aria-pressed="false">02 筛选与分区</button><button type="button" data-lesson="state" aria-pressed="false">03 生成人存</button><button type="button" data-lesson="learning" aria-pressed="false">04 背景学习</button><button type="button" data-lesson="modules" aria-pressed="false">05 模块分工</button>
+  </nav>
+  <section class="lesson-note" aria-labelledby="lesson-title"><span class="eyebrow" id="lesson-number">01 / 从输出开始</span><h2 id="lesson-title">一个点不是一个人，一帧没有点也不等于无人。</h2><p id="lesson-text">绿色点代表构造的移动点，橙色点代表构造的存在点。点击“播放”，观察同一片位置反复出现的点。下面的状态机才负责把它们变成有人 / 无人。</p><p class="try" id="lesson-try">试一试：播放后，把人物 A 从“移动”切到“静坐”，看移动点和存在点怎样交接。</p></section>
+  <div class="mobile-summary"><span>模拟输出</span><strong id="mobile-state">无人</strong><span id="mobile-time">0.0 s</span></div>
+  <section id="experiment" class="experiment" aria-label="人存交互实验">
+    <div class="experiment-heading"><div><span class="eyebrow">LIVE WORKBENCH</span><h2>同一个房间，逐层看结果。</h2></div><label class="preset-label" for="preset">载入场景<select id="preset"><option value="walk">人物进入与离开</option><option value="seated">启动时已有静坐的人</option><option value="two">一人移动，一人静坐</option><option value="fan">空房间里的风扇</option><option value="masked">检测区间全部关闭</option></select></label></div>
+    <div class="workbench">
+      <section class="scene-panel panel" aria-labelledby="room-title">
+        <div class="panel-heading"><h3 id="room-title">场景与模拟点云</h3><label><input type="checkbox" id="show-rejected" checked>显示被过滤的点</label></div>
+        <svg id="room" viewBox="0 0 600 460" role="group" aria-label="雷达正前方房间，横向负3至3米，纵向0至5米，可拖动人物和风扇">
+          <defs><clipPath id="room-clip"><rect x="60" y="25" width="480" height="400" rx="8"/></clipPath><pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse" x="60" y="25"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="#e4e7df" stroke-width="1"/></pattern></defs>
+          <rect x="60" y="25" width="480" height="400" rx="8" fill="#f6f8f3"/><rect x="60" y="25" width="480" height="400" fill="url(#grid)"/>
+          <g id="rings" clip-path="url(#room-clip)"></g><g id="cloud" clip-path="url(#room-clip)"></g>
+          <g class="axis-labels"><text x="42" y="30">5 m</text><text x="42" y="110">4</text><text x="42" y="190">3</text><text x="42" y="270">2</text><text x="42" y="350">1</text><text x="60" y="447">−3 m</text><text x="290" y="447">0</text><text x="520" y="447">3 m</text></g>
+          <path d="M290 428 L300 410 L310 428Z" fill="#1a6558"/><text x="325" y="431" class="radar-label">雷达 · 正前方 ↑</text>
+          <g id="actors"></g>
+        </svg>
+        <div class="legend"><span><i class="dot motion"></i>移动点</span><span><i class="dot presence"></i>存在点</span><span><i class="dot rejected"></i>过滤 / 过期</span><span>图标为场景真值</span></div>
+        <p class="helper">拖动图标改变位置；键盘方向键每次移动 0.1 m（Shift 为 0.5 m）。图标位置固定时，“移动”表示该位置附近有肢体运动。场景与信号均为示意。</p>
+        <div class="playbar"><button id="play" class="primary" type="button">播放 ▶</button><button id="step" type="button">前进 0.2 秒</button><button id="advance" type="button">前进 5 秒</button><button id="reset" type="button">重新开始</button><label for="speed">速度<select id="speed"><option value="1">1×</option><option value="4">4×</option><option value="10">10×</option></select></label><output id="clock">0.0 s</output></div>
+        <p class="helper" id="play-notice">暂停会冻结模拟时间，便于检查每一帧。页面隐藏时自动暂停。</p>
+        <div id="actor-controls" class="actor-controls"></div>
+      </section>
+      <aside class="result-panel" aria-label="实时判断结果">
+        <section class="state-card" id="state-card" data-state="empty"><span class="eyebrow">产品输出 / 示意</span><h3 id="occupancy">无人</h3><p id="state-reason">尚未形成有效检测。</p><div class="countdown"><span>距无人超时</span><strong id="remaining">—</strong></div><progress id="hold-progress" value="0" max="1" aria-label="无人延时剩余比例"></progress><p id="health">数据正常</p></section>
+        <section class="panel rules"><h3>改变判断规则</h3><p class="helper">修改下面的规则会清空判断历史、从 0 秒重新实验；人物开关与位置变化会保留历史。</p><label for="min-snr">基础 SNR 门限 <output id="min-snr-value">12 dB</output></label><input id="min-snr" type="range" min="8" max="24" value="12" step="1"><label for="confirm">进入确认时长 <output id="confirm-value">0.6 s</output></label><input id="confirm" type="range" min="200" max="2000" step="200" value="600"><label for="hold">无人延时 <output id="hold-value">8 s</output></label><input id="hold" type="range" min="2" max="120" step="1" value="8"><p class="helper">8 秒只是方便观察的教学默认值。确认至少需要两次不同采样时刻的有效检测。</p><label for="stream">输入状态<select id="stream"><option value="ok">正常点云</option><option value="empty">持续收到有效空帧</option><option value="lost">完全没有数据</option><option value="frozen">重复发送旧帧</option></select></label><p class="helper">流中断或重复旧帧满 2 模拟秒后，显示“数据未知”；恢复后重新确认。空帧则正常参与无人计时。</p></section>
+      </aside>
+    </div>
+    <section class="panel zones-panel"><div class="panel-heading"><h3>区间开关与本次检测</h3><button id="enable-all" type="button">全部启用</button></div><p class="helper">按离雷达的直线距离划分，每格 0.5 m，覆盖 [0, 4) m。勾选表示参与检测。亮色表示当前有效点，不是最终有人状态。</p><div id="zones" class="zones"></div></section>
+    <section class="pipeline" aria-label="本帧处理流程"><div><span>01 输入</span><strong id="input-count">0 个点</strong><small id="sample-ages">移动 / 存在独立采样</small></div><div><span>02 筛选</span><strong id="kept-count">0 个点保留</strong><small id="filter-reason">范围、开关与门限</small></div><div><span>03 时间确认</span><strong id="confirmed-count">0 个区间</strong><small>连续证据达到确认条件</small></div><div><span>04 产品状态</span><strong id="pipeline-state">无人</strong><small>有人保持与无人延时</small></div></section>
+    <details class="panel data-details"><summary>展开一帧点云：输入与过滤理由</summary><p class="helper">这是教学数据表，不是厂商协议格式。灰色点包含被过滤或超过有效期的点。表格显示当前全部构造点，最多 18 个。</p><div class="table-scroll"><table><thead><tr><th>类型</th><th>X / Y（m）</th><th>距离（m）</th><th>SNR（dB）</th><th>处理</th></tr></thead><tbody id="point-rows"></tbody></table></div></details>
+  </section>
+  <section class="panel learning-panel" id="learning-panel"><div class="panel-heading"><div><span class="eyebrow">BACKGROUND / AN INTENTIONAL LIMIT</span><h2>背景学习也会带来取舍。</h2></div><span class="tag">点云层教学规则</span></div><p>关闭人物、打开风扇，观察误判；再采集 4 模拟秒的背景点，将各距离区间的门限设为观测到的最大 SNR + 2 dB。这个规则能抑制示例风扇，也可能漏掉同一区间内更弱的人体点。</p><div class="learning-actions"><button id="learn" type="button">开始空房学习</button><button id="clear-learning" type="button">清除背景门限</button><output id="learn-status" role="status">未学习</output></div><p id="learn-guard" class="helper">请先关闭人物 A、B，让已知模拟场景为空房。</p><div id="learned-zones" class="learned-zones"></div><p class="notice">这不是底噪学习，也不是自动识别人和风扇。程序只对模拟点云统计门限；真实系统还需确认输入能力、人体误抑制风险、学习条件和参数是否生效。移动场景对象或改变输入状态会取消正在进行的学习。</p></section>
+  <section class="architecture" id="architecture"><span class="eyebrow">RESPONSIBILITY / WHO DOES WHAT</span><h2>模块分工，不等于芯片边界。</h2><p>下面切换的是部署示意，不会改变当前算法或模拟功耗。我们的点云处理代码也可以运行在雷达芯片上，前提是能开发对应固件并有足够资源。</p><div class="placement-options"><button type="button" data-placement="host" aria-pressed="true">点云处理放主控</button><button type="button" data-placement="radar" aria-pressed="false">点云处理放雷达</button></div><div class="architecture-grid"><article><span>雷达芯片</span><h3 id="radar-work">采集 → FFT → 点云</h3><p id="radar-work-text">复用雷达侧信号处理，通过数据接口发送点云。</p></article><div class="wire"><strong id="wire-data">点云帧 + 时间与状态</strong><span>接口与实际带宽需要验证 →</span></div><article><span>产品主控</span><h3 id="host-work">分区 → 检测 → 人存状态</h3><p id="host-work-text">处理点云，管理有人保持、无人延时、配置和通信。</p></article></div><div class="responsibility-grid"><article><h3>数据接入</h3><p>完整帧、单位、坐标、去重、丢帧与重启。数据失效必须与正常无人分开。</p></article><article><h3>检测判断</h3><p>区域筛选、局部点群与时间证据。移动和存在分别统计；SNR 不是“是人的概率”。</p></article><article><h3>产品状态</h3><p>进入与保持用不同条件。无人延时只有一个负责人；刷新的是新证据时间。</p></article><article><h3>配置与学习</h3><p>统一管理前级与后级参数。被前级过滤掉的点，无法靠降低后级门限找回来。</p></article><article><h3>产品接口</h3><p>上报状态与区间，调试时才查看完整点云。这里的输出卡片不代表真实网络上报。</p></article><article><h3>验证与恢复</h3><p>保存输入、规则和时间线，回放复现。配置变化、学习、重启后重新建立有效历史。</p></article></div></section>
+  <section class="panel event-panel"><div class="panel-heading"><h2>状态变化时间线</h2><span class="helper">最近 60 次状态变化 · 模拟时间</span></div><ol id="events"></ol><p class="helper">“等待无人”期间输出仍为有人。规则修改和重新开始会清空时间线；场景变化与输入故障保留时间线。</p></section>
+  <details class="references"><summary>模型边界、判断规则与公开参考</summary><p>本实验从构造的点云开始，不模拟 ADC、FFT、天线方向图、反射衰减或厂商检测算法。人物移动 / 静坐与风扇仅控制构造点的类型、数量和 SNR；不计算速度或做人体分类。点数与距离无物理性能关系。</p><p>教学规则：移动样本每 0.2 模拟秒更新，存在样本每 1 秒更新；各自有效期为 0.4 / 1.2 秒。每个区间至少有两次不同采样时间的有效点，且持续达到确认时长才触发。确认后的新证据刷新整体保持时间。存在样本重复送达不会刷新采样时间。正常空帧会清除相应通路的当前点；失联 2 秒显示未知，恢复后重新判断。</p><p>当前方案不实现多人身份跟踪、完整聚类、可靠人体分类、原始信号底噪学习或真实协议通信。基于区域点云的检测仍可能把环境干扰判为有人。页面状态仅保留在内存中，无上传、存储或设备连接。</p><ul><li><a href="https://software-dl.ti.com/ra-processors/esd/MMWAVE-L-SDK/05_04_00_01/exports/api_guide_xwrL64xx/MPDPROC_PAGE.html" target="_blank" rel="noopener noreferrer">公开参考：点云、区域映射与人存状态机</a> · 本页规则为独立教学实现，并未复现参考实现。</li><li><a href="/playground/radar/">雷达基础课堂：继续理解采样、FFT 与距离谱</a></li><li><a href="/tools/power/">低功耗预算：观察活动频率怎样影响平均电流</a></li></ul></details>
+  <noscript><p class="notice">交互实验需要 JavaScript。基本流程：完整点云 → 区域筛选 → 多次观测形成检测 → 有人保持 → 超时无人。仅靠点云不能还原原始信号底噪学习，丢帧也不能直接视作无人。</p></noscript>
+</main><footer>Oniums Lab · 先看结果，再拆过程。<a href="/lab/">返回实验室 ↗</a></footer>
+</body></html>

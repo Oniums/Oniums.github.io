@@ -31,6 +31,7 @@ description: Oniums Lab：嵌入式协议、低功耗设备与固件调试实验
 ## 近期公开入口
 
 <div class="lab-link-list">
+  <a href="/playground/presence/"><strong>人存实验室 · 从点云到有人 / 无人</strong><span>拖动人物与风扇，逐层观察区间屏蔽、时间确认、无人延时、背景学习和模块分工。构造数据教学演示。</span></a>
   <a href="/playground/radar/"><strong>雷达交互课堂 · 从回波到距离谱</strong><span>4 章 16 节，拖动目标与参数，逐步理解 FMCW、采样与 FFT。</span></a>
   <a href="/tools/"><strong>Oniums 工具箱 · 浏览器本地计算</strong><span>六个本地工具：配对码、字节位域、低功耗预算、固件对比、日志时间线与 Thread Dataset。</span></a>
   <a href="/playground/commissioning/"><strong>交互实验 · 配网过程播放器</strong><span>播放 Matter over Thread 首次配网，切换故障，逐步查看状态与证据。</span></a>

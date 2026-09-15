@@ -14,6 +14,10 @@ const shortcuts = `
     <span class="home-shortcut-title">雷达交互课堂 <span aria-hidden="true">↗</span></span>
     <span class="home-shortcut-description">4 章 16 节 · 从回波到距离谱</span>
   </a>
+  <a class="home-shortcut" href="/playground/presence/">
+    <span class="home-shortcut-title">人存实验室 <span aria-hidden="true">↗</span></span>
+    <span class="home-shortcut-description">拖动人物与风扇 · 从点云到有人 / 无人</span>
+  </a>
 </nav>`;
 
 hexo.extend.filter.register("after_render:html", (html) => {

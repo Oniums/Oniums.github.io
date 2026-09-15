@@ -37,6 +37,10 @@ const requiredFiles = [
   "playground/radar/course.mjs",
   "playground/radar/plots.mjs",
   "playground/radar/app.mjs",
+  "playground/presence/index.html",
+  "playground/presence/presence.css",
+  "playground/presence/engine.mjs",
+  "playground/presence/app.mjs",
   "playground/commissioning/index.html",
   "playground/commissioning/player.css",
   "playground/commissioning/player.js",
@@ -118,6 +122,11 @@ const requiredFiles = [
 const forbiddenFiles = ["CNAME"];
 
 const requiredContent = [
+  { file: "playground/presence/index.html", marker: 'id="experiment"' },
+  { file: "index.html", marker: 'href="/playground/presence/"' },
+  { file: "lab/index.html", marker: 'href="/playground/presence/"' },
+  { file: "tools/index.html", marker: 'href="/playground/presence/"' },
+  { file: "playground/radar/index.html", marker: 'href="/playground/presence/"' },
   { file: "playground/radar/index.html", marker: 'id="chapter-nav"' },
   { file: "index.html", marker: 'href="/playground/radar/"' },
   { file: "tools/index.html", marker: 'href="/playground/radar/"' },

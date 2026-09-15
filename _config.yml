@@ -34,6 +34,7 @@ i18n_dir: :lang
 skip_render:
   - playground/commissioning/**
   - playground/radar/**
+  - playground/presence/**
   - tools/**
 
 # Writing

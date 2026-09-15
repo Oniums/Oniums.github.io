@@ -38,6 +38,8 @@ Hexo 首先把生成结果写入 `public/`，站点检查通过后，再由受�
 - 工具箱与配网播放器均可通过顶部一级导航、首页首屏快捷卡片或 Lab 总览进入。`scripts/home-shortcuts.js` 在构建时插入首页卡片，样式位于 `source/css/custom.css`；手机菜单沿用同一份主题导航配置。
 - `source/playground/radar/`：雷达交互课堂基础篇，4 章 16 小节。`course.mjs` 管理逐节讲解、预测题和实验任务；`physics.mjs` 实现理想静止 FMCW、采样、量化与实际 FFT；`plots.mjs` 绘制曲线，`app.mjs` 管理场景拖动和章节导航。输入与进度仅在页面内存中保留，公开参考与模型边界列在课程页。首页首屏、一级导航、工具箱和 Lab 总览均有入口。
 - `tools/test-radar.mjs`：模型数值、FFT 与直接 DFT 对照、混叠、窗函数、补零和课程完整性测试，运行 `npm run test:radar`，已纳入完整构建检查。
+- `source/playground/presence/`：人存实验室，构造点云经过区间过滤、时间确认与无人延时，演示人物移动/静坐、风扇干扰、空帧/断流/旧帧、点云背景门限与芯片分工。`engine.mjs` 是确定性纯计算模型，`app.mjs` 管理场景和模拟时钟；不读取人物标签做分类，不连接设备、不上传或持久化数据。公开页只用通用规则，不带内部产品型号、参数或源码。
+- `tools/test-presence.mjs`：区域边界、时间确认、存在样本去重、空帧与失联、恢复、背景门限及真值隔离测试，纳入 `npm run test:radar`。人存实验室从首页第四张快捷卡、实验室菜单与总览、雷达基础课和工具箱均可进入。
 - `_config.yml`：Hexo 配置
 - `_config.butterfly.yml`：当前 Butterfly 主题覆盖配置
 - `_config.fluid.yml`：旧 Fluid 主题配置，仅保留为回退参考
