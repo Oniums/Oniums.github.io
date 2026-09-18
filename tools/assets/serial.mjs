@@ -1,6 +1,6 @@
-import { TrafficLog, encodeSend, hexText, visibleText, filterRows, ReceiveWarnings } from "./serial-core.mjs";
-import { SerialConnection } from "./serial-port.mjs";
-import { AutoSave } from "./serial-save.mjs";
+import { TrafficLog, encodeSend, hexText, visibleText, filterRows, ReceiveWarnings, localTimestamp } from "./serial-core.mjs?v=20260918-local-time";
+import { SerialConnection } from "./serial-port.mjs?v=20260918-local-time";
+import { AutoSave } from "./serial-save.mjs?v=20260918-local-time";
 
 const $ = (id) => document.getElementById(id);
 const checked = (id) => $(id).checked;
@@ -114,7 +114,7 @@ $("auto-save").onchange = async () => {
     const timed = $("save-mode").value === "timed", rotationMinutes = timed ? Number($("rotation-minutes").value) : 0;
     if (timed && (!Number.isInteger(rotationMinutes) || rotationMinutes < 1 || rotationMinutes > 1440)) throw new Error("分文件间隔请输入 1–1440 分钟的整数。");
     const handle = timed ? await window.showDirectoryPicker({ id: "serial-logs-directory", mode: "readwrite" }) : await window.showSaveFilePicker({
-      id: "serial-auto-save", suggestedName: `serial-${new Date().toISOString().replace(/[:.]/g, "-")}.${format === "raw" ? "bin" : "log"}`,
+      id: "serial-auto-save", suggestedName: `serial-${localTimestamp(Date.now(), { filename: true })}.${format === "raw" ? "bin" : "log"}`,
       types: [{ description: format === "raw" ? "原始接收字节" : "UTF-8 串口日志", accept: format === "raw" ? { "application/octet-stream": [".bin"] } : { "text/plain": [".log", ".txt"] } }]
     });
     saving = new AutoSave({ onChange: saveState, onError: (error) => report(new Error(`自动保存：${error.message}`)) });
@@ -156,9 +156,7 @@ monitorDialog.addEventListener("close", () => {
   $("expand-monitor").focus({ preventScroll: true });
 });
 function stamp(at) {
-  const date = new Date(at), pad = (n, width = 2) => String(n).padStart(width, "0");
-  const clock = `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}.${pad(date.getMilliseconds(), 3)}`;
-  return checked("date-stamps") ? `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${clock}` : clock;
+  return localTimestamp(at, { date: checked("date-stamps") }).replace("T", " ");
 }
 function rowsForView(all = false) {
   const hex = checked("hex-view");
@@ -296,7 +294,7 @@ async function signals(apply) {
 $("apply-signals").onclick = () => signals(true); $("read-signals").onclick = () => signals(false);
 function download(parts, suffix, type = "text/plain;charset=utf-8") {
   const url = URL.createObjectURL(new Blob(parts, { type }));
-  const a = document.createElement("a"); a.href = url; a.download = `serial-${new Date().toISOString().replace(/[:.]/g, "-")}${suffix}`; a.click();
+  const a = document.createElement("a"); a.href = url; a.download = `serial-${localTimestamp(Date.now(), { filename: true })}${suffix}`; a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000); notice(`已生成 ${suffix} 文件。`);
 }
 $("export-log").onclick = () => {
@@ -305,7 +303,7 @@ $("export-log").onclick = () => {
 };
 $("export-rx").onclick = () => download(log.raw("RX"), "-rx.bin", "application/octet-stream");
 $("export-tx").onclick = () => download(log.raw("TX"), "-tx.bin", "application/octet-stream");
-$("export-json").onclick = () => download([JSON.stringify({ version: 1, exportedAt: new Date().toISOString(), droppedBytes: log.droppedBytes, counts: log.counts, records: log.records.map((r) => ({ direction: r.direction, at: new Date(r.at).toISOString(), hex: hexText(r.bytes) })) }, null, 2)], ".json", "application/json");
+$("export-json").onclick = () => download([JSON.stringify({ version: 1, exportedAt: localTimestamp(), droppedBytes: log.droppedBytes, counts: log.counts, records: log.records.map((r) => ({ direction: r.direction, at: localTimestamp(r.at), hex: hexText(r.bytes) })) }, null, 2)], ".json", "application/json");
 $("copy").onclick = async () => {
   try { await navigator.clipboard.writeText($("terminal").innerText); notice("当前显示的日志已复制。"); }
   catch { report(new Error("剪贴板不可用，请选择日志复制，或导出 .log 文件。")); }

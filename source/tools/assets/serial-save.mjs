@@ -1,4 +1,4 @@
-import { LineStream } from "./serial-core.mjs";
+import { LineStream, localTimestamp } from "./serial-core.mjs?v=20260918-local-time";
 const encoder = new TextEncoder();
 
 // 每次 close 后才把字节计入已保存；待提交队列独立于终端显示缓存。
@@ -38,7 +38,7 @@ export class AutoSave {
     } catch (error) { try { await writable?.abort(); } catch { /* 流可能已结束。 */ } this.fail(error); }
   }
   newSegment() {
-    const timestamp = new Date(this.wallNow()).toISOString().replace(/[:.]/g, "-");
+    const timestamp = localTimestamp(this.wallNow(), { filename: true });
     const number = String(++this.segmentNumber).padStart(6, "0");
     return { name: `serial-${timestamp}-${this.sessionId}-${number}.${this.format === "raw" ? "bin" : "log"}`, handle: null, offset: 0 };
   }
@@ -78,7 +78,7 @@ export class AutoSave {
     if (this.format === "text" && this.streams) {
       for (const direction of ["RX", "TX"]) {
         for (const text of this.streams[direction].push(undefined, true)) {
-          const stamp = this.timestamps ? `[${new Date(this.lastAt[direction] ?? Date.now()).toISOString()}] ` : "";
+          const stamp = this.timestamps ? `[${localTimestamp(this.lastAt[direction] ?? Date.now())}] ` : "";
           const bytes = encoder.encode(`${stamp}[${direction} 片段] ${text}\n`);
           if (this.pendingBytes + bytes.length <= this.maxPending) { this.parts.push({ bytes, segment: this.segment }); this.pendingBytes += bytes.length; }
           else error.message += "；末尾片段超出队列上限，未保留";
@@ -96,7 +96,7 @@ export class AutoSave {
     this.parts.push({ bytes, segment: this.segment }); this.pendingBytes += bytes.length;
   }
   line(direction, text, at, partial = false) {
-    const stamp = this.timestamps ? `[${new Date(at).toISOString()}] ` : "";
+    const stamp = this.timestamps ? `[${localTimestamp(at)}] ` : "";
     this.enqueue(encoder.encode(`${stamp}[${direction}${partial ? " 片段" : ""}] ${text}\n`));
   }
   add(direction, bytes, at = Date.now()) {

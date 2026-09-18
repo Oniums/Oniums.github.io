@@ -9,7 +9,7 @@ const { chromium } = await import(modulePath ? pathToFileURL(modulePath).href : 
 const url = process.env.SERIAL_TEST_URL || "http://127.0.0.1:4175/tools/serial/";
 const browser = await chromium.launch();
 try {
-  const context = await browser.newContext({ viewport: { width: 1440, height: 1100 }, permissions: ["clipboard-read", "clipboard-write"] });
+  const context = await browser.newContext({ viewport: { width: 1440, height: 1100 }, timezoneId: "Asia/Shanghai", permissions: ["clipboard-read", "clipboard-write"] });
   await context.addInitScript(() => {
     const serial = new EventTarget();
     const mock = { writes: [], closed: 0, requested: 0, failWrite: false, failOpen: false, cancel: false, closeLocked: false, signals: null };
@@ -44,7 +44,8 @@ try {
     };
     window.serialMock = mock; Object.defineProperty(navigator, "serial", { value: serial, configurable: true });
     // 仅替换文件选择器；成功路径使用 Chromium 实际 FileSystemFileHandle 写入隔离测试目录。
-    window.showSaveFilePicker = async () => {
+    window.showSaveFilePicker = async (options) => {
+      mock.saveOptions = options;
       if (mock.cancelFile) throw new DOMException("cancel file", "AbortError");
       const directory = await navigator.storage.getDirectory();
       mock.fileHandle = await directory.getFileHandle("serial-autosave-test.log", { create: true });
@@ -90,7 +91,7 @@ try {
   const close = async () => { await click("disconnect"); await page.waitForFunction(() => document.getElementById("connection-state").textContent === "未连接"); };
   const download = async (id) => {
     const promise = page.waitForEvent("download"); await click(id);
-    const file = await promise; return readFile(await file.path());
+    const file = await promise; assert.match(file.suggestedFilename(), /\+0800/); return readFile(await file.path());
   };
   assert(await page.locator("#send").isDisabled());
   assert(await page.locator("input[type=checkbox]").count() >= 20);
@@ -102,7 +103,7 @@ try {
   await check("show-controls"); await tick(); assert.match(await text("terminal"), /<00><01><02>/);
   await check("timestamps", false); await check("directions", false); await tick(); assert((await text("terminal")).startsWith("演示模式"));
   await check("timestamps"); await check("directions"); await check("line-numbers"); await check("date-stamps"); await check("light-terminal"); await tick();
-  assert.match(await text("terminal"), /^1  \[\d{4}-/); await check("line-numbers", false);
+  assert.match(await text("terminal"), /^1  \[\d{4}-/); assert.match(await text("terminal"), /\+08:00\]/); await check("line-numbers", false);
   await check("light-terminal", false); await fill("highlight", "");
   await page.screenshot({ path: process.env.SERIAL_SCREENSHOT || "/tmp/oniums-serial-desktop.png", fullPage: true });
 
@@ -157,7 +158,7 @@ try {
   await page.locator(".receive-panel > details:last-child summary").click();
   await fill("include", "中文"); const rx = await download("export-rx"); assert.deepEqual([...rx], [...original, ...new TextEncoder().encode(" continued\n")]);
   const filtered = (await download("export-log")).toString(); assert.match(filtered, /中文/); assert.doesNotMatch(filtered, /continued/);
-  const json = JSON.parse((await download("export-json")).toString()); assert(json.records.some((r) => r.direction === "TX"));
+  const json = JSON.parse((await download("export-json")).toString()); assert(json.records.some((r) => r.direction === "TX")); assert.match(json.exportedAt, /\+08:00$/); assert(json.records.every((r) => r.at.endsWith("+08:00")));
   await fill("include", ""); await tick(); await click("copy"); assert.match(await page.evaluate(() => navigator.clipboard.readText()), /中文/);
   await close(); assert.equal(await page.evaluate(() => window.serialMock.closeLocked), false);
   await open(); await tick(); assert.doesNotMatch(await text("terminal"), /continued/);
@@ -170,6 +171,7 @@ try {
   await page.evaluate(() => { window.serialMock.cancelFile = false; });
   await page.locator("#save-format").selectOption("raw"); await check("auto-save");
   await page.waitForFunction(() => document.getElementById("save-status").textContent.includes("自动保存中"));
+  assert.match(await page.evaluate(() => window.serialMock.saveOptions.suggestedName), /\+0800\.bin$/);
   await open(); await feed("first\n"); await click("pause"); await fill("include", "hidden"); await click("clear"); await feed("second\n");
   await click("save-now"); await page.waitForFunction(() => document.getElementById("save-status").textContent.includes("已提交 13 B"));
   assert.equal(await page.evaluate(async () => (await window.serialMock.fileHandle.getFile()).text()), "first\nsecond\n");
@@ -181,7 +183,7 @@ try {
   await open(); await feed("中文\r\n"); await fill("send-input", "AT\r\n"); await click("send");
   await page.waitForFunction(() => document.getElementById("save-status").textContent.match(/已提交 [1-9]/));
   const savedText = await page.evaluate(async () => (await window.serialMock.fileHandle.getFile()).text());
-  assert(savedText.startsWith("first\nsecond\ntail"), "existing file preserved"); assert.match(savedText, /\[RX\] 中文/); assert.match(savedText, /\[TX\] AT/);
+  assert(savedText.startsWith("first\nsecond\ntail"), "existing file preserved"); assert.match(savedText, /\[RX\] 中文/); assert.match(savedText, /\[TX\] AT/); assert.match(savedText, /\+08:00\] \[RX\] 中文/);
   await feed("unsaved tail"); await page.evaluate(() => { window.serialMock.failFile = true; }); await click("save-now");
   await page.waitForFunction(() => document.getElementById("save-status").textContent.includes("保存失败"));
   assert(await page.locator("#auto-save").isDisabled());
@@ -205,7 +207,7 @@ try {
     return results.sort((a, b) => a.name.localeCompare(b.name));
   });
   assert.deepEqual(timedFiles.map((file) => file.text), ["hour one\n", "hour two\n"]);
-  assert.match(timedFiles[0].name, /000001\.bin$/); assert.match(timedFiles[1].name, /000002\.bin$/);
+  assert.match(timedFiles[0].name, /\+0800-.*-000001\.bin$/); assert.match(timedFiles[1].name, /000002\.bin$/);
   await page.evaluate(() => { window.serialMock.clockShift += 3600000; window.serialMock.failDirectory = true; }); await feed("pending third\n"); await click("save-now");
   await page.waitForFunction(() => document.getElementById("save-status").textContent.includes("保存失败"));
   assert.equal((await download("save-rescue")).toString(), "pending third\n");

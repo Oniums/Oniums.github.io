@@ -1,4 +1,15 @@
 const encoder = new TextEncoder();
+// 按该时刻的本地时区计算偏移，避免夏令时和跨日记录被固定偏移误标。
+export function localTimestamp(at = Date.now(), { filename = false, date = true } = {}) {
+  const value = new Date(at), pad = (n, width = 2) => String(n).padStart(width, "0");
+  if (!Number.isFinite(value.getTime())) throw new RangeError("无效的日志时间。");
+  const offset = -value.getTimezoneOffset(), absolute = Math.abs(offset);
+  const zone = `${offset < 0 ? "-" : "+"}${pad(Math.floor(absolute / 60))}${filename ? "" : ":"}${pad(absolute % 60)}`;
+  const day = `${value.getFullYear()}-${pad(value.getMonth() + 1)}-${pad(value.getDate())}`;
+  const time = `${pad(value.getHours())}:${pad(value.getMinutes())}:${pad(value.getSeconds())}.${pad(value.getMilliseconds(), 3)}`;
+  return `${date ? `${day}T` : ""}${filename ? time.replace(/[:.]/g, "-") : time}${zone}`;
+}
+
 export function encodeSend(input, { hex = false, escapes = false, ending = "" } = {}) {
   if (input.length > 65536) throw new Error("单次发送内容最多 64 KiB 字符。");
   let bytes;

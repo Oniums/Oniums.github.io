@@ -1,10 +1,30 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { encodeSend, LineStream, TrafficLog, filterRows, visibleText, ReceiveWarnings } from "../source/tools/assets/serial-core.mjs";
+import { execFileSync } from "node:child_process";
+import { encodeSend, LineStream, TrafficLog, filterRows, visibleText, ReceiveWarnings, localTimestamp } from "../source/tools/assets/serial-core.mjs";
 import { SerialConnection } from "../source/tools/assets/serial-port.mjs";
 import { AutoSave } from "../source/tools/assets/serial-save.mjs";
 const enc = new TextEncoder();
 const wait = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+test("本地时间覆盖正负偏移、半小时时区、UTC、跨日及夏令时回拨", () => {
+  const moduleURL = new URL("../source/tools/assets/serial-core.mjs", import.meta.url).href;
+  const cases = [
+    ["Asia/Shanghai", "2026-09-18T20:53:09.028Z", "2026-09-19T04:53:09.028+08:00"],
+    ["Asia/Kolkata", "2026-09-18T08:53:09.028Z", "2026-09-18T14:23:09.028+05:30"],
+    ["UTC", "2026-09-18T08:53:09.028Z", "2026-09-18T08:53:09.028+00:00"],
+    ["America/New_York", "2026-11-01T05:30:00.000Z", "2026-11-01T01:30:00.000-04:00"],
+    ["America/New_York", "2026-11-01T06:30:00.000Z", "2026-11-01T01:30:00.000-05:00"]
+  ];
+  for (const [timezone, instant, expected] of cases) {
+    const script = `import { localTimestamp } from ${JSON.stringify(moduleURL)}; const at = ${JSON.stringify(instant)}; console.log(JSON.stringify([localTimestamp(at), localTimestamp(at, { filename: true }), localTimestamp(at, { date: false })]));`;
+    const [stamp, filename, clock] = JSON.parse(execFileSync(process.execPath, ["--input-type=module", "-e", script], { env: { ...process.env, TZ: timezone }, encoding: "utf8" }));
+    assert.equal(stamp, expected); assert.equal(Date.parse(stamp), Date.parse(instant));
+    assert.equal(clock, expected.slice(11));
+    assert.equal(filename, expected.slice(0, -6).replace(/[:.]/g, "-") + expected.slice(-6).replace(":", ""));
+    assert.doesNotMatch(filename, /[<>:"/\\|?*]/);
+  }
+});
 
 test("HEX 严格校验、结束符与 UTF-8 字节数", () => {
   assert.deepEqual([...encodeSend("0x01,02:FF 80", { hex: true, ending: "\r\n" })], [1, 2, 255, 128, 13, 10]);
@@ -196,11 +216,11 @@ test("自动保存追加已有文件，提交成功才累计字节，原始 RX �
   await save.flush(); assert.equal(save.savedBytes, 4); assert.equal(save.pendingBytes, 0);
   assert.deepEqual([...file.bytes.slice(-4)], [0, 255, 13, 10]); await save.stop(); assert.equal(save.state, "stopped");
 });
-test("文本自动保存跨块中文、UTC 时间戳、TX 选项和无换行片段", async () => {
+test("文本自动保存跨块中文、本地时区时间戳、TX 选项和无换行片段", async () => {
   const file = fileFixture(), save = new AutoSave(); await save.start(file, { includeTX: true });
   for (const byte of enc.encode("中文\r\n")) save.add("RX", Uint8Array.of(byte), 0);
   save.add("TX", enc.encode("AT\r\n"), 1); save.add("RX", enc.encode("partial"), 2);
-  await save.flush(); assert.match(file.text, /\[1970-01-01T00:00:00.000Z\] \[RX\] 中文\n/);
+  await save.flush(); assert(file.text.includes(`[${localTimestamp(0)}] [RX] 中文\n`));
   assert.match(file.text, /\[TX\] AT/); assert.match(file.text, /\[RX 片段\] partial/);
   save.add("RX", Uint8Array.of(0xe4), 3); await save.stop(); assert.match(file.text, /�/);
 });
@@ -273,7 +293,8 @@ test("按小时边界分文件，原始字节不丢失、不重复且序号递�
   clock = 7200000; save.add("RX", Uint8Array.of(5)); await save.stop();
   assert.deepEqual([...directory.files.values()].map((file) => [...file.bytes]), [[1, 2], [3, 4], [5]]);
   assert.equal(save.fileCount, 3); assert.equal(save.savedBytes, 5); assert.equal(save.pendingBytes, 0);
-  assert.match([...directory.files.keys()][1], /2026-01-01T01-00-00-000Z-.*-000002\.bin$/);
+  assert([...directory.files.keys()][1].startsWith(`serial-${localTimestamp(Date.UTC(2026, 0, 1, 1), { filename: true })}-`));
+  assert.match([...directory.files.keys()][1], /-000002\.bin$/);
 });
 test("空闲时也轮换，后台迟到不补建中间空白文件", async (t) => {
   const directory = directoryFixture(); let clock = 0;
