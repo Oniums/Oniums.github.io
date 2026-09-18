@@ -225,7 +225,15 @@ try {
   });
   await tick(); assert.equal(await text("warning-count"), "40"); assert(await page.locator("#error").isHidden());
   assert.equal(await page.locator("#terminal .rx").count(), 0, "NUL fragments hidden during framing error storm");
-  assert((await page.locator("#terminal .sys").allTextContents()).filter((text) => text.includes("串口告警")).length <= 2, "warning flood coalesced");
+  assert(await page.locator("#hide-rx-warnings").isChecked());
+  assert.doesNotMatch(await text("terminal"), /串口告警：/, "recoverable warnings hidden by default");
+  assert.match(await text("terminal"), /串口已连接/, "other system messages remain visible");
+  await check("hide-rx-warnings", false); await tick();
+  const summaries = (await page.locator("#terminal .sys").allTextContents()).filter((text) => text.includes("串口告警："));
+  assert(summaries.length > 0 && summaries.length <= 2, "cached coalesced warnings restored");
+  await check("hide-rx-warnings"); await tick();
+  await click("copy"); assert.doesNotMatch(await page.evaluate(() => navigator.clipboard.readText()), /串口告警：/);
+  assert.doesNotMatch((await download("export-log")).toString(), /串口告警：/);
   assert.match(await text("serial-warning"), /累计 40 次/); assert.match(await text("connection-state"), /已连接/);
   await feed("after-recovery\n"); await tick(); assert.match(await text("terminal"), /after-recovery/);
   await click("expand-monitor"); assert(await page.locator("#monitor-dialog").isVisible());
@@ -237,7 +245,7 @@ try {
   await click("save-now"); await page.waitForFunction(() => document.getElementById("save-status").textContent.includes("待提交 0 B"));
   const warningLog = await page.evaluate(async () => (await window.serialMock.fileHandle.getFile()).text());
   assert.equal((warningLog.match(/\x00/g) || []).length, 40, "automatic text save retains every hidden NUL");
-  assert.match(warningLog, /expanded logging/); assert((warningLog.match(/串口告警/g) || []).length <= 2);
+  assert.match(warningLog, /expanded logging/); assert.match(warningLog, /串口告警：/); assert((warningLog.match(/串口告警/g) || []).length <= 2);
   await page.evaluate(async () => { for (let i = 0; i < 5; i++) { window.serialMock.framing(); await new Promise((resolve) => setTimeout(resolve, 0)); } });
   await page.waitForFunction(() => document.getElementById("connection-state").textContent === "未连接");
   assert.match(await text("error"), /连续 5 次/); await page.waitForFunction(() => document.getElementById("save-status").textContent.includes("保存已结束"));

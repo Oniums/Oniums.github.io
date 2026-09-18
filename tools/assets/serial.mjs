@@ -165,6 +165,7 @@ function rowsForView(all = false) {
   let rows = hex ? log.hexRows(all ? Infinity : 4000) : log.textRows();
   // 在显示转换前判断，避免误删普通空行或包含有效文本的 NUL 行；HEX 保留全部字节。
   if (!hex && checked("hide-nul")) rows = rows.filter((row) => row.direction !== "RX" || !/^\x00+$/.test(row.text));
+  if (checked("hide-rx-warnings")) rows = rows.filter((row) => row.direction !== "SYS" || !row.text.startsWith("串口告警："));
   return filterRows(rows.map((row) => ({ ...row, text: visibleText(row.text, checked("show-controls"), checked("strip-ansi")) })), {
     include: $("include").value, exclude: $("exclude").value, caseSensitive: checked("case-sensitive"), rx: checked("show-rx"), tx: checked("show-tx"), system: checked("show-system")
   });
