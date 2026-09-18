@@ -112,11 +112,20 @@ try {
   await open(); assert(await page.locator("#demo").isDisabled());
   assert.equal(await page.evaluate(() => window.serialMock.options.baudRate), 115200);
   assert.equal(await page.evaluate(() => window.serialMock.signals), null, "connection does not explicitly toggle signals");
-  const nulData = [...new Uint8Array(64), ...new TextEncoder().encode("before\0after\n")];
+  const nulData = [...new Uint8Array(64), ...new TextEncoder().encode("\nbefore\0after\n")];
   await page.evaluate((bytes) => window.serialMock.feed(bytes), nulData); await tick();
   assert.match(await text("terminal"), /before<00>after/); assert.equal(await text("warning-count"), "0"); assert(await page.locator("#error").isHidden());
+  assert(await page.locator("#hide-nul").isChecked());
+  assert.equal(await page.locator("#terminal .rx").count(), 1, "pure NUL row hidden, mixed text retained");
+  await click("copy"); assert.doesNotMatch(await page.evaluate(() => navigator.clipboard.readText()), /(?:<00>){64}/);
+  await check("hide-nul", false); await tick(); assert.equal(await page.locator("#terminal .rx").count(), 2, "cached NUL row restored");
+  await check("hide-nul"); await check("show-controls", false); await tick();
+  assert.equal(await page.locator("#terminal .rx").count(), 1, "filter independent of control character visibility");
+  await check("hex-view"); await tick(); assert.match(await text("terminal"), /00 00 00 00/);
+  await check("hex-view", false); await check("show-controls"); await tick();
   await page.locator(".receive-panel > details:last-child summary").click();
   assert.deepEqual([...(await download("export-rx"))], nulData);
+  assert.doesNotMatch((await download("export-log")).toString(), /(?:<00>){64}/);
   await page.locator(".receive-panel > details:last-child summary").click(); await click("clear");
   const original = [...new TextEncoder().encode("中文\r\n<svg onload=alert(1)>\npartial")];
   await page.evaluate((bytes) => { for (const byte of bytes) window.serialMock.feed([byte]); }, original);
@@ -215,6 +224,7 @@ try {
     }
   });
   await tick(); assert.equal(await text("warning-count"), "40"); assert(await page.locator("#error").isHidden());
+  assert.equal(await page.locator("#terminal .rx").count(), 0, "NUL fragments hidden during framing error storm");
   assert((await page.locator("#terminal .sys").allTextContents()).filter((text) => text.includes("串口告警")).length <= 2, "warning flood coalesced");
   assert.match(await text("serial-warning"), /累计 40 次/); assert.match(await text("connection-state"), /已连接/);
   await feed("after-recovery\n"); await tick(); assert.match(await text("terminal"), /after-recovery/);
@@ -226,6 +236,7 @@ try {
   assert.equal(await page.evaluate(() => document.activeElement.id), "expand-monitor"); assert(await page.locator("#auto-save").isChecked());
   await click("save-now"); await page.waitForFunction(() => document.getElementById("save-status").textContent.includes("待提交 0 B"));
   const warningLog = await page.evaluate(async () => (await window.serialMock.fileHandle.getFile()).text());
+  assert.equal((warningLog.match(/\x00/g) || []).length, 40, "automatic text save retains every hidden NUL");
   assert.match(warningLog, /expanded logging/); assert((warningLog.match(/串口告警/g) || []).length <= 2);
   await page.evaluate(async () => { for (let i = 0; i < 5; i++) { window.serialMock.framing(); await new Promise((resolve) => setTimeout(resolve, 0)); } });
   await page.waitForFunction(() => document.getElementById("connection-state").textContent === "未连接");

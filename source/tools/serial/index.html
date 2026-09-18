@@ -45,6 +45,7 @@
 <label class="check"><input id="show-system" type="checkbox" checked>系统消息</label>
 <label class="check"><input id="strip-ansi" type="checkbox" checked>去除 ANSI</label>
 <label class="check"><input id="show-controls" type="checkbox">控制字符可见</label>
+<label class="check"><input id="hide-nul" type="checkbox" checked>隐藏纯 NUL 接收行（文本）</label>
 <label class="check"><input id="highlight-errors" type="checkbox" checked>错误 / 警告着色</label>
 <label class="check"><input id="line-numbers" type="checkbox">视图行号</label>
 <label class="check"><input id="light-terminal" type="checkbox">浅色终端</label>
@@ -78,7 +79,7 @@
 </aside>
 </div>
 <p id="notice" class="status" role="status"></p>
-<details class="scope"><summary>使用说明与能力边界</summary><p>优先使用桌面 Chrome / Edge，通过 HTTPS 或 localhost 打开。网页只访问你授权的本机串口，不访问远程主机。手机及不支持 Web Serial 的浏览器仍可体验演示。页面不上传串口数据，不写入 localStorage / IndexedDB。自动保存默认关闭，仅在你选择并授权的本地文件或目录中记录；命令不自动保存。</p><p>时间戳为浏览器观察到数据的本地时间，不是设备硬件时间戳。USB 和系统会合并数据，HEX 分块不代表协议帧。文本按 CR / LF 分行，超长行每 4,096 字符拆分；控制字符按显示选项处理，不提供完整 VT100 终端仿真。暂停画面仍继续接收并受缓存上限约束；关闭网页、电脑休眠或拔出设备会中断采集。</p><p>发送完成表示浏览器写入操作完成，不等于设备已执行命令。串口断开后，未结束的文本行会补入记录。Framing / Parity 等读取告警在浏览器提供新读流时尝试继续接收；告警位置可能缺失字节，同类提示按计数合并，不代表错误已被修复。文本保存会标记接收中断，原始 BIN 只保留实际收到的字节。正常的 NUL（0x00）不会被当作读取错误；默认隐藏，可勾选“控制字符可见”显示为 &lt;00&gt;。若适配器不支持所选波特率、流控或信号线，页面会显示操作错误。</p><p><a href="https://developer.chrome.com/docs/capabilities/serial" target="_blank" rel="noopener noreferrer">Web Serial 官方说明 ↗</a></p></details>
+<details class="scope"><summary>使用说明与能力边界</summary><p>优先使用桌面 Chrome / Edge，通过 HTTPS 或 localhost 打开。网页只访问你授权的本机串口，不访问远程主机。手机及不支持 Web Serial 的浏览器仍可体验演示。页面不上传串口数据，不写入 localStorage / IndexedDB。自动保存默认关闭，仅在你选择并授权的本地文件或目录中记录；命令不自动保存。</p><p>时间戳为浏览器观察到数据的本地时间，不是设备硬件时间戳。USB 和系统会合并数据，HEX 分块不代表协议帧。文本按 CR / LF 分行，超长行每 4,096 字符拆分；控制字符按显示选项处理，不提供完整 VT100 终端仿真。暂停画面仍继续接收并受缓存上限约束；关闭网页、电脑休眠或拔出设备会中断采集。</p><p>发送完成表示浏览器写入操作完成，不等于设备已执行命令。串口断开后，未结束的文本行会补入记录。Framing / Parity 等读取告警在浏览器提供新读流时尝试继续接收；告警位置可能缺失字节，同类提示按计数合并，不代表错误已被修复。文本保存会标记接收中断，原始 BIN 只保留实际收到的字节。正常的 NUL（0x00）不会被当作读取错误。文本视图默认隐藏仅含 NUL 的接收行；取消“隐藏纯 NUL 接收行”并勾选“控制字符可见”可显示为 &lt;00&gt;。该过滤同时适用于复制和筛选文本导出，不影响 HEX 视图、告警计数、原始导出及自动保存；含正常文字的行仍然保留。若适配器不支持所选波特率、流控或信号线，页面会显示操作错误。</p><p><a href="https://developer.chrome.com/docs/capabilities/serial" target="_blank" rel="noopener noreferrer">Web Serial 官方说明 ↗</a></p></details>
 <div class="related"><a href="/tools/log-timeline/">导出的日志，可以继续整理时间线 →</a><a href="/tools/bytes/">检查协议字节与位域 →</a></div>
 </main><dialog id="monitor-dialog" class="monitor-dialog" aria-label="展开的串口日志窗口"></dialog><footer><a href="/tools/">Oniums 工具箱</a><span>保持好奇，亲手验证。</span><a href="/tools/log-timeline/">日志时间线 ↗</a></footer>
 </body></html>
