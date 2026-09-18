@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { encodeSend, LineStream, TrafficLog, filterRows, visibleText } from "../source/tools/assets/serial-core.mjs";
+import { encodeSend, LineStream, TrafficLog, filterRows, visibleText, ReceiveWarnings } from "../source/tools/assets/serial-core.mjs";
 import { SerialConnection } from "../source/tools/assets/serial-port.mjs";
 import { AutoSave } from "../source/tools/assets/serial-save.mjs";
 const enc = new TextEncoder();
@@ -63,7 +63,7 @@ test("纯文本筛选与 ANSI 展示不修改原始数据", () => {
 });
 
 function fixture({ requestError, openError, closeOnce = false, writeError = false, writeDelay = 0 } = {}) {
-  const states = [], errors = [], received = [], writes = []; let controller, closed = 0, opens = 0;
+  const states = [], errors = [], warnings = [], received = [], writes = []; let controller, closed = 0, opens = 0;
   const port = {
     async open(options) {
       if (openError) throw openError;
@@ -74,8 +74,14 @@ function fixture({ requestError, openError, closeOnce = false, writeError = fals
     async close() { assert.equal(this.readable.locked, false); assert.equal(this.writable.locked, false); if (closeOnce && !closed++) throw new Error("close failed"); closed++; },
     async setSignals(values) { this.signals = values; }, async getSignals() { return { clearToSend: true }; }
   };
-  const connection = new SerialConnection({ serial: { async requestPort() { if (requestError) throw requestError; return port; } }, onState: (s) => states.push(s), onError: (e) => errors.push(e), onData: (v) => received.push([...v]) });
-  return { connection, port, states, errors, received, writes, get controller() { return controller; }, get opens() { return opens; } };
+  const connection = new SerialConnection({ serial: { async requestPort() { if (requestError) throw requestError; return port; } }, onState: (s) => states.push(s), onError: (e) => errors.push(e), onWarning: (e) => warnings.push(e), onData: (v) => received.push([...v]) });
+  return { connection, port, states, errors, warnings, received, writes, get controller() { return controller; }, get opens() { return opens; },
+    readError() {
+      const previous = controller;
+      port.readable = new ReadableStream({ start(c) { controller = c; } });
+      previous.error(new DOMException("Framing error", "FramingError"));
+    }
+  };
 }
 test("串口收发、重复连接保护、关闭释放锁与重连", async () => {
   const f = fixture(); await f.connection.connect({ baudRate: 115200 }); await f.connection.connect({}); assert.equal(f.opens, 1);
@@ -98,6 +104,47 @@ test("读错误与设备拔出自动释放端口", async () => {
   f.port.close = async () => { assert.equal(old.locked, false); };
   for (let i = 0; i < 10 && f.connection.state !== "idle"; i++) await wait();
   assert.equal(f.connection.state, "idle"); assert.equal(f.errors.length, 1);
+});
+test("可恢复 Framing error 只发告警，重新获取读流后继续接收", async (t) => {
+  const f = fixture(); t.after(() => f.connection.disconnect()); await f.connection.connect({});
+  const oldStream = f.port.readable;
+  f.readError(); await wait(); assert.equal(oldStream.locked, false); assert.equal(f.connection.state, "open");
+  f.controller.enqueue(Uint8Array.of(65, 0, 66)); await wait();
+  assert.deepEqual(f.received, [[65, 0, 66]]); assert.equal(f.warnings.length, 1); assert.equal(f.errors.length, 0);
+});
+test("连续五次读流异常且没有新数据时停止，不无限重试", async (t) => {
+  const f = fixture(); t.after(() => f.connection.disconnect()); await f.connection.connect({});
+  for (let i = 0; i < 5; i++) { f.readError(); await wait(); }
+  assert.equal(f.connection.state, "idle"); assert.equal(f.warnings.length, 4); assert.equal(f.errors.length, 1);
+  assert.match(f.errors[0].message, /连续 5 次/);
+});
+test("数据回调错误不会被误判为可恢复串口错误", async () => {
+  const f = fixture(); await f.connection.connect({});
+  f.connection.onData = () => { throw new Error("application callback failure"); };
+  f.controller.enqueue(Uint8Array.of(1)); await wait();
+  assert.equal(f.connection.state, "idle"); assert.equal(f.warnings.length, 0); assert.equal(f.errors.length, 1);
+});
+test("200 ms 告警风暴合并计数，每五秒最多一条摘要，收尾不漏计数", () => {
+  const warnings = new ReceiveWarnings(), summaries = [];
+  for (let i = 0; i < 80; i++) { const summary = warnings.record(new Error("Framing error"), i * 200); if (summary) summaries.push(summary); }
+  assert.equal(warnings.total, 80); assert.equal(summaries.length, 4);
+  assert.match(warnings.summary(16000), /累计 80 次，本次合并 4 次/); assert.equal(warnings.summary(17000), null);
+  warnings.reset(); assert.equal(warnings.total, 0);
+});
+test("合法 NUL 连续或混在文本里不会触发网页读取错误，显示不改原始字节", async (t) => {
+  const f = fixture(), log = new TrafficLog(); t.after(() => f.connection.disconnect()); await f.connection.connect({});
+  const bytes = Uint8Array.from([...new Uint8Array(64), ...enc.encode("before\0after\r\n")]);
+  f.controller.enqueue(bytes); await wait(); log.add("RX", Uint8Array.from(f.received[0]));
+  assert.equal(f.errors.length, 0); assert.equal(f.warnings.length, 0); assert.equal(f.connection.state, "open");
+  assert.deepEqual([...new Uint8Array(await new Blob(log.raw("RX")).arrayBuffer())], [...bytes]);
+  assert.equal(visibleText(log.textRows()[0].text), "beforeafter");
+  assert.match(visibleText(log.textRows()[0].text, true), /before<00>after/);
+});
+test("接收中断隔开残缺文本和解码状态，TX 不受影响", () => {
+  const log = new TrafficLog(); log.add("RX", Uint8Array.from([...enc.encode("left"), 0xe4]));
+  log.add("TX", enc.encode("AT")); log.interruptRX(); log.add("RX", enc.encode("right\n")); log.add("TX", enc.encode("?\n"));
+  assert.deepEqual(log.textRows().filter((v) => v.direction === "RX").map((v) => v.text), ["left�", "right"]);
+  assert.equal(log.textRows().find((v) => v.direction === "TX").text, "AT?");
 });
 test("关闭失败保留端口供重试，不允许打开另一个端口", async () => {
   const f = fixture({ closeOnce: true }); await f.connection.connect({}); await f.connection.disconnect();
@@ -193,4 +240,102 @@ test("自动保存检测外部文件变化与队列溢出，不覆盖或无限�
   const bounded = new AutoSave({ maxPending: 3 }); await bounded.start(fileFixture(), { format: "raw" });
   bounded.add("RX", Uint8Array.of(1, 2)); bounded.add("RX", Uint8Array.of(3, 4));
   assert.equal(bounded.state, "error"); assert.equal(bounded.pendingBytes, 2); assert.match(bounded.error.message, /后续数据未保存/);
+});
+test("自动保存文本标记接收中断，原始模式不插入告警且保留 NUL", async () => {
+  const textFile = fileFixture(), textSave = new AutoSave(); await textSave.start(textFile, { timestamps: false });
+  textSave.add("RX", enc.encode("left")); textSave.interruptRX("串口告警：Framing error");
+  textSave.add("RX", enc.encode("right")); textSave.interruptRX(null); await textSave.stop();
+  assert.match(textFile.text, /\[RX 片段\] left\n\[SYS\] 串口告警：Framing error\n\[RX 片段\] right/);
+  assert.equal(textFile.text.match(/\[SYS\]/g).length, 1);
+  const rawFile = fileFixture(), rawSave = new AutoSave(); await rawSave.start(rawFile, { format: "raw" });
+  rawSave.add("RX", Uint8Array.of(65, 0)); rawSave.interruptRX("Framing error"); rawSave.add("RX", Uint8Array.of(0, 66)); await rawSave.stop();
+  assert.deepEqual([...rawFile.bytes], [65, 0, 0, 66]);
+});
+
+function directoryFixture() {
+  return {
+    files: new Map(), failCreate: false, collideNext: false,
+    async getFileHandle(name, { create = false } = {}) {
+      if (this.collideNext && !create) { this.files.set(name, fileFixture("existing content")); this.collideNext = false; }
+      if (this.files.has(name)) return this.files.get(name);
+      if (!create) throw new DOMException("missing", "NotFoundError");
+      if (this.failCreate) throw new DOMException("directory permission revoked", "NotAllowedError");
+      const file = fileFixture(); file.name = name; this.files.set(name, file); return file;
+    }
+  };
+}
+test("按小时边界分文件，原始字节不丢失、不重复且序号递增", async (t) => {
+  const directory = directoryFixture(); let clock = 0;
+  const save = new AutoSave({ now: () => clock, wallNow: () => Date.UTC(2026, 0, 1) + clock }); t.after(() => save.stop());
+  await save.start(directory, { format: "raw", rotationMinutes: 60 });
+  clock = 3599999; save.add("RX", Uint8Array.of(1, 2)); assert.equal(save.fileCount, 1);
+  clock = 3600000; save.add("RX", Uint8Array.of(3, 4)); await save.flush();
+  clock = 7200000; save.add("RX", Uint8Array.of(5)); await save.stop();
+  assert.deepEqual([...directory.files.values()].map((file) => [...file.bytes]), [[1, 2], [3, 4], [5]]);
+  assert.equal(save.fileCount, 3); assert.equal(save.savedBytes, 5); assert.equal(save.pendingBytes, 0);
+  assert.match([...directory.files.keys()][1], /2026-01-01T01-00-00-000Z-.*-000002\.bin$/);
+});
+test("空闲时也轮换，后台迟到不补建中间空白文件", async (t) => {
+  const directory = directoryFixture(); let clock = 0;
+  const save = new AutoSave({ now: () => clock }); t.after(() => save.stop());
+  await save.start(directory, { rotationMinutes: 60 }); clock = 3.5 * 3600000; await save.flush();
+  assert.equal(save.fileCount, 2); assert.equal(save.nextRotation, 4 * 3600000);
+  clock = 4 * 3600000; await save.flush(); assert.equal(save.fileCount, 3);
+  assert([...directory.files.values()].every((file) => file.bytes.length === 0));
+});
+test("中文多字节和 CRLF 跨文件边界保持解码状态", async (t) => {
+  const directory = directoryFixture(); let clock = 0;
+  const save = new AutoSave({ now: () => clock }); t.after(() => save.stop());
+  await save.start(directory, { rotationMinutes: 60, timestamps: false });
+  save.add("RX", Uint8Array.from([...enc.encode("前"), 0xe4]));
+  clock = 3600000; save.add("RX", Uint8Array.of(0xb8, 0xad, 13));
+  clock = 7200000; save.add("RX", enc.encode("\n后\n")); await save.stop();
+  const texts = [...directory.files.values()].map((file) => file.text);
+  assert.deepEqual(texts, ["[RX 片段] 前\n", "[RX] 中\n", "[RX] 后\n"]);
+  assert(!texts.join("").includes("�"));
+});
+test("旧文件写入在途时跨界继续接收，停止会提交所有已接受分段", async (t) => {
+  const directory = directoryFixture(); let clock = 0;
+  const save = new AutoSave({ now: () => clock }); t.after(() => save.stop());
+  await save.start(directory, { rotationMinutes: 60, format: "raw" });
+  const first = [...directory.files.values()][0]; first.hold = true;
+  save.add("RX", Uint8Array.of(1)); const writing = save.flush(); await wait();
+  clock = 3600000; save.add("RX", Uint8Array.of(2)); save.add("RX", Uint8Array.of(3));
+  const stopping = save.stop(); first.hold = false; first.release(); await Promise.all([writing, stopping]);
+  assert.deepEqual([...directory.files.values()].map((file) => [...file.bytes]), [[1], [2, 3]]);
+  assert.equal(save.state, "stopped"); assert.equal(save.savedBytes, 3);
+});
+test("新分段创建失败保留旧文件与后续待保存数据", async (t) => {
+  const directory = directoryFixture(); let clock = 0;
+  const save = new AutoSave({ now: () => clock }); t.after(() => save.stop());
+  await save.start(directory, { rotationMinutes: 60, format: "raw" });
+  save.add("RX", Uint8Array.of(1)); clock = 3600000; save.add("RX", Uint8Array.of(2, 3));
+  directory.failCreate = true; await save.flush(); save.add("RX", Uint8Array.of(4));
+  assert.equal(save.state, "error"); assert.equal(save.savedBytes, 1);
+  assert.deepEqual([...directory.files.values()][0].bytes, Uint8Array.of(1));
+  assert.deepEqual([...new Uint8Array(await new Blob(save.rescue()).arrayBuffer())], [2, 3]);
+});
+test("旧分段写入失败不转入下一文件，副本保留全部未提交数据", async (t) => {
+  const directory = directoryFixture(); let clock = 0;
+  const save = new AutoSave({ now: () => clock }); t.after(() => save.stop());
+  await save.start(directory, { rotationMinutes: 60, format: "raw" });
+  [...directory.files.values()][0].failWrite = true;
+  save.add("RX", Uint8Array.of(1)); clock = 3600000; save.add("RX", Uint8Array.of(2)); await save.flush();
+  assert.equal(directory.files.size, 1); assert.equal(save.savedBytes, 0);
+  assert.deepEqual([...new Uint8Array(await new Blob(save.rescue()).arrayBuffer())], [1, 2]);
+});
+test("生成文件遇到重名时换名，不追加或覆盖已有日志", async (t) => {
+  const directory = directoryFixture(); let clock = 0;
+  const save = new AutoSave({ now: () => clock }); t.after(() => save.stop());
+  await save.start(directory, { rotationMinutes: 60, format: "raw" });
+  directory.collideNext = true; clock = 3600000; save.add("RX", Uint8Array.of(9)); await save.stop();
+  const files = [...directory.files.values()]; assert.equal(files.length, 3);
+  assert.equal(files[1].text, "existing content"); assert.deepEqual(files[2].bytes, Uint8Array.of(9));
+  assert.match(files[2].name, /000002-1\.bin$/); assert.equal(save.fileCount, 2);
+});
+test("拒绝非法分段时长，启动失败不创建文件", async () => {
+  for (const rotationMinutes of [-1, 0.5, 1441, NaN]) {
+    const directory = directoryFixture(), save = new AutoSave();
+    await save.start(directory, { rotationMinutes }); assert.equal(save.state, "error"); assert.equal(directory.files.size, 0);
+  }
 });

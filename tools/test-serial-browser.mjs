@@ -33,6 +33,11 @@ try {
       return port;
     };
     mock.feed = (bytes) => mock.controller.enqueue(Uint8Array.from(bytes));
+    mock.framing = () => {
+      const previous = mock.controller;
+      port.readable = new ReadableStream({ start(controller) { mock.controller = controller; } });
+      previous.error(new DOMException("Framing error", "FramingError"));
+    };
     mock.unplug = () => {
       mock.controller.error(new DOMException("unplugged", "NetworkError"));
       const event = new Event("disconnect"); Object.defineProperty(event, "port", { value: port }); serial.dispatchEvent(event);
@@ -49,6 +54,21 @@ try {
         createWritable: (options) => {
           if (mock.failFile) throw new DOMException("simulated disk failure", "NotAllowedError");
           return mock.fileHandle.createWritable(options);
+        }
+      };
+    };
+    const realNow = performance.now.bind(performance); mock.clockShift = 0;
+    Object.defineProperty(performance, "now", { value: () => realNow() + mock.clockShift });
+    window.showDirectoryPicker = async (options) => {
+      mock.directoryOptions = options;
+      if (mock.cancelDirectory) throw new DOMException("cancel directory", "AbortError");
+      const root = await navigator.storage.getDirectory();
+      mock.directory = await root.getDirectoryHandle("serial-rotation-test", { create: true });
+      return {
+        name: "serial-rotation-test",
+        getFileHandle(name, settings) {
+          if (settings?.create && mock.failDirectory) throw new DOMException("simulated directory permission error", "NotAllowedError");
+          return mock.directory.getFileHandle(name, settings);
         }
       };
     };
@@ -92,6 +112,12 @@ try {
   await open(); assert(await page.locator("#demo").isDisabled());
   assert.equal(await page.evaluate(() => window.serialMock.options.baudRate), 115200);
   assert.equal(await page.evaluate(() => window.serialMock.signals), null, "connection does not explicitly toggle signals");
+  const nulData = [...new Uint8Array(64), ...new TextEncoder().encode("before\0after\n")];
+  await page.evaluate((bytes) => window.serialMock.feed(bytes), nulData); await tick();
+  assert.match(await text("terminal"), /before<00>after/); assert.equal(await text("warning-count"), "0"); assert(await page.locator("#error").isHidden());
+  await page.locator(".receive-panel > details:last-child summary").click();
+  assert.deepEqual([...(await download("export-rx"))], nulData);
+  await page.locator(".receive-panel > details:last-child summary").click(); await click("clear");
   const original = [...new TextEncoder().encode("中文\r\n<svg onload=alert(1)>\npartial")];
   await page.evaluate((bytes) => { for (const byte of bytes) window.serialMock.feed([byte]); }, original);
   await tick(); assert.match(await text("terminal"), /中文/); assert.match(await text("terminal"), /<svg onload=alert\(1\)>/); assert.equal(await page.locator("#terminal svg").count(), 0);
@@ -153,10 +179,65 @@ try {
   const rescue = (await download("save-rescue")).toString(); assert.match(rescue, /unsaved tail/);
   assert(await page.locator("#auto-save").isEnabled()); await close(); await page.evaluate(() => { window.serialMock.failFile = false; });
 
+  await page.locator("#save-mode").selectOption("timed"); assert.equal(await page.locator("#rotation-minutes").inputValue(), "60");
+  await page.evaluate(() => { window.serialMock.cancelDirectory = true; }); await click("auto-save"); await tick(); assert.equal(await page.locator("#auto-save").isChecked(), false);
+  await page.evaluate(() => { window.serialMock.cancelDirectory = false; });
+  await fill("rotation-minutes", "0"); await click("auto-save"); await tick(); assert.match(await text("error"), /1–1440/);
+  await fill("rotation-minutes", "60"); await page.locator("#save-format").selectOption("raw"); await check("auto-save");
+  await page.waitForFunction(() => document.getElementById("save-status").textContent.includes("已生成 1 个文件"));
+  assert.equal(await page.evaluate(() => window.serialMock.directoryOptions.mode), "readwrite");
+  await open(); await feed("hour one\n"); await click("save-now");
+  await page.waitForFunction(() => document.getElementById("save-status").textContent.includes("已提交 9 B"));
+  await page.evaluate(() => { window.serialMock.clockShift += 3600000; }); await feed("hour two\n"); await click("save-now");
+  await page.waitForFunction(() => document.getElementById("save-status").textContent.includes("已提交 18 B"));
+  assert.match(await text("save-status"), /已生成 2 个文件/);
+  const timedFiles = await page.evaluate(async () => {
+    const results = []; for await (const entry of window.serialMock.directory.values()) results.push({ name: entry.name, text: await (await entry.getFile()).text() });
+    return results.sort((a, b) => a.name.localeCompare(b.name));
+  });
+  assert.deepEqual(timedFiles.map((file) => file.text), ["hour one\n", "hour two\n"]);
+  assert.match(timedFiles[0].name, /000001\.bin$/); assert.match(timedFiles[1].name, /000002\.bin$/);
+  await page.evaluate(() => { window.serialMock.clockShift += 3600000; window.serialMock.failDirectory = true; }); await feed("pending third\n"); await click("save-now");
+  await page.waitForFunction(() => document.getElementById("save-status").textContent.includes("保存失败"));
+  assert.equal((await download("save-rescue")).toString(), "pending third\n");
+  await close(); await page.evaluate(() => { window.serialMock.failDirectory = false; });
+
+  await page.locator("#save-mode").selectOption("single"); await page.locator("#save-format").selectOption("text"); await check("auto-save");
+  await page.waitForFunction(() => document.getElementById("save-status").textContent.includes("自动保存中")); await open();
+  assert((await page.locator("#terminal").boundingBox()).width > 1200, "monitor occupies full desktop row");
+  assert.equal(Math.round((await page.locator("#terminal").boundingBox()).height), 660);
+  await page.locator("#terminal-height").selectOption("tall"); assert.equal(Math.round((await page.locator("#terminal").boundingBox()).height), 900);
+  await page.locator("#terminal-height").selectOption("large");
+  await page.evaluate(async () => {
+    for (let i = 0; i < 40; i++) {
+      window.serialMock.feed([0]); await new Promise((resolve) => setTimeout(resolve, 0));
+      window.serialMock.framing(); await new Promise((resolve) => setTimeout(resolve, 0));
+    }
+  });
+  await tick(); assert.equal(await text("warning-count"), "40"); assert(await page.locator("#error").isHidden());
+  assert((await page.locator("#terminal .sys").allTextContents()).filter((text) => text.includes("串口告警")).length <= 2, "warning flood coalesced");
+  assert.match(await text("serial-warning"), /累计 40 次/); assert.match(await text("connection-state"), /已连接/);
+  await feed("after-recovery\n"); await tick(); assert.match(await text("terminal"), /after-recovery/);
+  await click("expand-monitor"); assert(await page.locator("#monitor-dialog").isVisible());
+  assert((await page.locator("#terminal").boundingBox()).height > 700, "expanded monitor fills viewport");
+  await feed("expanded logging\n"); await tick(); assert.match(await text("terminal"), /expanded logging/);
+  await page.screenshot({ path: "/tmp/oniums-serial-expanded.png" });
+  await page.keyboard.press("Escape"); await tick(); assert(await page.locator("#monitor-dialog").isHidden());
+  assert.equal(await page.evaluate(() => document.activeElement.id), "expand-monitor"); assert(await page.locator("#auto-save").isChecked());
+  await click("save-now"); await page.waitForFunction(() => document.getElementById("save-status").textContent.includes("待提交 0 B"));
+  const warningLog = await page.evaluate(async () => (await window.serialMock.fileHandle.getFile()).text());
+  assert.match(warningLog, /expanded logging/); assert((warningLog.match(/串口告警/g) || []).length <= 2);
+  await page.evaluate(async () => { for (let i = 0; i < 5; i++) { window.serialMock.framing(); await new Promise((resolve) => setTimeout(resolve, 0)); } });
+  await page.waitForFunction(() => document.getElementById("connection-state").textContent === "未连接");
+  assert.match(await text("error"), /连续 5 次/); await page.waitForFunction(() => document.getElementById("save-status").textContent.includes("保存已结束"));
+
   await click("demo"); await tick();
   for (const width of [320, 390, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 1000 });
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, `layout overflow ${width}`);
+    await click("expand-monitor");
+    const bounds = await page.locator("#terminal").boundingBox(); assert(bounds.width <= width && bounds.height >= 100, `expanded layout ${width}`);
+    await page.keyboard.press("Escape"); await tick();
   }
   await page.setViewportSize({ width: 390, height: 900 }); await page.screenshot({ path: "/tmp/oniums-serial-mobile.png", fullPage: true });
   assert.deepEqual(errors, []);
@@ -164,10 +245,11 @@ try {
   assert.equal(await page.evaluate(() => localStorage.length + sessionStorage.length), 0);
   assert.equal(await page.evaluate(async () => (await indexedDB.databases()).length), 0);
   const unsupported = await browser.newContext();
-  await unsupported.addInitScript(() => { delete Navigator.prototype.serial; delete window.showSaveFilePicker; });
+  await unsupported.addInitScript(() => { delete Navigator.prototype.serial; delete window.showSaveFilePicker; delete window.showDirectoryPicker; });
   const fallback = await unsupported.newPage(); await fallback.goto(url); assert(await fallback.locator("#connect").isDisabled());
   assert(await fallback.locator("#auto-save").isDisabled());
+  await fallback.locator("#save-mode").selectOption("timed"); assert(await fallback.locator("#auto-save").isDisabled());
   await fallback.locator("#demo").click(); await fallback.waitForTimeout(180); assert.match(await fallback.locator("#terminal").innerText(), /UART ready/);
   await unsupported.close();
-  console.log("PASS: serial interactions, automatic file save with real Chromium file streams, periodic commit, append, cache-independent capture, stop/disconnect flush, text/TX/raw modes, cancellation/failure/rescue, unsupported fallback, no data network or localStorage/IndexedDB, five viewport widths.");
+  console.log("PASS: serial interactions, NUL display and raw export, recoverable error storm aggregation, terminal/file discontinuity warnings, bounded read retry, wide/tall/modal monitor with continued receive/save and Esc restoration, hourly file rotation and failure rescue, real Chromium file writes, no data network or localStorage/IndexedDB, five viewport widths.");
 } finally { await browser.close(); }

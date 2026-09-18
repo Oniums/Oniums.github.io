@@ -28,6 +28,23 @@ export function encodeSend(input, { hex = false, escapes = false, ending = "" } 
 }
 
 export function hexText(bytes) { return Array.from(bytes, (v) => v.toString(16).padStart(2, "0").toUpperCase()).join(" "); }
+export class ReceiveWarnings {
+  constructor(interval = 5000) { this.interval = interval; this.reset(); }
+  reset() { this.total = 0; this.reported = 0; this.lastReport = -Infinity; this.message = ""; }
+  record(error, now = Date.now()) {
+    this.total++;
+    const raw = error.message || error.name || "串口读取异常";
+    const label = /framing/i.test(raw + error.name) ? "串口帧错误" : /parity/i.test(raw + error.name) ? "串口校验错误" : /overrun|overflow/i.test(raw + error.name) ? "串口接收缓冲溢出" : /break/i.test(raw + error.name) ? "串口 BREAK 信号" : "串口读取告警";
+    this.message = `${raw}（${label}）`;
+    return now - this.lastReport >= this.interval ? this.summary(now) : null;
+  }
+  summary(now = Date.now()) {
+    if (this.total === this.reported) return null;
+    const added = this.total - this.reported;
+    this.reported = this.total; this.lastReport = now;
+    return `串口告警：${this.message}；累计 ${this.total} 次，本次合并 ${added} 次。错误处可能缺失字节。`;
+  }
+}
 export function visibleText(text, controls = false, stripAnsi = true) {
   if (stripAnsi) text = text.replace(/\x1b\[[0-?]*[ -/]*[@-~]/g, "").replace(/\x1b\][^\x07]*(?:\x07|\x1b\\)/g, "");
   return text.replace(/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/g, (c) => controls ? `<${c.charCodeAt(0).toString(16).padStart(2, "0").toUpperCase()}>` : "");
@@ -89,6 +106,12 @@ export class TrafficLog {
       for (const text of this.streams[direction].push(undefined, true)) this.addLine(direction, text, meta.at, meta.sequence);
       this.pendingMeta[direction] = null;
     }
+  }
+  interruptRX() {
+    const stream = this.streams.RX;
+    const meta = this.pendingMeta.RX ?? { at: Date.now(), sequence: ++this.sequence };
+    for (const text of stream.push(undefined, true)) this.addLine("RX", text, meta.at, meta.sequence);
+    this.streams.RX = new LineStream(stream.decoder.encoding); this.pendingMeta.RX = null;
   }
   textRows() {
     const rows = this.lines.slice();

@@ -1,7 +1,8 @@
 // 串口所有权集中在这里，关闭时先终止读写再释放流锁。
 export class SerialConnection {
-  constructor({ serial, onState = () => {}, onData = () => {}, onError = () => {} }) {
+  constructor({ serial, onState = () => {}, onData = () => {}, onError = () => {}, onWarning = () => {} }) {
     this.serial = serial; this.onState = onState; this.onData = onData; this.onError = onError;
+    this.onWarning = onWarning;
     this.state = "idle"; this.port = null; this.reader = null; this.writer = null; this.writeTask = null; this.closing = null;
   }
   setState(state) { this.state = state; this.onState(state); }
@@ -23,16 +24,23 @@ export class SerialConnection {
   async readLoop() {
     let failures = 0;
     while (this.state === "open" && this.port.readable) {
+      const stream = this.port.readable;
       try {
-        this.reader = this.port.readable.getReader();
+        this.reader = stream.getReader();
         while (this.state === "open") {
           const { value, done } = await this.reader.read();
           if (done) return;
           if (value?.length) { failures = 0; this.onData(value); }
         }
       } catch (error) {
-        if (this.state === "open") this.onError(error);
-        if (++failures >= 5) return;
+        if (this.state !== "open") return;
+        // 浏览器为可恢复串口错误替换 readable；脚本错误或已失效的端口不能按此重试。
+        const replacement = this.port.readable;
+        if (replacement && replacement !== stream && ++failures < 5) this.onWarning(error);
+        else {
+          this.onError(failures >= 5 ? new Error(`${error.message}；连续 5 次读取失败且未收到新数据，已停止接收。`) : error);
+          return;
+        }
       } finally { this.reader?.releaseLock(); this.reader = null; }
     }
   }

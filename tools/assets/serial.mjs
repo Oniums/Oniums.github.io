@@ -1,4 +1,4 @@
-import { TrafficLog, encodeSend, hexText, visibleText, filterRows } from "./serial-core.mjs";
+import { TrafficLog, encodeSend, hexText, visibleText, filterRows, ReceiveWarnings } from "./serial-core.mjs";
 import { SerialConnection } from "./serial-port.mjs";
 import { AutoSave } from "./serial-save.mjs";
 
@@ -10,18 +10,35 @@ let previousRX = 0, previousTime = performance.now(), lastRate = 0;
 let history = [], commands = [], repeatJob = null, repeatTimer = null, lastRows = [];
 const supported = isSecureContext && "serial" in navigator;
 const saveSupported = isSecureContext && typeof window.showSaveFilePicker === "function";
+const directorySupported = isSecureContext && typeof window.showDirectoryPicker === "function";
 let saving = null, choosingFile = false;
+const receiveWarnings = new ReceiveWarnings();
+function readWarning(error) {
+  const at = Date.now(), summary = receiveWarnings.record(error, at);
+  log.interruptRX(); saving?.interruptRX(summary, at);
+  $("warning-count").textContent = receiveWarnings.total.toLocaleString();
+  $("serial-warning").hidden = false;
+  $("serial-warning").textContent = `接收告警累计 ${receiveWarnings.total} 次：${receiveWarnings.message}。正在尝试继续接收，错误位置可能丢失字节。请核对波特率、数据位、校验位、停止位与接线。相同接收告警合并显示，每 5 秒最多一条摘要。`;
+  if (summary) system(summary);
+  dirty = true;
+}
+function finishWarnings() {
+  const summary = receiveWarnings.summary();
+  if (summary) { system(summary); saving?.interruptRX(summary); }
+}
 function saveState() {
+  const timed = $("save-mode").value === "timed";
   const busy = choosingFile || ["starting", "recording", "stopping"].includes(saving?.state) || Boolean(saving?.inFlight);
   $("save-options").disabled = busy;
   $("encoding").disabled = connection.state !== "idle" || busy;
   $("auto-save").checked = choosingFile || ["starting", "recording"].includes(saving?.state);
-  $("auto-save").disabled = !saveSupported || choosingFile || ["starting", "stopping"].includes(saving?.state) || Boolean(saving?.inFlight && saving?.state === "error") || Boolean(saving?.state === "error" && saving.pendingBytes);
+  $("auto-save").disabled = !(timed ? directorySupported : saveSupported) || choosingFile || ["starting", "stopping"].includes(saving?.state) || Boolean(saving?.inFlight && saving?.state === "error") || Boolean(saving?.state === "error" && saving.pendingBytes);
   $("save-now").disabled = saving?.state !== "recording" || Boolean(saving?.inFlight);
   $("save-rescue").hidden = saving?.state !== "error" || !saving.pendingBytes;
   $("save-rescue").disabled = Boolean(saving?.inFlight);
   const names = { idle: "未启用", starting: "正在确认文件权限", recording: "自动保存中", stopping: "正在完成保存", stopped: "保存已结束", error: "保存失败 · 已停止记录" };
-  $("save-status").textContent = choosingFile ? "请选择保存文件…" : saving ? `${names[saving.state]} · ${saving.handle?.name ?? ""} · 已提交 ${saving.savedBytes.toLocaleString()} B · 待提交 ${saving.pendingBytes.toLocaleString()} B` : "未启用自动保存";
+  const files = saving?.rotationMinutes ? ` · 已生成 ${saving.fileCount} 个文件 · 每 ${saving.rotationMinutes} 分钟切换` : "";
+  $("save-status").textContent = choosingFile ? `请选择保存${timed ? "目录" : "文件"}…` : saving ? `${names[saving.state]}${files} · ${saving.handle?.name ?? ""} · 已提交 ${saving.savedBytes.toLocaleString()} B · 待提交 ${saving.pendingBytes.toLocaleString()} B` : "未启用自动保存";
 }
 const stateNames = { idle: "未连接", choosing: "请选择串口…", opening: "正在打开…", open: "已连接", closing: "正在释放端口…", "close-error": "关闭失败，请重试断开" };
 function notice(message) { $("notice").textContent = message; }
@@ -52,6 +69,7 @@ const connection = new SerialConnection({
     $("send").disabled = state !== "open" || Boolean(repeatJob);
     $("repeat").disabled = state !== "open" || Boolean(repeatJob);
     if (state === "open") {
+      receiveWarnings.reset(); $("warning-count").textContent = "0"; $("serial-warning").hidden = true;
       if (checked("clear-connect")) resetLog(); else freshStreams();
       connectedAt = Date.now(); elapsed = 0;
       $("error").hidden = true; $("signals").textContent = "尚未读取";
@@ -62,30 +80,45 @@ const connection = new SerialConnection({
       $("rts").disabled = $("flow").value === "hardware";
     } else if (["closing", "idle", "close-error"].includes(state)) {
       stopRepeat();
-      if (connectedAt && state !== "closing") { elapsed = Date.now() - connectedAt; connectedAt = 0; log.finish(); system("串口连接已结束。"); saving?.stop(); }
+      if (connectedAt && state !== "closing") {
+        elapsed = Date.now() - connectedAt; connectedAt = 0; finishWarnings(); log.finish(); system("串口连接已结束。"); saving?.stop();
+        if (receiveWarnings.total) $("serial-warning").textContent = `本次连接累计 ${receiveWarnings.total} 次可恢复接收告警，连接已结束；错误位置可能有数据缺失。`;
+      }
     }
     dirty = true;
+    $("monitor-connection").textContent = $("connection-state").textContent;
     saveState();
   },
   onData(bytes) { const at = Date.now(); log.add("RX", bytes, at); saving?.add("RX", bytes, at); dirty = true; },
-  onError: report
+  onError: report,
+  onWarning: readWarning
 });
 
 $("support").textContent = supported ? "浏览器支持 Web Serial。选择串口后即可开始；首次使用会由浏览器请求授权。" : "当前环境不支持 Web Serial。请用桌面 Chrome / Edge，通过 HTTPS 或 localhost 打开；仍可载入演示体验显示与导出。";
 $("connect").disabled = !supported;
-$("save-support").textContent = saveSupported ? "选择一次本地文件并授权，随后按所选间隔自动提交；选择已有文件时追加内容。" : "当前浏览器不支持自动写入本地文件，请用桌面 Chrome / Edge；仍可手动导出日志。";
+function saveModeChanged() {
+  const timed = $("save-mode").value === "timed", available = timed ? directorySupported : saveSupported;
+  $("rotation-options").hidden = !timed;
+  $("auto-save-label").textContent = `自动保存（勾选后选择${timed ? "目录" : "文件"}）`;
+  $("save-support").textContent = available ? timed ? "选择一次本地目录并授权，按设定时长自动生成新文件；分文件间隔从启用保存时起算。" : "选择一次本地文件并授权，随后按所选间隔自动提交；选择已有文件时追加内容。" : `当前浏览器不支持${timed ? "目录写入" : "本地文件写入"}，请用桌面 Chrome / Edge；仍可手动导出日志。`;
+  saveState();
+}
+$("save-mode").onchange = saveModeChanged;
+saveModeChanged();
 saveState();
 $("auto-save").onchange = async () => {
   if (!checked("auto-save")) { await saving?.stop(); saveState(); return; }
   choosingFile = true; saveState();
   const format = $("save-format").value;
   try {
-    const handle = await window.showSaveFilePicker({
+    const timed = $("save-mode").value === "timed", rotationMinutes = timed ? Number($("rotation-minutes").value) : 0;
+    if (timed && (!Number.isInteger(rotationMinutes) || rotationMinutes < 1 || rotationMinutes > 1440)) throw new Error("分文件间隔请输入 1–1440 分钟的整数。");
+    const handle = timed ? await window.showDirectoryPicker({ id: "serial-logs-directory", mode: "readwrite" }) : await window.showSaveFilePicker({
       id: "serial-auto-save", suggestedName: `serial-${new Date().toISOString().replace(/[:.]/g, "-")}.${format === "raw" ? "bin" : "log"}`,
       types: [{ description: format === "raw" ? "原始接收字节" : "UTF-8 串口日志", accept: format === "raw" ? { "application/octet-stream": [".bin"] } : { "text/plain": [".log", ".txt"] } }]
     });
     saving = new AutoSave({ onChange: saveState, onError: (error) => report(new Error(`自动保存：${error.message}`)) });
-    await saving.start(handle, { format, timestamps: checked("save-timestamps"), includeTX: checked("save-tx"), encoding: $("encoding").value, interval: Number($("save-interval").value) });
+    await saving.start(handle, { format, timestamps: checked("save-timestamps"), includeTX: checked("save-tx"), encoding: $("encoding").value, interval: Number($("save-interval").value), rotationMinutes });
   } catch (error) { if (error.name !== "AbortError") report(error); }
   finally { choosingFile = false; saveState(); }
 };
@@ -109,6 +142,19 @@ $("pause").onclick = () => {
   paused = !paused; $("pause").textContent = paused ? "恢复画面" : "暂停画面"; $("pause").setAttribute("aria-pressed", String(paused));
   $("view-state").textContent = paused ? "画面已暂停 · 继续接收" : "实时视图"; dirty = true;
 };
+const monitor = document.querySelector(".receive-panel"), monitorDialog = $("monitor-dialog");
+const monitorAnchor = document.createComment("receive-monitor-home"); monitor.before(monitorAnchor);
+$("expand-monitor").onclick = () => {
+  if (monitorDialog.open) { monitorDialog.close(); return; }
+  monitorDialog.append(monitor); monitorDialog.showModal();
+  $("expand-monitor").textContent = "还原窗口 · Esc"; $("expand-monitor").setAttribute("aria-expanded", "true");
+  $("terminal").focus({ preventScroll: true });
+};
+monitorDialog.addEventListener("close", () => {
+  monitorAnchor.after(monitor);
+  $("expand-monitor").textContent = "展开日志窗口"; $("expand-monitor").setAttribute("aria-expanded", "false");
+  $("expand-monitor").focus({ preventScroll: true });
+});
 function stamp(at) {
   const date = new Date(at), pad = (n, width = 2) => String(n).padStart(width, "0");
   const clock = `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}.${pad(date.getMilliseconds(), 3)}`;
@@ -139,12 +185,13 @@ function render(force = false) {
   if (paused && !force) return;
   const terminal = $("terminal"), scrollTop = terminal.scrollTop, scrollLeft = terminal.scrollLeft;
   lastRows = rowsForView().slice(-1500);
-  terminal.className = `terminal size-${$("font-size").value}${checked("wrap-lines") ? " wrap-lines" : ""}${checked("light-terminal") ? " light" : ""}`;
+  terminal.className = `terminal size-${$("font-size").value} height-${$("terminal-height").value}${checked("wrap-lines") ? " wrap-lines" : ""}${checked("light-terminal") ? " light" : ""}`;
   const fragment = document.createDocumentFragment();
   for (const [index, row] of lastRows.entries()) {
     const line = document.createElement("div"); line.className = `terminal-row ${row.direction.toLowerCase()}`;
     if (checked("highlight-errors")) {
-      if (/\b(error|fail(?:ed|ure)?|fatal)\b|错误|失败/i.test(row.text)) line.classList.add("error-line");
+      if (row.direction === "SYS" && row.text.startsWith("串口告警：")) line.classList.add("warn");
+      else if (/\b(error|fail(?:ed|ure)?|fatal)\b|错误|失败/i.test(row.text)) line.classList.add("error-line");
       else if (/\b(warn(?:ing)?|timeout)\b|警告|超时/i.test(row.text)) line.classList.add("warn");
     }
     const meta = document.createElement("span"); meta.className = "prefix"; meta.textContent = prefix(row, index); line.append(meta);
@@ -154,6 +201,10 @@ function render(force = false) {
   terminal.replaceChildren(fragment); terminal.scrollTop = checked("autoscroll") ? terminal.scrollHeight : scrollTop; terminal.scrollLeft = scrollLeft; dirty = false;
 }
 for (const element of document.querySelectorAll("#display-options input, .filter-details input, #font-size")) element.addEventListener("input", () => { dirty = true; if (paused) notice("画面已暂停，恢复后应用显示选项；文本导出使用当前选项。"); });
+$("terminal-height").onchange = () => {
+  const terminal = $("terminal"); terminal.style.removeProperty("height");
+  for (const value of ["compact", "large", "tall"]) terminal.classList.toggle(`height-${value}`, $("terminal-height").value === value);
+};
 setInterval(() => { if (dirty) render(); }, 120);
 setInterval(() => {
   const now = performance.now();
