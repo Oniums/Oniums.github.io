@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="浏览器本地串口调试台：文本与 HEX 收发、时间戳、过滤高亮、定时发送、快捷命令和日志导出。">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'none'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>串口调试台 · Oniums 工具箱</title><link rel="canonical" href="https://oniums.github.io/tools/serial/">
+<link rel="stylesheet" href="/tools/assets/tools.css"><link rel="stylesheet" href="/tools/assets/serial.css">
+<script type="module" src="/tools/assets/serial.mjs"></script>
+</head>
+<body>
+<a class="skip" href="#main">跳到工具内容</a>
+<header><a class="brand" href="/"><b>o.</b> Oniums <span>Lab</span></a><nav class="tool-nav" aria-label="工具导航"><a href="/tools/">工具箱</a><a href="/tools/matter-pairing/">配对码</a><a href="/tools/bytes/">字节与位域</a><a href="/tools/power/">低功耗预算</a><a href="/tools/firmware-diff/">固件对比</a><a href="/tools/log-timeline/">日志时间线</a><a href="/tools/thread-dataset/">Dataset</a><a href="/tools/serial/" aria-current="page">串口调试</a></nav><a class="back" href="/">← 首页</a></header>
+<main id="main">
+<section class="intro"><p class="eyebrow">07 / SERIAL WORKBENCH</p><h1>连接设备，看见每一条回应。</h1><p>从一行 AT 命令到持续 UART 日志，把收发、过滤和记录放在一个工作台。</p><span class="local-badge">● 串口数据本地处理 · 不上传 · 可选自动保存</span></section>
+<noscript><p class="error">请启用 JavaScript 使用串口调试台。</p></noscript>
+<p id="support" class="hint">正在检测 Web Serial 支持情况…</p>
+<p id="error" class="error" role="alert" hidden></p>
+<section class="panel connection" aria-labelledby="connection-heading">
+<div class="panel-heading"><h2 id="connection-heading">连接配置</h2><span id="connection-state" role="status">未连接</span></div>
+<fieldset id="connection-options"><legend class="sr-only">串口参数</legend><div class="serial-grid">
+<label>波特率<input id="baud" type="number" value="115200" min="1" max="12000000" step="1" list="baud-rates"><datalist id="baud-rates"><option value="9600"><option value="19200"><option value="38400"><option value="57600"><option value="115200"><option value="230400"><option value="460800"><option value="921600"><option value="1000000"><option value="2000000"></datalist></label>
+<label>数据位<select id="data-bits"><option>8</option><option>7</option></select></label>
+<label>停止位<select id="stop-bits"><option>1</option><option>2</option></select></label>
+<label>校验位<select id="parity"><option value="none">无 None</option><option value="even">偶 Even</option><option value="odd">奇 Odd</option></select></label>
+<label>流控<select id="flow"><option value="none">无</option><option value="hardware">硬件 RTS/CTS</option></select></label>
+<label>接收编码<select id="encoding"><option value="utf-8">UTF-8</option><option value="gb18030">GB18030 / GBK</option><option value="windows-1252">Windows-1252</option></select></label>
+</div></fieldset>
+<div class="actions"><button id="connect" class="primary" disabled>选择串口并连接</button><button id="disconnect" disabled>断开连接</button><button id="demo">载入演示日志</button><label class="check"><input type="checkbox" id="clear-connect" checked>连接时清空日志</label></div>
+<p class="hint">设备接在运行浏览器的电脑上。系统需能识别串口，其他串口软件应先释放端口。演示只生成示例日志，不连接设备或发送命令。</p>
+<details><summary>高级 · 信号线控制</summary><fieldset id="signal-controls" disabled><div class="option-row"><label class="check"><input id="dtr" type="checkbox">DTR</label><label class="check"><input id="rts" type="checkbox">RTS</label><label class="check"><input id="break-signal" type="checkbox">BREAK</label><button id="apply-signals">应用信号</button><button id="read-signals">读取输入信号</button><output id="signals">尚未读取</output></div></fieldset><p class="hint">仅点击“应用信号”时设置勾选值。DTR / RTS 可能接到设备复位或启动脚；硬件流控时不手动设置 RTS。打开端口时的默认电平也取决于系统与驱动。部分适配器不支持信号控制。</p></details>
+</section>
+<div class="workbench">
+<section class="panel receive-panel" aria-labelledby="receive-heading">
+<div class="panel-heading"><h2 id="receive-heading">接收监视器</h2><span id="view-state">实时视图</span></div>
+<div class="option-row" id="display-options">
+<label class="check"><input id="timestamps" type="checkbox" checked>时间戳</label>
+<label class="check"><input id="date-stamps" type="checkbox">完整日期</label>
+<label class="check"><input id="directions" type="checkbox" checked>收发标记</label>
+<label class="check"><input id="hex-view" type="checkbox">HEX + ASCII</label>
+<label class="check"><input id="autoscroll" type="checkbox" checked>自动滚动</label>
+<label class="check"><input id="wrap-lines" type="checkbox" checked>自动折行</label>
+<label class="check"><input id="show-rx" type="checkbox" checked>显示接收</label>
+<label class="check"><input id="show-tx" type="checkbox" checked>显示发送</label>
+<label class="check"><input id="show-system" type="checkbox" checked>系统消息</label>
+<label class="check"><input id="strip-ansi" type="checkbox" checked>去除 ANSI</label>
+<label class="check"><input id="show-controls" type="checkbox">控制字符可见</label>
+<label class="check"><input id="highlight-errors" type="checkbox" checked>错误 / 警告着色</label>
+<label class="check"><input id="line-numbers" type="checkbox">视图行号</label>
+<label class="check"><input id="light-terminal" type="checkbox">浅色终端</label>
+</div>
+<details class="filter-details" open><summary>筛选与高亮</summary><div class="filter-grid"><label>包含任一关键字<input id="include" placeholder="error | timeout" maxlength="200"></label><label>排除任一关键字<input id="exclude" placeholder="heartbeat | debug" maxlength="200"></label><label>高亮关键字<input id="highlight" placeholder="connected" maxlength="100"></label></div><label class="check"><input id="case-sensitive" type="checkbox">区分大小写</label><p class="hint">用 | 分隔多个筛选词，按纯文本匹配。筛选只影响视图和文本导出；原始字节保持不变。</p></details>
+<div class="monitor-actions"><div class="actions"><button id="pause" aria-pressed="false">暂停画面</button><button id="clear">清空日志</button><button id="copy">复制当前视图</button></div><label>字号<select id="font-size"><option value="11">11 px</option><option value="13" selected>13 px</option><option value="15">15 px</option><option value="17">17 px</option></select></label></div>
+<div id="terminal" class="terminal wrap-lines size-13" role="region" aria-label="串口收发日志" tabindex="0"><div class="terminal-empty">等待连接。也可以先载入演示日志，试试过滤、HEX 与导出。</div></div>
+<div class="stats"><span>RX <b id="rx-count">0</b> B</span><span>TX <b id="tx-count">0</b> B</span><span>速率 <b id="rx-rate">0</b> B/s</span><span>时长 <b id="duration">00:00:00</b></span><span id="buffer-state">缓存 0 B</span></div>
+<p id="retention" class="hint">文本保留最近 5,000 行，原始数据保留最近 8 MiB 或 4,096 块（先到为限）；画面最多显示 1,500 行。</p>
+<details id="auto-save-panel" open><summary>自动保存到本地文件</summary>
+<p id="save-support" class="hint">正在检测本地文件写入能力…</p>
+<fieldset id="save-options"><div class="filter-grid"><label>保存格式<select id="save-format"><option value="text">文本日志 .log（UTF-8）</option><option value="raw">原始接收 .bin</option></select></label><label>提交间隔<select id="save-interval"><option value="2000">每 2 秒</option><option value="5000">每 5 秒</option><option value="10000">每 10 秒</option></select></label></div><div class="option-row"><label class="check"><input id="save-timestamps" type="checkbox" checked>记录 UTC 时间戳</label><label class="check"><input id="save-tx" type="checkbox">同时记录发送（文本）</label></div></fieldset>
+<div class="actions"><label class="check"><input id="auto-save" type="checkbox">自动保存（勾选后选择文件）</label><button id="save-now" disabled>立即保存</button><button id="save-rescue" hidden>下载待保存副本并结束</button></div>
+<p id="save-status" class="status" role="status">未启用自动保存</p>
+<p class="hint">只记录启用后的真实串口数据，不回填缓存或演示。暂停画面、筛选和清屏不影响自动保存；取消勾选或断开串口会完成最后一笔提交。文本按行记录，未换行内容在提交时标记为“片段”；原始模式逐字节保存 RX，不含时间戳或 TX。</p>
+<p class="hint">已有文件会追加，不清空；请勿同时用其他程序编辑。状态中的“已提交”表示写入流已关闭成功。强制关闭网页、浏览器崩溃或休眠可能丢失尚未提交的数据，离开前请取消勾选并等待“保存已结束”。大文件频繁提交可能变慢，可结束本轮后选择新文件分段记录。</p>
+</details>
+<details><summary>保存与导出</summary><div class="actions"><button id="export-log">导出筛选文本 .log</button><button id="export-rx">原始接收 .bin</button><button id="export-tx">原始发送 .bin</button><button id="export-json">原始收发 .json</button></div><p class="hint">导出当前缓存。文本导出遵循显示选项与筛选；HEX 模式导出完整缓存中的匹配 HEX 行。BIN 不加时间戳、不转换编码；JSON 保留每块方向、接收 / 发送时间与 HEX。清空或刷新后缓存无法恢复，长时间采集可开启自动保存。</p></details>
+</section>
+<aside class="send-column">
+<section class="panel" aria-labelledby="send-heading"><div class="panel-heading"><h2 id="send-heading">发送工作台</h2><span>Ctrl / ⌘ + Enter</span></div>
+<label for="send-input">发送内容（文本使用 UTF-8）</label><textarea id="send-input" rows="5" maxlength="65536" spellcheck="false" placeholder="AT 或 01 02 FF"></textarea>
+<div class="option-row"><label class="check"><input id="send-hex" type="checkbox">HEX 发送</label><label class="check"><input id="send-escapes" type="checkbox">解释转义</label><label class="check"><input id="enter-send" type="checkbox">Enter 发送</label><label class="check"><input id="clear-send" type="checkbox">发送后清空</label></div>
+<label>追加结束符（文本与 HEX 均适用）<select id="ending"><option value="crlf">CRLF · \r\n</option><option value="lf">LF · \n</option><option value="cr">CR · \r</option><option value="none">不追加</option></select></label>
+<p id="send-preview" class="hint">请输入发送内容。</p><p class="hint">转义支持 \r、\n、\t、\\ 与 ASCII 范围的 \xNN。HEX 模式输入原始字节；切换时不会自动改写内容。</p>
+<div class="actions"><button id="send" class="primary" disabled>发送一次</button><button id="save-command">加入快捷命令</button></div>
+<label>发送历史（本次页面，最多 30 条）<select id="history"><option value="">选择后填入，不自动发送</option></select></label>
+<details open><summary>定时发送</summary><div class="timer-grid"><label>间隔 / ms<input id="interval" type="number" min="100" max="3600000" step="1" value="1000"></label><label>次数（0 为不限）<input id="repeat-count" type="number" min="0" max="100000" step="1" value="10"></label></div><label class="check"><input id="stop-hidden" type="checkbox" checked>切到后台时停止定时发送</label><div class="actions"><button id="repeat" disabled>开始定时发送</button><button id="stop-repeat" disabled>停止</button></div><p id="repeat-status" class="hint" role="status">使用启动时的内容与结束符；上一笔写入完成后再等待间隔，不并发堆积。断线或发送失败即停止。浏览器定时不保证精确周期。</p></details>
+</section>
+<section class="panel"><div class="panel-heading"><h2>快捷命令</h2><span>仅保留在当前页面</span></div><label>命令名称<input id="command-name" placeholder="例如：查询版本" maxlength="40"></label><div id="commands" class="commands"><p class="hint">把常用内容加入这里。点击条目仅填入发送区，再由你点击发送。</p></div><div class="actions"><button id="export-commands">导出命令集</button><label class="file-button">导入命令集<input id="import-commands" type="file" accept=".json,application/json"></label></div><p class="hint">命令集含名称、内容、HEX / 转义选项与结束符；导入时追加，不自动执行。最多 30 条。</p></section>
+</aside>
+</div>
+<p id="notice" class="status" role="status"></p>
+<details class="scope"><summary>使用说明与能力边界</summary><p>优先使用桌面 Chrome / Edge，通过 HTTPS 或 localhost 打开。网页只访问你授权的本机串口，不访问远程主机。手机及不支持 Web Serial 的浏览器仍可体验演示。页面不上传串口数据，不写入 localStorage / IndexedDB。自动保存默认关闭，仅在你选择并授权的本地文件中记录；命令不自动保存。</p><p>时间戳为浏览器观察到数据的本地时间，不是设备硬件时间戳。USB 和系统会合并数据，HEX 分块不代表协议帧。文本按 CR / LF 分行，超长行每 4,096 字符拆分；控制字符按显示选项处理，不提供完整 VT100 终端仿真。暂停画面仍继续接收并受缓存上限约束；关闭网页、电脑休眠或拔出设备会中断采集。</p><p>发送完成表示浏览器写入操作完成，不等于设备已执行命令。串口断开后，未结束的文本行会补入记录。若适配器不支持所选波特率、流控或信号线，页面会显示操作错误。</p><p><a href="https://developer.chrome.com/docs/capabilities/serial" target="_blank" rel="noopener noreferrer">Web Serial 官方说明 ↗</a></p></details>
+<div class="related"><a href="/tools/log-timeline/">导出的日志，可以继续整理时间线 →</a><a href="/tools/bytes/">检查协议字节与位域 →</a></div>
+</main><footer><a href="/tools/">Oniums 工具箱</a><span>保持好奇，亲手验证。</span><a href="/tools/log-timeline/">日志时间线 ↗</a></footer>
+</body></html>

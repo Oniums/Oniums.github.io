@@ -16,6 +16,12 @@ const requiredFiles = [
   "tools/firmware-diff/index.html",
   "tools/log-timeline/index.html",
   "tools/thread-dataset/index.html",
+  "tools/serial/index.html",
+  "tools/assets/serial.mjs",
+  "tools/assets/serial-core.mjs",
+  "tools/assets/serial-port.mjs",
+  "tools/assets/serial-save.mjs",
+  "tools/assets/serial.css",
   "tools/assets/binary.mjs",
   "tools/assets/binary-core.mjs",
   "tools/assets/binary-worker.mjs",
@@ -122,6 +128,9 @@ const requiredFiles = [
 const forbiddenFiles = ["CNAME"];
 
 const requiredContent = [
+  { file: "tools/index.html", marker: 'href="/tools/serial/"' },
+  { file: "lab/index.html", marker: 'href="/tools/serial/"' },
+  { file: "tools/serial/index.html", marker: 'id="terminal"' },
   { file: "playground/presence/index.html", marker: 'id="experiment"' },
   { file: "index.html", marker: 'href="/playground/presence/"' },
   { file: "lab/index.html", marker: 'href="/playground/presence/"' },

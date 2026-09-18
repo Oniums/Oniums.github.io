@@ -31,8 +31,9 @@ Hexo 首先把生成结果写入 `public/`，站点检查通过后，再由受�
 - `source/about/`：个人介绍
 - `source/experience/`：匿名化工作经历
 - `source/projects/`：项目与实践方向
-- `source/tools/`：公开工具箱与六个工具，静态页面；`assets/calculations.mjs` 为纯计算核心。用户输入仅在浏览器内处理，配网内容不持久化。二维码依赖为本地固定版本副本，来源与许可见 `source/tools/assets/vendor/README.md`。
+- `source/tools/`：公开工具箱与七个工具，静态页面；`assets/calculations.mjs` 为纯计算核心。用户输入仅在浏览器内处理，配网内容不持久化。二维码依赖为本地固定版本副本，来源与许可见 `source/tools/assets/vendor/README.md`。
 - 第二批工具：`firmware-diff/` 对比本地 BIN（最多 64 MiB / 文件，模块 Worker 计算 SHA-256 和差异）；`log-timeline/` 整理时间戳、事件与 CSV，通过公开步骤 ID 跳转配网播放器；`thread-dataset/` 查看 TLV、隐藏凭据和网络标识。核心逻辑分别在 `assets/binary-core.mjs`、`timeline-core.mjs`、`dataset-core.mjs`，边界测试在 `tools/test-analysis-tools.mjs`。
+- `source/tools/serial/`：Web Serial 串口调试台，桌面兼容浏览器访问本机串口。`assets/serial-core.mjs` 负责严格发送编码、流式解码、跨块换行和有界日志缓存；`serial-port.mjs` 管理串口读写与关闭；`serial.mjs` 管理勾选显示、筛选高亮、信号线、定时发送、快捷命令和本地导出。串口数据与命令不上传、不写浏览器存储；`serial-save.mjs` 提供可选本地文件自动保存，按周期关闭流提交，支持 UTF-8 日志（可含时间戳和 TX）或原始 RX 字节，追加已有文件。写入失败停止记录并提供待保存副本；强制关闭不能保证未提交数据。自动保存独立于显示缓存，原始数据最多保留 8 MiB / 4,096 块、文本 5,000 行，淘汰量明确显示。`tools/test-serial.mjs` 覆盖编码、缓存及模拟串口生命周期；`tools/test-serial-browser.mjs` 可用外部 Playwright 运行浏览器交互验证，见文件头。自动化模拟不代表真实硬件验证。
 - `tools/test-toolbox.mjs`：公开测试向量、数值边界和发布同步保护测试，运行 `npm run test:tools`，也包含在完整检查中。`/tools/` 的生成页面与仓库构建脚本共用目录，同步脚本只清理列明的页面和资源子目录，禁止整体删除 `tools/`。
 - `source/playground/commissioning/`：配网过程播放器，独立静态页面；`scenarios.js` 定义教学场景，`player.js` 控制播放与状态回看，`player.css` 定义界面。`skip_render` 保留原始模块文件。
 - 工具箱与配网播放器均可通过顶部一级导航、首页首屏快捷卡片或 Lab 总览进入。`scripts/home-shortcuts.js` 在构建时插入首页卡片，样式位于 `source/css/custom.css`；手机菜单沿用同一份主题导航配置。

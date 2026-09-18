@@ -46,6 +46,7 @@ const generatedTargets = [
   "tools/firmware-diff",
   "tools/log-timeline",
   "tools/thread-dataset",
+  "tools/serial",
   "xml"
 ];
 

@@ -33,7 +33,8 @@ description: Oniums Lab：嵌入式协议、低功耗设备与固件调试实验
 <div class="lab-link-list">
   <a href="/playground/presence/"><strong>人存实验室 · 从点云到有人 / 无人</strong><span>拖动人物与风扇，逐层观察区间屏蔽、时间确认、无人延时、背景学习和模块分工。构造数据教学演示。</span></a>
   <a href="/playground/radar/"><strong>雷达交互课堂 · 从回波到距离谱</strong><span>4 章 16 节，拖动目标与参数，逐步理解 FMCW、采样与 FFT。</span></a>
-  <a href="/tools/"><strong>Oniums 工具箱 · 浏览器本地计算</strong><span>六个本地工具：配对码、字节位域、低功耗预算、固件对比、日志时间线与 Thread Dataset。</span></a>
+  <a href="/tools/serial/"><strong>串口调试台 · 连接真实设备</strong><span>文本与 HEX 收发、可选显示、过滤高亮、快捷命令、定时发送和日志导出。</span></a>
+  <a href="/tools/"><strong>Oniums 工具箱 · 浏览器本地计算</strong><span>七个本地工具：串口调试、配对码、字节位域、低功耗预算、固件对比、日志时间线与 Thread Dataset。</span></a>
   <a href="/playground/commissioning/"><strong>交互实验 · 配网过程播放器</strong><span>播放 Matter over Thread 首次配网，切换故障，逐步查看状态与证据。</span></a>
   <a href="/posts/matter-over-thread-zigbee-commissioning-comparison/"><strong>Matter over Thread 与 ZigBee 入网对照</strong><span>从协议分层和成功锚点开始理解差异。</span></a>
   <a href="/posts/wireshark-thread-packet-capture/"><strong>Wireshark + Thread 抓包</strong><span>把信道活动推进到协议阶段分析。</span></a>
