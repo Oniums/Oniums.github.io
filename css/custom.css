@@ -93,7 +93,7 @@ body::before {
 
 .home-shortcuts {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
   max-width: 1200px;
   margin: 20px auto 0;
@@ -147,7 +147,7 @@ body::before {
 
 @media (max-width: 600px) {
   .home-shortcuts {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     max-width: 380px;
   }
 
@@ -1009,3 +1009,8 @@ body::before {
     left: -1.75rem;
   }
 }
+
+.comment-avatar-tip, #comment-service-status { font-size: .9em; color: var(--font-color); line-height: 1.8; }
+#comment-service-status { padding: 16px; border: 1px solid var(--light-grey); border-radius: 8px; }
+#comment-service-status button { padding: 5px 12px; border: 1px solid #78958b; border-radius: 5px; cursor: pointer; color: inherit; background: transparent; }
+@media (max-width: 600px) { .home-shortcut-title { font-size: .95rem; } .home-shortcut-description { font-size: .75rem; } }

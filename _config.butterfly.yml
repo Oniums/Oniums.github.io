@@ -14,6 +14,9 @@ menu:
   雷达课堂: /playground/radar/ || fas fa-satellite-dish
   实验室:
     总览: /lab/ || fas fa-flask
+    空间站追踪: /playground/iss/ || fas fa-satellite
+    天气站: /tools/weather/ || fas fa-cloud-sun
+    机器人头像: /tools/avatar/ || fas fa-robot
     人存实验室: /playground/presence/ || fas fa-street-view
     知识库: /knowledge/ || fas fa-diagram-project
     实验记录: /experiments/ || fas fa-vial
@@ -237,11 +240,25 @@ share:
   use:
 
 comments:
-  use:
+  use: Giscus
   text: false
   lazyload: true
   count: false
   card_post_count: false
+
+giscus:
+  repo: Oniums/Oniums.github.io
+  repo_id: R_kgDOHhgkJQ
+  category_id: DIC_kwDOHhgkJc4DF_vO
+  light_theme: light
+  dark_theme: dark
+  option:
+    data-category: Announcements
+    data-mapping: pathname
+    data-strict: '1'
+    data-lang: zh-CN
+    data-input-position: top
+    data-reactions-enabled: '1'
 
 theme_color:
   enable: true
@@ -330,3 +347,4 @@ inject:
   head:
     - <link rel="stylesheet" href="/css/custom.css">
   bottom:
+    - <script src="/js/comment-support.js?v=20260920-1" defer></script>

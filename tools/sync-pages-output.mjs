@@ -47,6 +47,8 @@ const generatedTargets = [
   "tools/log-timeline",
   "tools/thread-dataset",
   "tools/serial",
+  "tools/avatar",
+  "tools/weather",
   "xml"
 ];
 

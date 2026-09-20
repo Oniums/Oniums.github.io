@@ -35,6 +35,7 @@ skip_render:
   - playground/commissioning/**
   - playground/radar/**
   - playground/presence/**
+  - playground/iss/**
   - tools/**
 
 # Writing
