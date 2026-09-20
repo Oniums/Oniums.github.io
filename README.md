@@ -59,7 +59,10 @@ Hexo 首先把生成结果写入 `public/`，站点检查通过后，再由受�
 - `/playground/iss/`：Where the ISS at? 公开位置接口，每 10 秒轮询、失败退避最多 60 秒、手动刷新至少间隔 5 秒、后台暂停；超过 45 秒的采样标为过期，不外推位置。轨迹只保留本次访问最多 180 点/30 分钟，跨日期变更线断开。太阳照射状态不等于地面可见。
 - ISS 陆地轮廓来源：Natural Earth v5.1.2 的 [ne_110m_land.geojson](https://raw.githubusercontent.com/nvkelso/natural-earth-vector/v5.1.2/geojson/ne_110m_land.geojson)，公共领域；原始 SHA-256 `9e0729ee253ca7d7a5c4ae9395fb1902264c5377c52e224d13dd85010e2835d9`。`world.svg` 按 `x=(lon+180)/360*1000`、`y=(90-lat)/180*500` 转换多边形，保留两位小数与环，不含国家边界。
 - `/tools/weather/`：Open-Meteo 城市搜索与天气预报。手动选城市，不请求定位；请求发送城市名/坐标。使用 Unix 时间与城市时区，展示模型当前天气、未来 24 小时与五天预报；缺失数据保持为空。内存缓存 10 分钟，手动刷新间隔 60 秒；切换城市会取消旧请求，失败时明确标出保留数据所属城市。
+- 首页和博客主题页面顶部提供“本地天气”，已有定位授权时自动显示左下角浮窗。未授权不自动弹窗，可点击主动授权；拒绝、定位失败、天气失败或数据超过两小时则隐藏。位置取两位小数后请求 Open-Meteo，不使用 IP 定位，不持久化坐标；关闭状态仅记在当前标签页会话中。静态工具页仍按各自 CSP 工作，不注入定位功能。
 - 新页面使用独立 CSP，只开放其需要的服务；头像页禁止网络 API 请求。既有工程工具的本地数据边界不变。
 - giscus 原生评论配置位于 `_config.butterfly.yml`，连接公开仓库 `Oniums/Oniums.github.io` 的 Announcements 分类。按 pathname 严格匹配，中文、懒加载、随主题切换颜色；评论保存在 GitHub Discussions。仓库须开启 Discussions，并安装 [giscus App](https://github.com/apps/giscus)。`giscus.json` 将可用来源限制为正式站点。
 - 评论继续使用 GitHub 头像。在评论区提供头像工具入口，用户下载 PNG 后可自行设置 GitHub 头像；本站不替换 iframe 内头像，也不处理 GitHub 登录令牌。`scripts/comment-avatar-link.js` 在生成时插入说明和讨论区备用入口；`source/js/comment-support.js` 核对 giscus 消息来源后，将服务错误转为中文提示与重试入口，不将正常的“暂无讨论”当故障。
+- 删除评论：giscus 当前没有内嵌编辑/删除控件。评论区提供“管理 / 删除评论（GitHub）”和刷新按钮；开启元数据后，验证 iframe 来源及讨论 URL，再将入口定位到当前文章的 GitHub Discussion。没有讨论时使用当前文章路径搜索；权限由 GitHub 判断，不在博客保存管理令牌或执行删除。
 - 核心测试 `tools/test-explore.mjs` 已纳入 `npm run prepare-pages`。浏览器测试 `tools/test-explore-browser.mjs` 使用 Playwright，覆盖头像导出、地图与天气成功/失败、城市请求竞态和移动布局；使用模拟 API 的结果不代表线上服务可用性。
+- `tools/test-site-widgets-browser.mjs` 验证天气授权/拒绝/撤销/超时/缓存/关闭与移动布局，以及评论管理元数据来源校验和刷新；定位和服务响应使用测试替身，线上另测静态资源与已存在讨论的真实元数据。

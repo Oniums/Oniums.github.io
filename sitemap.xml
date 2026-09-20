@@ -173,7 +173,7 @@
   </url>
   
   <url>
-    <loc>https://oniums.github.io/experiments/exp-004/</loc>
+    <loc>https://oniums.github.io/failures/failure-001/</loc>
     
     <lastmod>2026-08-02</lastmod>
     
@@ -182,7 +182,7 @@
   </url>
   
   <url>
-    <loc>https://oniums.github.io/failures/failure-001/</loc>
+    <loc>https://oniums.github.io/experiments/exp-004/</loc>
     
     <lastmod>2026-08-02</lastmod>
     
@@ -209,7 +209,7 @@
   </url>
   
   <url>
-    <loc>https://oniums.github.io/debug/dbg-002/</loc>
+    <loc>https://oniums.github.io/debug/dbg-001/</loc>
     
     <lastmod>2026-08-02</lastmod>
     
@@ -218,7 +218,7 @@
   </url>
   
   <url>
-    <loc>https://oniums.github.io/debug/dbg-001/</loc>
+    <loc>https://oniums.github.io/debug/dbg-002/</loc>
     
     <lastmod>2026-08-02</lastmod>
     
@@ -638,34 +638,6 @@
   </url>
   
   <url>
-    <loc>https://oniums.github.io/tags/%E4%BD%8E%E5%8A%9F%E8%80%97/</loc>
-    <lastmod>2026-09-20</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://oniums.github.io/tags/i2c/</loc>
-    <lastmod>2026-09-20</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://oniums.github.io/tags/%E4%BC%A0%E6%84%9F%E5%99%A8/</loc>
-    <lastmod>2026-09-20</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://oniums.github.io/tags/%E7%8A%B6%E6%80%81%E6%9C%BA/</loc>
-    <lastmod>2026-09-20</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
     <loc>https://oniums.github.io/tags/thread/</loc>
     <lastmod>2026-09-20</lastmod>
     <changefreq>weekly</changefreq>
@@ -688,6 +660,34 @@
   
   <url>
     <loc>https://oniums.github.io/tags/commissioning/</loc>
+    <lastmod>2026-09-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://oniums.github.io/tags/%E4%BD%8E%E5%8A%9F%E8%80%97/</loc>
+    <lastmod>2026-09-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://oniums.github.io/tags/i2c/</loc>
+    <lastmod>2026-09-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://oniums.github.io/tags/%E4%BC%A0%E6%84%9F%E5%99%A8/</loc>
+    <lastmod>2026-09-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://oniums.github.io/tags/%E7%8A%B6%E6%80%81%E6%9C%BA/</loc>
     <lastmod>2026-09-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -764,20 +764,6 @@
   </url>
   
   <url>
-    <loc>https://oniums.github.io/tags/gpio/</loc>
-    <lastmod>2026-09-20</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://oniums.github.io/tags/isr/</loc>
-    <lastmod>2026-09-20</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
     <loc>https://oniums.github.io/tags/markdown/</loc>
     <lastmod>2026-09-20</lastmod>
     <changefreq>weekly</changefreq>
@@ -793,6 +779,20 @@
   
   <url>
     <loc>https://oniums.github.io/tags/%E6%8A%80%E6%9C%AF%E5%86%99%E4%BD%9C/</loc>
+    <lastmod>2026-09-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://oniums.github.io/tags/gpio/</loc>
+    <lastmod>2026-09-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://oniums.github.io/tags/isr/</loc>
     <lastmod>2026-09-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -855,21 +855,14 @@
   </url>
   
   <url>
-    <loc>https://oniums.github.io/tags/pki/</loc>
+    <loc>https://oniums.github.io/tags/dns-sd/</loc>
     <lastmod>2026-09-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://oniums.github.io/tags/device-attestation/</loc>
-    <lastmod>2026-09-20</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://oniums.github.io/tags/case/</loc>
+    <loc>https://oniums.github.io/tags/pase/</loc>
     <lastmod>2026-09-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -890,14 +883,21 @@
   </url>
   
   <url>
-    <loc>https://oniums.github.io/tags/dns-sd/</loc>
+    <loc>https://oniums.github.io/tags/pki/</loc>
     <lastmod>2026-09-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://oniums.github.io/tags/pase/</loc>
+    <loc>https://oniums.github.io/tags/device-attestation/</loc>
+    <lastmod>2026-09-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://oniums.github.io/tags/case/</loc>
     <lastmod>2026-09-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -1277,14 +1277,14 @@
   </url>
   
   <url>
-    <loc>https://oniums.github.io/categories/%E4%BC%98%E5%8C%96%E5%AE%9E%E8%B7%B5/</loc>
+    <loc>https://oniums.github.io/categories/%E6%97%A0%E7%BA%BF%E5%8D%8F%E8%AE%AE/</loc>
     <lastmod>2026-09-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://oniums.github.io/categories/%E6%97%A0%E7%BA%BF%E5%8D%8F%E8%AE%AE/</loc>
+    <loc>https://oniums.github.io/categories/%E4%BC%98%E5%8C%96%E5%AE%9E%E8%B7%B5/</loc>
     <lastmod>2026-09-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>

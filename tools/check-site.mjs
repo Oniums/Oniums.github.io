@@ -21,6 +21,8 @@ const requiredFiles = [
   "tools/weather/index.html",
   "tools/assets/avatar.mjs",
   "js/comment-support.js",
+  "js/local-weather.mjs",
+  "css/local-weather.css",
   "tools/assets/avatar-core.mjs",
   "tools/assets/explore-core.mjs",
   "tools/assets/explore.css",
@@ -141,6 +143,10 @@ const requiredFiles = [
 const forbiddenFiles = ["CNAME"];
 
 const requiredContent = [
+  { file: "index.html", marker: 'id="local-weather-toggle"' },
+  { file: "posts/hello-oniums/index.html", marker: 'id="comment-manage"' },
+  { file: "tools/index.html", marker: "<h1>工具箱</h1>" },
+  { file: "tools/serial/index.html", marker: "<h1>串口调试台</h1>" },
   { file: "tools/index.html", marker: 'href="/tools/avatar/"' },
   { file: "lab/index.html", marker: 'href="/playground/iss/"' },
   { file: "lab/index.html", marker: 'href="/tools/weather/"' },

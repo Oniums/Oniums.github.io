@@ -31,9 +31,9 @@ description: Oniums Lab：嵌入式协议、低功耗设备与固件调试实验
 ## 近期公开入口
 
 <div class="lab-link-list">
-  <a href="/playground/iss/"><strong>空间站追踪 · 跟随绕地球的光点</strong><span>世界地图、轨道高度、飞行速度与本次访问期间的轨迹，在线数据。</span></a>
-  <a href="/tools/avatar/"><strong>机器人头像 · 给名字一个新模样</strong><span>本地生成两种机器人风格，自由配色，下载 PNG / SVG。</span></a>
-  <a href="/tools/weather/"><strong>桌面天气站 · 看天空的下一步</strong><span>搜索城市，查看逐小时温度、降雨概率、五天预报和日出日落。</span></a>
+  <a href="/playground/iss/"><strong>空间站追踪 · 实时位置与轨迹</strong><span>世界地图、轨道高度、飞行速度与本次访问期间的轨迹，在线数据。</span></a>
+  <a href="/tools/avatar/"><strong>机器人头像 · 头像生成与下载</strong><span>本地生成两种机器人风格，自由配色，下载 PNG / SVG。</span></a>
+  <a href="/tools/weather/"><strong>桌面天气站 · 当前天气与预报</strong><span>搜索城市，查看逐小时温度、降雨概率、五天预报和日出日落。</span></a>
   <a href="/playground/presence/"><strong>人存实验室 · 从点云到有人 / 无人</strong><span>拖动人物与风扇，逐层观察区间屏蔽、时间确认、无人延时、背景学习和模块分工。构造数据教学演示。</span></a>
   <a href="/playground/radar/"><strong>雷达交互课堂 · 从回波到距离谱</strong><span>4 章 16 节，拖动目标与参数，逐步理解 FMCW、采样与 FFT。</span></a>
   <a href="/tools/serial/"><strong>串口调试台 · 连接真实设备</strong><span>文本与 HEX 收发、可选显示、过滤高亮、快捷命令、定时发送和日志导出。</span></a>

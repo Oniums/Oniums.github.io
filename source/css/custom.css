@@ -1014,3 +1014,6 @@ body::before {
 #comment-service-status { padding: 16px; border: 1px solid var(--light-grey); border-radius: 8px; }
 #comment-service-status button { padding: 5px 12px; border: 1px solid #78958b; border-radius: 5px; cursor: pointer; color: inherit; background: transparent; }
 @media (max-width: 600px) { .home-shortcut-title { font-size: .95rem; } .home-shortcut-description { font-size: .75rem; } }
+.comment-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 10px 0; }
+.comment-actions a, .comment-actions button { font: inherit; font-size: 13px; padding: 6px 12px; border: 1px solid #78958b; border-radius: 6px; color: var(--font-color); background: transparent; cursor: pointer; }
+.comment-manage-help { font-size: 12px; color: var(--font-color); opacity: .8; line-height: 1.8; }

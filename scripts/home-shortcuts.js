@@ -24,7 +24,7 @@ const shortcuts = `
   </a>
   <a class="home-shortcut" href="/tools/weather/">
     <span class="home-shortcut-title">桌面天气站 <span aria-hidden="true">↗</span></span>
-    <span class="home-shortcut-description">选择一座城市 · 看天空的下一步</span>
+    <span class="home-shortcut-description">选择一座城市 · 当前天气与预报</span>
   </a>
 </nav>`;
 

@@ -1,0 +1,13 @@
+#local-weather-toggle{font:inherit;font-size:13px;padding:3px 8px;margin-right:9px;border:1px solid currentColor;border-radius:6px;background:transparent;color:inherit;cursor:pointer;white-space:nowrap}
+#local-weather-toggle:disabled{opacity:.6;cursor:wait}
+#local-weather-toggle[hidden],#local-weather[hidden]{display:none!important}
+#local-weather{--paper:#fff;position:fixed;left:max(16px,env(safe-area-inset-left));bottom:max(16px,env(safe-area-inset-bottom));z-index:90;width:235px;padding:15px 17px;background:#fffffff5;color:#19332f;border:1px solid #dce6df;border-radius:14px;box-shadow:0 5px 24px #142a381c;font-size:12px;line-height:1.7;backdrop-filter:blur(8px)}
+.local-weather-head{display:flex;justify-content:space-between;align-items:center}.local-weather-head strong{font-size:13px}
+#local-weather-close{border:0;background:transparent;color:inherit;font-size:22px;line-height:1;padding:4px 7px;cursor:pointer}
+.local-weather-main{display:flex;align-items:center;gap:10px;margin:8px 0 4px}#local-weather-icon svg{width:40px;height:40px;display:block;color:#ac7c26}#local-weather-temperature{font-size:28px;font-weight:650}#local-weather-description{font-size:13px}
+#local-weather-details{margin:6px 0!important}#local-weather-time{font-size:11px;color:#667b73}.local-weather-footer{display:flex;justify-content:space-between;margin-top:9px;font-size:11px}.local-weather-footer a{color:#087f72!important;text-decoration:none}
+#local-weather button:focus-visible,#local-weather a:focus-visible,#local-weather-toggle:focus-visible{outline:2px solid #087f72;outline-offset:3px}
+[data-theme=dark] #local-weather{--paper:#18232d;background:#18232df5;color:#e0eae8;border-color:#40534f}[data-theme=dark] #local-weather-time{color:#a0b5af}[data-theme=dark] .local-weather-footer a{color:#7bdac0!important}
+@media(max-width:600px){#local-weather-toggle{font-size:11px;margin-right:6px;padding:3px 5px}#local-weather{width:216px;left:10px;bottom:max(10px,env(safe-area-inset-bottom));padding:12px 14px}}
+#local-weather-toggle{color:var(--oniums-ink,#19332f)}
+#page-header.full_page:not(.nav-fixed) #local-weather-toggle{color:#f1f5f9}

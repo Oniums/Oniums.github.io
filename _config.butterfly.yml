@@ -259,6 +259,7 @@ giscus:
     data-lang: zh-CN
     data-input-position: top
     data-reactions-enabled: '1'
+    data-emit-metadata: '1'
 
 theme_color:
   enable: true
@@ -345,6 +346,8 @@ note:
 
 inject:
   head:
-    - <link rel="stylesheet" href="/css/custom.css">
+    - <link rel="stylesheet" href="/css/custom.css?v=20260920-2">
+    - <link rel="stylesheet" href="/css/local-weather.css?v=20260920-2">
   bottom:
-    - <script src="/js/comment-support.js?v=20260920-1" defer></script>
+    - <script src="/js/comment-support.js?v=20260920-2" defer></script>
+    - <script type="module" src="/js/local-weather.mjs?v=20260920-2"></script>
