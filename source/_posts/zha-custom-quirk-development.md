@@ -67,6 +67,8 @@ from zhaquirks.builder import BinarySensorDeviceClass, QuirkBuilder
 
 如果多个固件共享 Manufacturer/Model 但行为不同，可使用固件版本过滤或更具体条件，避免一个 workaround 覆盖所有版本。
 
+关于版本范围、未知版本回退与实体一致性的完整示例，见 [同一款 Zigbee 设备，不同固件怎么适配？ZHA Quirk 的版本兼容实践](/posts/zha-firmware-version-compatibility-guide/)。
+
 ## 什么时候替换 Cluster
 
 只有出现以下情况才需要自定义 Cluster：
