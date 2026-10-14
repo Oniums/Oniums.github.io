@@ -24,11 +24,11 @@
     <div class="workbench">
       <section class="scene-panel panel" aria-labelledby="room-title">
         <div class="panel-heading"><h3 id="room-title">场景与模拟点云</h3><label><input type="checkbox" id="show-rejected" checked>显示被过滤的点</label></div>
-        <svg id="room" viewBox="0 0 600 460" role="group" aria-label="雷达正前方房间，横向负3至3米，纵向0至5米，可拖动人物和风扇">
+        <svg id="room" viewBox="0 0 600 460" role="group" aria-label="雷达正前方房间，横向负6至6米，纵向0至10米，可拖动人物和风扇">
           <defs><clipPath id="room-clip"><rect x="60" y="25" width="480" height="400" rx="8"/></clipPath><pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse" x="60" y="25"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="#e4e7df" stroke-width="1"/></pattern></defs>
           <rect x="60" y="25" width="480" height="400" rx="8" fill="#f6f8f3"/><rect x="60" y="25" width="480" height="400" fill="url(#grid)"/>
           <g id="rings" clip-path="url(#room-clip)"></g><g id="cloud" clip-path="url(#room-clip)"></g>
-          <g class="axis-labels"><text x="42" y="30">5 m</text><text x="42" y="110">4</text><text x="42" y="190">3</text><text x="42" y="270">2</text><text x="42" y="350">1</text><text x="60" y="447">−3 m</text><text x="290" y="447">0</text><text x="520" y="447">3 m</text></g>
+          <g class="axis-labels"><text x="42" y="30">10 m</text><text x="42" y="110">8</text><text x="42" y="190">6</text><text x="42" y="270">4</text><text x="42" y="350">2</text><text x="60" y="447">−6 m</text><text x="300" y="447">0</text><text x="540" y="447">6 m</text></g>
           <path d="M290 428 L300 410 L310 428Z" fill="#1a6558"/><text x="325" y="431" class="radar-label">雷达 · 正前方 ↑</text>
           <g id="actors"></g>
         </svg>
@@ -43,7 +43,7 @@
         <section class="panel rules"><h3>改变判断规则</h3><p class="helper">修改下面的规则会清空判断历史、从 0 秒重新实验；人物开关与位置变化会保留历史。</p><label for="min-snr">基础 SNR 门限 <output id="min-snr-value">12 dB</output></label><input id="min-snr" type="range" min="8" max="24" value="12" step="1"><label for="confirm">进入确认时长 <output id="confirm-value">0.6 s</output></label><input id="confirm" type="range" min="200" max="2000" step="200" value="600"><label for="hold">无人延时 <output id="hold-value">8 s</output></label><input id="hold" type="range" min="2" max="120" step="1" value="8"><p class="helper">8 秒只是方便观察的教学默认值。确认至少需要两次不同采样时刻的有效检测。</p><label for="stream">输入状态<select id="stream"><option value="ok">正常点云</option><option value="empty">持续收到有效空帧</option><option value="lost">完全没有数据</option><option value="frozen">重复发送旧帧</option></select></label><p class="helper">流中断或重复旧帧满 2 模拟秒后，显示“数据未知”；恢复后重新确认。空帧则正常参与无人计时。</p></section>
       </aside>
     </div>
-    <section class="panel zones-panel"><div class="panel-heading"><h3>区间开关与本次检测</h3><button id="enable-all" type="button">全部启用</button></div><p class="helper">按离雷达的直线距离划分，每格 0.5 m，覆盖 [0, 4) m。勾选表示参与检测。亮色表示当前有效点，不是最终有人状态。</p><div id="zones" class="zones"></div></section>
+    <section class="panel zones-panel"><div class="panel-heading"><h3>区间开关与本次检测</h3><button id="enable-all" type="button">全部启用</button></div><p class="helper">按离雷达的直线距离划分，每格 0.5 m，共 16 格，覆盖 [0, 8) m（8 m 起不参与检测）。勾选表示参与检测。亮色表示当前有效点，不是最终有人状态。</p><div id="zones" class="zones"></div></section>
     <section class="pipeline" aria-label="本帧处理流程"><div><span>01 输入</span><strong id="input-count">0 个点</strong><small id="sample-ages">移动 / 存在独立采样</small></div><div><span>02 筛选</span><strong id="kept-count">0 个点保留</strong><small id="filter-reason">范围、开关与门限</small></div><div><span>03 时间确认</span><strong id="confirmed-count">0 个区间</strong><small>连续证据达到确认条件</small></div><div><span>04 产品状态</span><strong id="pipeline-state">无人</strong><small>有人保持与无人延时</small></div></section>
     <details class="panel data-details"><summary>展开一帧点云：输入与过滤理由</summary><p class="helper">这是教学数据表，不是厂商协议格式。灰色点包含被过滤或超过有效期的点。表格显示当前全部构造点，最多 18 个。</p><div class="table-scroll"><table><thead><tr><th>类型</th><th>X / Y（m）</th><th>距离（m）</th><th>SNR（dB）</th><th>处理</th></tr></thead><tbody id="point-rows"></tbody></table></div></details>
   </section>

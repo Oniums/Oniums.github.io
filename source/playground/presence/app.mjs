@@ -1,6 +1,8 @@
-import { STEP_MS, DEFAULTS, clamp, createEngine, stepEngine, defaultScene, synthesizeChannels, learnBackground } from './engine.mjs';
+import { STEP_MS, DEFAULTS, ZONE_COUNT, ZONE_WIDTH_M, clamp, createEngine, stepEngine, defaultScene, synthesizeChannels, learnBackground } from './engine.mjs';
 
 const $ = id => document.getElementById(id);
+const ROOM_SCALE = 40; // SVG units per metre, shared by drawing and pointer coordinates.
+const ACTOR_BOUNDS = Object.freeze({ x: [-5.6, 5.6], y: [0.1, 9] });
 const svgNS = 'http://www.w3.org/2000/svg';
 const make = (tag, text, attrs = {}) => {
   const node = document.createElement(tag);
@@ -95,7 +97,7 @@ function makeActorControls() {
     for (const axis of ['x', 'y']) {
       const label = make('label', axis === 'x' ? '左右 X ' : '前后 Y ', { for: `${item.id}-${axis}` });
       label.append(make('output', '', { id: `${item.id}-${axis}-value` }));
-      const input = make('input', undefined, { type: 'range', id: `${item.id}-${axis}`, min: axis === 'x' ? '-2.8' : '0.1', max: axis === 'x' ? '2.8' : '4.9', step: '0.1' });
+      const input = make('input', undefined, { type: 'range', id: `${item.id}-${axis}`, min: ACTOR_BOUNDS[axis][0], max: ACTOR_BOUNDS[axis][1], step: '0.1' });
       label.append(input); positions.append(label);
       input.addEventListener('input', () => changeActor(item.id, { [axis]: Number(input.value) }));
     }
@@ -119,7 +121,7 @@ function syncActors() {
       $(`${item.id}-${axis}-value`).textContent = `${item[axis].toFixed(1)} m`;
     }
     const actor = $(`actor-${item.id}`);
-    actor.setAttribute('transform', `translate(${300 + item.x * 80} ${425 - item.y * 80})`);
+    actor.setAttribute('transform', `translate(${300 + item.x * ROOM_SCALE} ${425 - item.y * ROOM_SCALE})`);
     actor.setAttribute('display', item.enabled ? 'inline' : 'none');
     actor.setAttribute('aria-label', `${item.label}，X ${item.x.toFixed(1)} 米，Y ${item.y.toFixed(1)} 米，可用方向键移动`);
     actor.querySelector('.symbol').textContent = item.id === 'fan' ? '✳' : item.mode === 'motion' ? '↔' : '•';
@@ -128,7 +130,7 @@ function syncActors() {
 function pointerWorld(event) {
   const point = $('room').createSVGPoint(); point.x = event.clientX; point.y = event.clientY;
   const mapped = point.matrixTransform($('room').getScreenCTM().inverse());
-  return { x: (mapped.x - 300) / 80, y: (425 - mapped.y) / 80 };
+  return { x: (mapped.x - 300) / ROOM_SCALE, y: (425 - mapped.y) / ROOM_SCALE };
 }
 function makeActors() {
   for (const item of scene) {
@@ -149,7 +151,7 @@ function makeActors() {
     group.addEventListener('pointermove', event => {
       if (!drag || drag.pointerId !== event.pointerId) return;
       const p = pointerWorld(event);
-      changeActor(item.id, { x: Math.round(clamp(p.x + drag.dx, -2.8, 2.8) * 10) / 10, y: Math.round(clamp(p.y + drag.dy, 0.1, 4.9) * 10) / 10 });
+      changeActor(item.id, { x: Math.round(clamp(p.x + drag.dx, ...ACTOR_BOUNDS.x) * 10) / 10, y: Math.round(clamp(p.y + drag.dy, ...ACTOR_BOUNDS.y) * 10) / 10 });
     });
     const end = () => { drag = null; };
     group.addEventListener('pointerup', end); group.addEventListener('pointercancel', end); group.addEventListener('lostpointercapture', end);
@@ -158,32 +160,32 @@ function makeActors() {
       event.preventDefault();
       const a = scene.find(a => a.id === item.id), amount = event.shiftKey ? 0.5 : 0.1;
       changeActor(item.id, {
-        x: Math.round(clamp(a.x + (event.key === 'ArrowLeft' ? -amount : event.key === 'ArrowRight' ? amount : 0), -2.8, 2.8) * 10) / 10,
-        y: Math.round(clamp(a.y + (event.key === 'ArrowUp' ? amount : event.key === 'ArrowDown' ? -amount : 0), 0.1, 4.9) * 10) / 10
+        x: Math.round(clamp(a.x + (event.key === 'ArrowLeft' ? -amount : event.key === 'ArrowRight' ? amount : 0), ...ACTOR_BOUNDS.x) * 10) / 10,
+        y: Math.round(clamp(a.y + (event.key === 'ArrowUp' ? amount : event.key === 'ArrowDown' ? -amount : 0), ...ACTOR_BOUNDS.y) * 10) / 10
       });
     });
   }
 }
 function makeZones() {
-  for (let i = 0; i < 8; i++) {
+  for (let i = 0; i < ZONE_COUNT; i++) {
     const cell = make('div', undefined, { class: 'zone', id: `zone-${i}` });
     const label = make('label', undefined, { for: `zone-enabled-${i}` });
     const input = make('input', undefined, { type: 'checkbox', id: `zone-enabled-${i}` });
-    label.append(input, document.createTextNode(` 区间 ${i + 1}`), make('b', `${(i * 0.5).toFixed(1)}–${((i + 1) * 0.5).toFixed(1)} m`));
+    label.append(input, document.createTextNode(` 区间 ${i + 1}`), make('b', `${(i * ZONE_WIDTH_M).toFixed(1)}–${((i + 1) * ZONE_WIDTH_M).toFixed(1)} m`));
     cell.append(label, make('small', '', { id: `zone-count-${i}` })); $('zones').append(cell);
     input.addEventListener('change', () => { mask = input.checked ? mask | (1 << i) : mask & ~(1 << i); restart('区间规则已改变，清空历史并重新计时。'); });
   }
 }
 function paintRoom() {
   $('rings').replaceChildren(); $('cloud').replaceChildren();
-  for (let i = 7; i >= 0; i--) {
+  for (let i = ZONE_COUNT - 1; i >= 0; i--) {
     const enabled = Boolean(mask & (1 << i)), hit = Boolean(result.evidenceMask & (1 << i));
-    $('rings').append(svg('circle', { cx: 300, cy: 425, r: (i + 1) * 40, fill: !enabled ? '#e0e1dc' : hit ? '#d8e9d9' : '#f1f5ee', stroke: '#c4d1c2', 'stroke-width': 1, 'fill-opacity': '0.85' }));
+    $('rings').append(svg('circle', { cx: 300, cy: 425, r: (i + 1) * ZONE_WIDTH_M * ROOM_SCALE, fill: !enabled ? '#e0e1dc' : hit ? '#d8e9d9' : '#f1f5ee', stroke: '#c4d1c2', 'stroke-width': 1, 'fill-opacity': '0.85' }));
   }
   for (const point of result.points) {
     const kept = point.accepted && point.fresh && result.status !== 'unknown';
     if (!kept && !$('show-rejected').checked) continue;
-    const dot = svg('circle', { cx: 300 + point.x * 80, cy: 425 - point.y * 80, r: kept ? 4 : 3, fill: kept ? point.kind === 'motion' ? '#217563' : '#b57422' : '#aeb2aa', opacity: kept ? '0.9' : '0.6' });
+    const dot = svg('circle', { cx: 300 + point.x * ROOM_SCALE, cy: 425 - point.y * ROOM_SCALE, r: kept ? 4 : 3, fill: kept ? point.kind === 'motion' ? '#217563' : '#b57422' : '#aeb2aa', opacity: kept ? '0.9' : '0.6' });
     $('cloud').append(dot);
   }
   syncActors();
@@ -214,7 +216,7 @@ function paint() {
   $('sample-ages').textContent = `采样时刻：移 ${result.channelTimes.motion === undefined ? '—' : seconds(result.channelTimes.motion)} / 存 ${result.channelTimes.presence === undefined ? '—' : seconds(result.channelTimes.presence)}`;
   $('confirmed-count').textContent = `${result.zones.filter(z => z.confirmed).length} 个区间已确认`;
   $('pipeline-state').textContent = learning ? '学习中' : labels[result.status];
-  for (let i = 0; i < 8; i++) {
+  for (let i = 0; i < ZONE_COUNT; i++) {
     const z = result.zones[i];
     $(`zone-enabled-${i}`).checked = Boolean(mask & (1 << i));
     $(`zone-${i}`).dataset.hit = String(Boolean(result.evidenceMask & (1 << i)));
@@ -239,7 +241,7 @@ function paint() {
   $('learn').disabled = !noPeople || $('stream').value !== 'ok' || Boolean(learning);
   $('learn-guard').textContent = !noPeople ? '请先关闭人物 A、B，让已知模拟场景为空房。' : $('stream').value !== 'ok' ? '请把输入状态切回正常点云。' : '这是你设置的空房间前提；真实设备不能从这一步自动证明无人。学习开始后请播放或手动推进时间。';
   $('learned-zones').replaceChildren();
-  for (let i = 0; i < 8; i++) $('learned-zones').append(make('span', `区间 ${i + 1}：${Number.isFinite(learned[i]) ? learned[i].toFixed(1) + ' dB' : '未设背景门限'}`));
+  for (let i = 0; i < ZONE_COUNT; i++) $('learned-zones').append(make('span', `区间 ${i + 1}：${Number.isFinite(learned[i]) ? learned[i].toFixed(1) + ' dB' : '未设背景门限'}`));
   paintRoom();
 }
 
@@ -251,7 +253,7 @@ function setLesson(key, changeHash = true) {
   if (changeHash) history.replaceState(null, '', `#${selectedLesson}`);
 }
 function loadPreset(value) {
-  setPlaying(false); scene = defaultScene(); mask = 255; learned = []; learning = null;
+  setPlaying(false); scene = defaultScene(); mask = DEFAULTS.mask; learned = []; learning = null;
   $('stream').value = 'ok'; $('min-snr').value = DEFAULTS.minSnr; $('confirm').value = DEFAULTS.confirmMs; $('hold').value = DEFAULTS.holdMs / 1000;
   if (value === 'seated') scene[0].mode = 'presence';
   if (value === 'two') scene[1].enabled = true;
@@ -268,7 +270,7 @@ $('speed').addEventListener('change', () => setPlaying(playing));
 $('reset').addEventListener('click', () => { setPlaying(false); restart('保留场景、规则与已学习门限，从 0 秒重新实验。'); });
 $('preset').addEventListener('change', () => loadPreset($('preset').value));
 for (const id of ['min-snr', 'confirm', 'hold']) $(id).addEventListener('input', () => restart('判断规则已改变，清空历史并重新计时。'));
-$('enable-all').addEventListener('click', () => { mask = 255; restart('全部区间已启用，清空历史并重新计时。'); });
+$('enable-all').addEventListener('click', () => { mask = DEFAULTS.mask; restart('全部区间已启用，清空历史并重新计时。'); });
 $('show-rejected').addEventListener('change', paintRoom);
 $('stream').addEventListener('change', () => { cancelLearning('输入状态改变，学习已取消'); $('play-notice').textContent = '输入状态已改变，请播放或手动前进以观察结果。'; paint(); });
 $('learn').addEventListener('click', () => {

@@ -19,7 +19,11 @@ function occupiedEngine(config = {}) {
 test('presence: half-open distance zones, disabled zones, and background thresholds stay distinct', () => {
   assert.equal(regionOf({ ...point, y: 0.5 }), 1);
   assert.equal(regionOf({ ...point, y: 3.999 }), 7);
-  assert.equal(regionOf({ ...point, y: 4 }), -1);
+  assert.equal(regionOf({ ...point, y: 4 }), 8);
+  assert.equal(regionOf({ ...point, y: 7.5 }), 15);
+  assert.equal(regionOf({ ...point, y: 7.999 }), 15);
+  assert.equal(regionOf({ ...point, y: 8 }), -1);
+  assert.equal(regionOf({ ...point, x: 6, y: 6 }), -1);
   assert.equal(regionOf({ ...point, y: -1 }), -1);
   assert.equal(regionOf({ ...point, x: NaN }), -1);
   assert.equal(filterPoint(point, { ...DEFAULTS, mask: 0 }).reason, '区间关闭');
@@ -118,4 +122,22 @@ test('presence: scene truth is not an input to classification, and generated cas
   }
   assert.equal(a.output.occupied, b.output.occupied);
   assert.throws(() => stepEngine(a, null, 0), RangeError);
+});
+
+test('presence: far zones confirm, can be disabled, recover, and learn background independently', () => {
+  const far = { x: 0, y: 7.7, snr: 18 };
+  const e = createEngine();
+  for (let t = 0; t <= 1000; t += 200) stepEngine(e, frame(t, [far]), t);
+  assert.equal(e.output.occupied, true);
+  assert.equal(e.output.confirmedMask, 1 << 15);
+  assert.equal(filterPoint(far, { ...DEFAULTS, mask: DEFAULTS.mask & ~(1 << 15) }).reason, '区间关闭');
+  assert.equal(filterPoint(point, { ...DEFAULTS, mask: DEFAULTS.mask & ~(1 << 15) }).accepted, true);
+  stepEngine(e, null, 3000);
+  assert.equal(e.output.status, 'unknown');
+  for (let t = 3200; t <= 4200; t += 200) stepEngine(e, frame(t, [far]), t);
+  assert.equal(e.output.occupied, true);
+  assert.equal(e.output.confirmedMask, 1 << 15);
+  const learned = learnBackground([], frame(0, [far]).channels);
+  assert.equal(filterPoint(far, DEFAULTS, learned).reason, '低于背景门限');
+  assert.equal(filterPoint(point, DEFAULTS, learned).accepted, true);
 });

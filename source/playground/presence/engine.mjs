@@ -1,13 +1,16 @@
 // A deterministic teaching model. It does not reproduce a radar vendor's detector.
 export const STEP_MS = 200;
-export const DEFAULTS = Object.freeze({ minSnr: 12, confirmMs: 600, holdMs: 8000, mask: 255 });
+export const MAX_RANGE_M = 8;
+export const ZONE_WIDTH_M = 0.5;
+export const ZONE_COUNT = MAX_RANGE_M / ZONE_WIDTH_M;
+export const DEFAULTS = Object.freeze({ minSnr: 12, confirmMs: 600, holdMs: 8000, mask: (1 << ZONE_COUNT) - 1 });
 export const FRESH_MS = Object.freeze({ motion: 400, presence: 1200 });
 export const STALE_MS = 2000;
 export const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 export function regionOf(point) {
   if (![point.x, point.y, point.snr].every(Number.isFinite) || point.y < 0) return -1;
   const range = Math.hypot(point.x, point.y);
-  return range < 4 ? Math.floor(range / 0.5) : -1;
+  return range < MAX_RANGE_M ? Math.floor(range / ZONE_WIDTH_M) : -1;
 }
 export function filterPoint(point, config, learned = []) {
   const region = regionOf(point);
@@ -21,7 +24,7 @@ const emptyZone = () => ({ since: null, lastHit: null, hits: 0, confirmed: false
 export function createEngine(config = {}, learned = []) {
   return {
     config: { ...DEFAULTS, ...config }, learned: [...learned], now: 0,
-    lastFrame: null, lastSeq: -1, channels: {}, zones: Array.from({ length: 8 }, emptyZone),
+    lastFrame: null, lastSeq: -1, channels: {}, zones: Array.from({ length: ZONE_COUNT }, emptyZone),
     occupied: false, lastEvidence: null, status: 'empty', events: [], output: null
   };
 }
@@ -37,7 +40,7 @@ export function stepEngine(engine, frame, now) {
     if (previousStatus === 'unknown') {
       // A recovered stream starts a new decision window; old evidence cannot revive occupancy.
       engine.channels = {};
-      engine.zones = Array.from({ length: 8 }, emptyZone);
+      engine.zones = Array.from({ length: ZONE_COUNT }, emptyZone);
       engine.occupied = false;
       engine.lastEvidence = null;
     }
@@ -52,7 +55,7 @@ export function stepEngine(engine, frame, now) {
     }
   }
   const unknown = now - (engine.lastFrame ?? 0) >= STALE_MS;
-  const zoneViews = Array.from({ length: 8 }, () => ({ motion: 0, presence: 0, observedAt: null, confirmed: false }));
+  const zoneViews = Array.from({ length: ZONE_COUNT }, () => ({ motion: 0, presence: 0, observedAt: null, confirmed: false }));
   const points = [];
   for (const channel of Object.values(engine.channels)) {
     const fresh = now - channel.observedAt <= FRESH_MS[channel.kind];
@@ -68,7 +71,7 @@ export function stepEngine(engine, frame, now) {
   }
   let evidenceMask = 0;
   let confirmedMask = 0;
-  for (let i = 0; i < 8; i++) {
+  for (let i = 0; i < ZONE_COUNT; i++) {
     const view = zoneViews[i];
     const zone = engine.zones[i];
     if (view.observedAt === null) {
