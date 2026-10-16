@@ -1,4 +1,4 @@
-import { LineStream, localTimestamp } from "./serial-core.mjs?v=20260918-local-time";
+import { LineStream, localTimestamp } from "./serial-core.mjs?v=20261016-experiments";
 const encoder = new TextEncoder();
 
 // 每次 close 后才把字节计入已保存；待提交队列独立于终端显示缓存。

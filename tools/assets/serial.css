@@ -38,3 +38,13 @@ summary { cursor: pointer; color: var(--teal); font-size: 12px; } details { marg
 .monitor-dialog .panel-heading { margin-bottom: 6px; }.monitor-dialog .actions { margin: 6px 0 10px; }
 .monitor-dialog .serial-warning, .monitor-dialog .error { flex-shrink: 0; max-height: 100px; overflow: auto; }
 @media (max-width: 540px) { .monitor-dialog { width: 100vw; height: 100vh; height: 100dvh; border-radius: 0; }.monitor-dialog .receive-panel { padding: 10px; }.monitor-dialog .monitor-actions { gap: 6px; }.monitor-dialog .monitor-actions button { padding: 6px 9px; }.monitor-dialog .serial-warning { font-size: 11px; } }
+
+.experiment-panel { min-width: 0; }
+.experiment-panel textarea { width: 100%; resize: vertical; }
+.experiment-panel .marker-input { flex: 1; min-width: 150px; }
+.experiment-markers { max-height: 160px; overflow: auto; padding-left: 24px; font-size: 12px; overflow-wrap: anywhere; }
+.plot-heading { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; }
+.plot-heading label { min-width: 160px; }
+#experiment-plot { display: block; width: 100%; height: auto; border: 1px solid var(--line); border-radius: 8px; }
+#experiment-status, #experiment-evidence, #plot-summary { overflow-wrap: anywhere; }
+.attribution { border-top: 1px solid var(--line); padding-top: 12px; }

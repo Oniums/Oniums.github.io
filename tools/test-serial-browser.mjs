@@ -252,6 +252,47 @@ try {
   await page.waitForFunction(() => document.getElementById("connection-state").textContent === "未连接");
   assert.match(await text("error"), /连续 5 次/); await page.waitForFunction(() => document.getElementById("save-status").textContent.includes("保存已结束"));
 
+  // Session checks use the same simulated serial stream as the terminal.
+  const beforeExperimentWrites = await writeCount();
+  await click('experiment-demo'); await tick();
+  assert.match(await text('experiment-status'), /演示数据.*通过/);
+  assert.equal(await page.locator('#plot-channel option').count(), 2);
+  assert.match(await page.locator('#experiment-plot').getAttribute('aria-label'), /temperature/);
+  const demoSession = JSON.parse((await download('experiment-export')).toString());
+  assert.equal(await page.locator('.attribution a').first().getAttribute('href'), 'https://github.com/dwatman/mcuscope');
+  assert.equal(demoSession.demo, true); assert.equal(demoSession.verdict, 'pass');
+  assert.equal(demoSession.plots.length, 2);
+  assert.equal((await download('plot-export')).toString().split('\r\n').length, 161);
+  await page.locator('#experiment-heading').scrollIntoViewIfNeeded();
+  await page.screenshot({ path: '/tmp/oniums-serial-experiments.png', fullPage: true });
+  await open(); await tick();
+  await fill('experiment-name', 'browser RX check');
+  await fill('experiment-expect', 'SELFTEST OK'); await fill('experiment-forbid', 'PANIC');
+  await click('experiment-start'); assert(await page.locator('#experiment-name').isDisabled());
+  assert.match(await text('experiment-status'), /观察中/);
+  await fill('experiment-marker', 'SELFTEST OK <img src=x onerror=alert(1)>'); await click('experiment-mark');
+  assert.equal(await page.locator('#experiment-markers img').count(), 0);
+  await feed('SEL'); await feed('FTEST OK\r'); await feed('\n!p 100 v=3.1\n!m @100 device event\n'); await tick();
+  assert.match(await text('experiment-status'), /观察中/);
+  await fill('include', 'nothing matches'); await click('clear'); await tick();
+  await click('experiment-stop'); assert.match(await text('experiment-status'), /通过/);
+  const snapshot = JSON.parse((await download('experiment-export')).toString());
+  assert.equal(snapshot.demo, false); assert.equal(snapshot.lines[0].text, 'SELFTEST OK');
+  assert.equal(snapshot.receivedLines, 3); assert.equal(snapshot.markers.length, 2);
+  assert.equal(await writeCount(), beforeExperimentWrites, 'session and marker controls never send commands');
+  await fill('include', '');
+  await click('experiment-start'); await feed('SELFTEST OK\nPANIC\n'); await tick();
+  await click('experiment-stop'); assert.match(await text('experiment-status'), /失败/);
+  await click('experiment-start'); await feed('SELFTEST OK\n'); await tick();
+  await close(); await tick(); assert.match(await text('experiment-status'), /证据不完整/);
+  await open(); await tick(); await click('experiment-start');
+  await feed('SELFTEST OK\n'); await page.evaluate(() => window.serialMock.framing()); await tick();
+  await click('experiment-stop'); assert.match(await text('experiment-status'), /证据不完整/);
+  await click('experiment-start'); await feed('SELFTEST OK\n'); await tick();
+  await page.evaluate(() => { Object.defineProperty(document, 'hidden', { value: true, configurable: true }); document.dispatchEvent(new Event('visibilitychange')); delete document.hidden; });
+  await tick(); assert.match(await text('experiment-status'), /证据不完整/);
+  await close(); await tick(); await click('experiment-demo');
+
   await click("demo"); await tick();
   for (const width of [320, 390, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 1000 });

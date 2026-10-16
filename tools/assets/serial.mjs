@@ -1,6 +1,7 @@
-import { TrafficLog, encodeSend, hexText, visibleText, filterRows, ReceiveWarnings, localTimestamp } from "./serial-core.mjs?v=20260918-local-time";
-import { SerialConnection } from "./serial-port.mjs?v=20260918-local-time";
-import { AutoSave } from "./serial-save.mjs?v=20260918-local-time";
+import { SerialExperiment } from './serial-experiment.mjs?v=20261016-experiments';
+import { TrafficLog, encodeSend, hexText, visibleText, filterRows, ReceiveWarnings, localTimestamp } from "./serial-core.mjs?v=20261016-experiments";
+import { SerialConnection } from "./serial-port.mjs?v=20261016-experiments";
+import { AutoSave } from "./serial-save.mjs?v=20261016-experiments";
 
 const $ = (id) => document.getElementById(id);
 const checked = (id) => $(id).checked;
@@ -13,7 +14,10 @@ const saveSupported = isSecureContext && typeof window.showSaveFilePicker === "f
 const directorySupported = isSecureContext && typeof window.showDirectoryPicker === "function";
 let saving = null, choosingFile = false;
 const receiveWarnings = new ReceiveWarnings();
+const experiment = new SerialExperiment();
+let experimentDirty = true;
 function readWarning(error) {
+  experiment.interrupt("串口读取告警，可能丢失字节"); experimentDirty = true;
   const at = Date.now(), summary = receiveWarnings.record(error, at);
   log.interruptRX(); saving?.interruptRX(summary, at);
   $("warning-count").textContent = receiveWarnings.total.toLocaleString();
@@ -69,6 +73,7 @@ const connection = new SerialConnection({
     $("send").disabled = state !== "open" || Boolean(repeatJob);
     $("repeat").disabled = state !== "open" || Boolean(repeatJob);
     if (state === "open") {
+      experiment.resetStream($("encoding").value);
       receiveWarnings.reset(); $("warning-count").textContent = "0"; $("serial-warning").hidden = true;
       if (checked("clear-connect")) resetLog(); else freshStreams();
       connectedAt = Date.now(); elapsed = 0;
@@ -80,6 +85,7 @@ const connection = new SerialConnection({
       $("rts").disabled = $("flow").value === "hardware";
     } else if (["closing", "idle", "close-error"].includes(state)) {
       stopRepeat();
+      experiment.stop("串口连接结束"); experimentDirty = true;
       if (connectedAt && state !== "closing") {
         elapsed = Date.now() - connectedAt; connectedAt = 0; finishWarnings(); log.finish(); system("串口连接已结束。"); saving?.stop();
         if (receiveWarnings.total) $("serial-warning").textContent = `本次连接累计 ${receiveWarnings.total} 次可恢复接收告警，连接已结束；错误位置可能有数据缺失。`;
@@ -87,10 +93,10 @@ const connection = new SerialConnection({
     }
     dirty = true;
     $("monitor-connection").textContent = $("connection-state").textContent;
-    saveState();
+    saveState(); experimentDirty = true;
   },
-  onData(bytes) { const at = Date.now(); log.add("RX", bytes, at); saving?.add("RX", bytes, at); dirty = true; },
-  onError: report,
+  onData(bytes) { const at = Date.now(); log.add("RX", bytes, at); experiment.ingest(bytes, at); experimentDirty = true; saving?.add("RX", bytes, at); dirty = true; },
+  onError: (error) => { experiment.interrupt("串口操作异常"); experimentDirty = true; report(error); },
   onWarning: readWarning
 });
 
@@ -280,7 +286,7 @@ $("repeat").onclick = async () => {
 };
 document.addEventListener("visibilitychange", () => { if (document.hidden && checked("stop-hidden")) stopRepeat("页面转到后台，定时发送已停止。"); });
 window.addEventListener("beforeunload", (event) => { if (connection.state !== "idle" || choosingFile || ["starting", "recording", "stopping"].includes(saving?.state) || saving?.pendingBytes) { event.preventDefault(); event.returnValue = ""; } });
-window.addEventListener("pagehide", () => { stopRepeat(); connection.disconnect(); saving?.stop(); });
+window.addEventListener("pagehide", () => { experiment.stop("页面关闭"); stopRepeat(); connection.disconnect(); saving?.stop(); });
 
 async function signals(apply) {
   try {
@@ -346,3 +352,75 @@ $("demo").onclick = () => {
   log.add("RX", encoder.encode("version: demo-1.0\r\nOK\r\n[info] connected\r\n[warn] response timeout (example)\r\n[error] checksum failed (example)\r\n\x1b[32m[info] ANSI color sample\x1b[0m\r\nraw: \x00\x01\x02\r\n"), at + 150);
   log.finish(); dirty = true; if (paused) render(true); notice("演示日志已载入，没有访问串口。");
 };
+
+
+const verdictNames = { idle: '未开始会话', running: '观察中 · 结束后检查', pass: '通过 · 本次日志满足条件', fail: '失败 · 日志条件未满足', incomplete: '证据不完整 · 无法判定通过', 'not-configured': '已结束 · 未配置检查条件' };
+function renderExperiment() {
+  const r = experiment.run, active = Boolean(r?.active);
+  $('experiment-options').disabled = active;
+  $('experiment-start').disabled = connection.state !== 'open' || active;
+  $('experiment-stop').disabled = $('experiment-mark').disabled = !active;
+  $('experiment-demo').disabled = connection.state !== 'idle' || active;
+  $('experiment-export').disabled = !r;
+  $('plot-export').disabled = !r?.plots.size;
+  $('experiment-status').textContent = `${r?.demo ? '演示数据 · ' : ''}${r ? r.name + ' · ' : ''}${verdictNames[experiment.verdict()]}`;
+  $('experiment-evidence').textContent = r ? `完整 RX ${r.received} 行 · 必须出现 ${r.seen.size}/${r.expected.length} · 禁止命中 ${r.banned.size}/${r.forbidden.length} · 淘汰 ${r.droppedLines} 行 / ${r.droppedSamples} 点 / ${r.droppedMarkers} 标记 · 忽略通道 ${r.ignoredChannels.size}${r.ignoredChannels.size === 20 ? '+' : ''} · 无效曲线行 ${r.invalidPlots}${r.issues.size ? ' · ' + [...r.issues].join('；') : ''}${!active && r.expected.some(x => !r.seen.has(x)) ? ' · 未命中：' + r.expected.filter(x => !r.seen.has(x)).join(' / ') : ''}${r.banned.size ? ' · 禁止命中：' + [...r.banned].join(' / ') : ''}` : '';
+  $('experiment-markers').replaceChildren(...(r?.markers ?? []).map(marker => {
+    const li = document.createElement('li'); li.textContent = `${localTimestamp(marker.at, { date: false })} · ${marker.source === 'device' ? '设备' : '手动'}${marker.tick === null ? '' : ' @' + marker.tick} · ${marker.text}`; return li;
+  }));
+  const select = $('plot-channel'), selected = select.value, names = [...(r?.plots.keys() ?? [])];
+  select.replaceChildren(...(names.length ? names.map(name => new Option(name, name)) : [new Option('等待 !p 数据', '')]));
+  if (names.includes(selected)) select.value = selected;
+  drawExperiment(); experimentDirty = false;
+}
+function drawExperiment() {
+  const canvas = $('experiment-plot'), ctx = canvas.getContext('2d'), name = $('plot-channel').value;
+  const all = experiment.run?.plots.get(name) ?? [], segment = all.at(-1)?.segment;
+  const samples = all.filter(s => s.segment === segment);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#f5f8f3'; ctx.fillRect(0, 0, 1000, 260);
+  ctx.font = '14px sans-serif'; ctx.fillStyle = '#19332f';
+  if (!samples.length) { $('plot-summary').textContent = '开始会话后，识别 !p 毫秒计数 名称=数值。'; ctx.fillText('开始会话并接收 !p 数据，或点击“体验会话与曲线”', 24, 130); canvas.setAttribute('aria-label', '会话数值曲线，尚无数据'); return; }
+  const min = Math.min(...samples.map(s => s.value)), max = Math.max(...samples.map(s => s.value));
+  const first = samples[0].tick, last = samples.at(-1).tick;
+  // 先归一化再相减，避免合法的大数跨度使坐标溢出。
+  const scale = Math.max(Math.abs(min), Math.abs(max), 1), low = min / scale, high = max / scale;
+  const y = value => high === low ? 125 : 210 - (value / scale - low) / (high - low) * 170;
+  const x = tick => last === first ? 520 : 90 + (tick - first) / (last - first) * 850;
+  ctx.strokeStyle = '#ccd8cd'; ctx.beginPath(); ctx.moveTo(90, 30); ctx.lineTo(90, 210); ctx.lineTo(950, 210); ctx.stroke();
+  ctx.fillText(max.toPrecision(5), 8, 42); ctx.fillText(min.toPrecision(5), 8, 210);
+  ctx.fillText(`${first} ms`, 90, 240); ctx.textAlign = 'right'; ctx.fillText(`${last} ms`, 950, 240); ctx.textAlign = 'left';
+  ctx.strokeStyle = '#187c6a'; ctx.lineWidth = 2; ctx.beginPath();
+  samples.forEach((s, i) => { if (i) ctx.lineTo(x(s.tick), y(s.value)); else ctx.moveTo(x(s.tick), y(s.value)); }); ctx.stroke();
+  ctx.fillStyle = '#187c6a'; const current = samples.at(-1); ctx.beginPath(); ctx.arc(x(current.tick), y(current.value), 4, 0, 2 * Math.PI); ctx.fill();
+  const summary = `${name} · 最新 ${current.value} · 范围 ${min}～${max} · 第 ${segment + 1} 段 ${samples.length} 点 · 横轴：设备毫秒计数`;
+  $('plot-summary').textContent = summary; canvas.setAttribute('aria-label', summary);
+}
+$('experiment-start').onclick = () => {
+  try {
+    experiment.start({ name: $('experiment-name').value, expect: $('experiment-expect').value, forbid: $('experiment-forbid').value });
+    system('测试会话开始：' + experiment.run.name); experimentDirty = true; renderExperiment();
+  } catch (error) { report(error); }
+};
+$('experiment-stop').onclick = () => { experiment.stop(); system('测试会话结束：' + experiment.run.name); renderExperiment(); };
+$('experiment-mark').onclick = () => {
+  try { experiment.mark($('experiment-marker').value); system('事件标记：' + $('experiment-marker').value.trim()); $('experiment-marker').value = ''; renderExperiment(); }
+  catch (error) { report(error); }
+};
+$('experiment-export').onclick = () => download([JSON.stringify(experiment.snapshot(), null, 2)], '-session.json', 'application/json');
+$('plot-export').onclick = () => download([experiment.csv()], '-plots.csv', 'text/csv;charset=utf-8');
+$('plot-channel').onchange = drawExperiment;
+$('experiment-demo').onclick = () => {
+  const at = Date.now(); experiment.resetStream();
+  $('experiment-name').value = '启动观察（演示）'; $('experiment-expect').value = 'BOOT OK\nSELFTEST OK'; $('experiment-forbid').value = 'PANIC';
+  experiment.start({ name: '启动观察（演示）', expect: 'BOOT OK\nSELFTEST OK', forbid: 'PANIC', demo: true, at });
+  const encoder = new TextEncoder(); experiment.ingest(encoder.encode('BOOT OK\n'), at);
+  for (let i = 0; i < 80; i++) experiment.ingest(encoder.encode(`!p ${i * 100} temperature=${(25 + Math.sin(i / 9)).toFixed(2)} battery=${(3.3 - i * 0.001).toFixed(3)}\n`), at + i * 100);
+  experiment.ingest(encoder.encode('!m @7900 自检结束\nSELFTEST OK\n'), at + 7900);
+  experiment.stop('demo', at + 8000); renderExperiment();
+};
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden && experiment.run?.active) { experiment.stop('页面进入后台，观察已结束'); experimentDirty = true; }
+});
+setInterval(() => { if (experimentDirty) renderExperiment(); }, 200);
+renderExperiment();

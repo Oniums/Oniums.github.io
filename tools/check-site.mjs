@@ -34,6 +34,7 @@ const requiredFiles = [
   "playground/iss/world.svg",
   "tools/assets/serial.mjs",
   "tools/assets/serial-core.mjs",
+  "tools/assets/serial-experiment.mjs",
   "tools/assets/serial-port.mjs",
   "tools/assets/serial-save.mjs",
   "tools/assets/serial.css",

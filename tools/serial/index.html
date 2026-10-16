@@ -5,14 +5,14 @@
 <meta name="description" content="浏览器本地串口调试台：文本与 HEX 收发、时间戳、过滤高亮、定时发送、快捷命令和日志导出。">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'none'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>串口调试台 · Oniums 工具箱</title><link rel="canonical" href="https://oniums.github.io/tools/serial/">
-<link rel="stylesheet" href="/tools/assets/tools.css"><link rel="stylesheet" href="/tools/assets/serial.css">
-<script type="module" src="/tools/assets/serial.mjs?v=20260918-local-time"></script>
+<link rel="stylesheet" href="/tools/assets/tools.css"><link rel="stylesheet" href="/tools/assets/serial.css?v=20261016-experiments">
+<script type="module" src="/tools/assets/serial.mjs?v=20261016-experiments"></script>
 </head>
 <body>
 <a class="skip" href="#main">跳到工具内容</a>
 <header><a class="brand" href="/"><b>o.</b> Oniums <span>Lab</span></a><nav class="tool-nav" aria-label="工具导航"><a href="/tools/">工具箱</a><a href="/tools/matter-pairing/">配对码</a><a href="/tools/bytes/">字节与位域</a><a href="/tools/power/">低功耗预算</a><a href="/tools/firmware-diff/">固件对比</a><a href="/tools/log-timeline/">日志时间线</a><a href="/tools/thread-dataset/">Dataset</a><a href="/tools/serial/" aria-current="page">串口调试</a></nav><a class="back" href="/">← 首页</a></header>
 <main id="main">
-<section class="intro"><p class="eyebrow">07 / SERIAL WORKBENCH</p><h1>串口调试台</h1><p>支持串口连接、文本与 HEX 收发、日志过滤、定时发送和文件保存。</p><span class="local-badge">● 串口数据本地处理 · 不上传 · 可选自动保存</span></section>
+<section class="intro"><p class="eyebrow">07 / SERIAL WORKBENCH</p><h1>串口调试台</h1><p>支持文本与 HEX 收发、本地保存、测试会话、日志检查和实时数值曲线。</p><span class="local-badge">● 串口数据本地处理 · 不上传 · 可选自动保存</span></section>
 <noscript><p class="error">请启用 JavaScript 使用串口调试台。</p></noscript>
 <p id="support" class="hint">正在检测 Web Serial 支持情况…</p>
 <section class="panel connection" aria-labelledby="connection-heading">
@@ -65,6 +65,25 @@
 <p class="hint">单文件模式追加已有内容；按时间模式在所选目录生成带本地时间及其时区偏移、会话标识和序号的新文件，遇到重名会另取名字。请勿同时用其他程序编辑。状态中的“已提交”表示写入流已关闭成功。强制关闭网页、浏览器崩溃或休眠可能丢失尚未提交的数据，离开前请取消勾选并等待“保存已结束”。例如 10:20 启用、间隔 60 分钟，会在约 11:20、12:20 切换文件，并非整点切换。后台调度可能推迟切换，恢复后不补建休眠期间的空白文件。大文件频繁提交可能变慢，可缩短分文件间隔。</p>
 </details>
 <details><summary>保存与导出</summary><div class="actions"><button id="export-log">导出筛选文本 .log</button><button id="export-rx">原始接收 .bin</button><button id="export-tx">原始发送 .bin</button><button id="export-json">原始收发 .json</button></div><p class="hint">导出当前缓存。文本导出遵循显示选项与筛选；HEX 模式导出完整缓存中的匹配 HEX 行。BIN 不加时间戳、不转换编码；JSON 保留每块方向、接收 / 发送时间与 HEX。清空或刷新后缓存无法恢复，长时间采集可开启自动保存。</p></details>
+</section>
+<section class="panel experiment-panel" aria-labelledby="experiment-heading">
+<div class="panel-heading"><h2 id="experiment-heading">测试会话与曲线</h2><span>本地记录 · 手动结束后判断</span></div>
+<p class="hint">为一次操作命名，记录标记与完整接收行。只保留最近一次会话；开始新会话会替换旧记录，请先导出。刷新页面会丢失会话。</p>
+<fieldset id="experiment-options"><div class="filter-grid">
+<label>会话名称<input id="experiment-name" maxlength="80" value="串口观察" placeholder="例如：启动自检"></label>
+<label>必须出现（每行一条）<textarea id="experiment-expect" rows="3" maxlength="2500" placeholder="BOOT OK&#10;SELFTEST OK"></textarea></label>
+<label>禁止出现（每行一条）<textarea id="experiment-forbid" rows="3" maxlength="2500" placeholder="PANIC&#10;FATAL"></textarea></label>
+</div></fieldset>
+<p class="hint">区分大小写、纯文本包含匹配，最多各 20 条。仅检查会话内完整 RX 行；发送内容、手动标记、显示筛选与清屏不参与判定。先开始会话，再手动执行设备操作；会话按钮不会发送命令。</p>
+<div class="actions"><button id="experiment-start" class="primary" disabled>开始会话</button><button id="experiment-stop" disabled>结束并检查</button><button id="experiment-demo">体验会话与曲线</button><button id="experiment-export" disabled>导出会话 JSON</button><button id="plot-export" disabled>导出曲线 CSV</button></div>
+<p id="experiment-status" class="status" role="status">未开始会话</p>
+<p id="experiment-evidence" class="hint"></p>
+<div class="option-row"><label class="marker-input">事件标记<input id="experiment-marker" maxlength="200" placeholder="例如：按下按键"></label><button id="experiment-mark" disabled>添加标记</button></div>
+<ol id="experiment-markers" class="experiment-markers" aria-label="本次会话事件标记"></ol>
+<div class="plot-heading"><label>曲线通道<select id="plot-channel" aria-label="曲线通道"><option value="">等待 !p 数据</option></select></label><span id="plot-summary" class="hint">开始会话后，识别 !p 毫秒计数 名称=数值。</span></div>
+<canvas id="experiment-plot" width="1000" height="260" role="img" aria-label="会话数值曲线，尚无数据"></canvas>
+<details><summary>格式、容量与判定说明</summary><p class="hint">曲线示例：<code>!p 1000 temperature=25.6 battery=3.12</code>。通道名为 1–32 个 ASCII 字符，以字母或下划线开头，可包含数字、点、短横线；数值支持整数、小数和科学计数法。横轴使用设备毫秒计数；计数回退会分段，只画当前通道最后一段。设备标记支持 <code>!m @1000 按键触发</code> 或 <code>!m 按键触发</code>，列表按浏览器接收时间排列。</p><p class="hint">会话保留最近 2,000 行且最多 1 Mi 字符、100 条标记、8 个通道且每通道 600 点。曲线与标记独立淘汰，导出含淘汰计数；接收行淘汰、读取错误、后台切换、断开或不完整行会阻止“通过”。未配置条件时只记录；空数据不通过。检查结果仅表示本次日志满足所填条件，不等于设备功能验收。结束前仍为观察中，避免漏掉稍后出现的错误。</p></details>
+<p class="hint attribution">功能思路与 <code>!p</code> / <code>!m</code> 文本格式参考 <a href="https://github.com/dwatman/mcuscope" target="_blank" rel="noopener noreferrer">dwatman / MCUscope（MIT）</a>。本站独立实现浏览器版本，仅支持上述文本子集。<a href="/posts/mcuscope-web-serial-experiments-guide/">阅读设计与使用说明 →</a></p>
 </section>
 <aside class="send-column">
 <section class="panel" aria-labelledby="send-heading"><div class="panel-heading"><h2 id="send-heading">发送工作台</h2><span>Ctrl / ⌘ + Enter</span></div>
